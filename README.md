@@ -1,4 +1,4 @@
-# Campus IoT Bin Dashboard
+# Campus IoT Bin Dashboard Test
 
 A real-time dashboard for monitoring campus trash bin fill levels and battery statuses using a simulated IoT hardware pipeline, Supabase, and a FastAPI backend service.
 
@@ -17,10 +17,10 @@ The database relies on two tables and an automated trigger to process incoming t
 
 |Table|Purpose|Key Columns|
 |-|-|-|
-|`bins`|Current state for the React map|`id`, `lat`, `long`, `fill\_level`, `battery\_level`, `time`|
-|`telemetry\_logs`|Time-series historical data|`id`, `bin\_id`, `fill\_level`, `battery\_level`, `time`|
+|`bins`|Current state for the React map|`id`, `lat`, `long`, `fill_level`, `battery_level`, `time`|
+|`telemetry_logs`|Time-series historical data|`id`, `bin_id`, `fill_level`, `battery_level`, `time`|
 
-> \*\*Automation Note:\*\* An `AFTER INSERT` trigger on `telemetry\_logs` automatically updates `fill\_level`, `battery\_level`, and `time` on the corresponding record in `bins`.
+> \*\*Automation Note:\*\* An `AFTER INSERT` trigger on `telemetry_logs` automatically updates `fill_level`, `battery_level`, and `time` on the corresponding record in `bins`.
 
 ## Prerequisites
 
@@ -34,15 +34,15 @@ Create two `.env` files locally before running the services (these are ignored b
 **1. Frontend (`frontend/.env`)**:
 
 ```text
-VITE\_SUPABASE\_URL=your\_supabase\_project\_url
-VITE\_SUPABASE\_ANON\_KEY=your\_supabase\_anon\_key
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 **2. Backend (`backend/.env`)**:
 
 ```text
-SUPABASE\_URL=your\_supabase\_project\_url
-SUPABASE\_KEY=your\_supabase\_service\_role\_key
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_KEY=your_supabase_service_role_key
 ```
 
 \---
@@ -80,7 +80,7 @@ cd backend
 
 ```bash
   python -m venv venv
-  .\\venv\\Scripts\\activate
+  .\venv\Scripts\activate
   ```
 
 > \*\*Note:\*\* Ensure `(venv)` appears at the start of your terminal prompt before installing packages.
@@ -90,7 +90,7 @@ cd backend
 Install all required libraries directly in your active virtual environment:
 
 ```bash
-pip install fastapi "uvicorn\[standard]" supabase python-dotenv
+pip install fastapi uvicorn supabase python-dotenv
 ```
 
 #### Step C: Run the API Server
@@ -106,6 +106,8 @@ The API server will run at `http://127.0.0.1:8000`.
 #### Step D: Run the Hardware Simulator
 
 In a separate terminal (with the virtual environment activated), start the telemetry simulator:
+
+> \*\*Note:\*\* Ensure `(venv)` appears at the start of your terminal prompt.
 
 ```bash
 python simulator.py
