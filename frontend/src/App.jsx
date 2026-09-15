@@ -4,6 +4,10 @@ import { createClient } from '@supabase/supabase-js';
 
 import 'leaflet/dist/leaflet.css'; 
 
+//components
+import Sidebar from './Sidebar';
+
+
 const getBinColor = (fill_level) =>{
     if (fill_level >= 80) return '#ff4f34';
     if (fill_level >= 50) return '#f59e0b'; 
@@ -51,40 +55,47 @@ function App() {
 
   return (
     // We force the map's container to take up the full screen
-    <div style={{ height: '100vh', width: '100vw' }}>
-      <MapContainer 
-        center={defaultCenter} 
-        zoom={17}
-        minZoom={17}
-        maxBounds={mapBounds}
-        maxBoundsViscosity={0.6}
-        style={{ height: '100%', width: '100%' }}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        />
+    <div className="flex h-screen w-screen">
+      {/* first item in flex */}
+      <Sidebar/>
+      {/* second item in flex */}
+      <div className='flex-1'>
+        <MapContainer 
+          center={defaultCenter} 
+          zoom={17}
+          minZoom={17}
+          maxBounds={mapBounds}
+          maxBoundsViscosity={0.6}
+          style={{ height: '100%', width: '100%' }}
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          />
 
-        {bins.map((bin) => (
-          <CircleMarker 
-          key={bin.id} 
-          center={[bin.lat, bin.long]}
-          radius={15}
-          pathOptions={{
-            color: getBinColor(bin.fill_level),
-            fillColor: getBinColor(bin.fill_level),
-            fillOpacity: 1,
-            weight: 2
-          }}>
-            <Popup>
-              Bin ID: {bin.id} <br />
-              Fill Level: {bin.fill_level}%
-            </Popup>
-          </CircleMarker>
-        ))}
+          {bins.map((bin) => (
+            <CircleMarker 
+            key={bin.id} 
+            center={[bin.lat, bin.long]}
+            radius={15}
+            pathOptions={{
+              color: getBinColor(bin.fill_level),
+              fillColor: getBinColor(bin.fill_level),
+              fillOpacity: 1,
+              weight: 2
+            }}>
+              <Popup>
+                Bin ID: {bin.id} <br />
+                Fill Level: {bin.fill_level}%
+              </Popup>
+            </CircleMarker>
+          ))}
 
-      </MapContainer>
+        </MapContainer>
+      </div>
     </div>
+
+    
   );
 }
 
