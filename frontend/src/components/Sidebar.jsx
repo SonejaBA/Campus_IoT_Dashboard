@@ -3,13 +3,15 @@ function Sidebar(){
         //flex and flex-col required for vertical gaps
         <div className="
         flex
-        flex-col 
-        w-80 
-        h-full 
+        flex-col
+        h-full
+        w-80
         bg-slate-800 
         text-white 
         p-6
-        gap-4">
+        gap-4
+        hidden md:block
+        ">
             <h1 className="font-bold text-4xl">
                 Sustainability Bin Tracker
             </h1>

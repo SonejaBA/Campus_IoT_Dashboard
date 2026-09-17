@@ -25,10 +25,12 @@ function DashboardMap({ bins }){
             <MapContainer 
             center={defaultCenter} 
             zoom={17}
-            minZoom={17}
+            minZoom={16}
             maxBounds={mapBounds}
             maxBoundsViscosity={0.6}
-            style={{ height: '100%', width: '100%' }}
+            className='h-full w-full'
+            zoomControl={false}
+            attributionControl={false}
             >
             <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
