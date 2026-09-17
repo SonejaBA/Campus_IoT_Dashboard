@@ -6,26 +6,26 @@ A real-time dashboard for monitoring campus trash bin fill levels and battery st
 
 This system processes time-series telemetry data via a two-table database architecture and a Python middleware backend API.
 
-* **Frontend**: React, Vite, React-Leaflet
-* **Backend API**: Python, FastAPI, Uvicorn
-* **IoT Hardware Simulator**: Python (`simulator.py`)
-* **Database**: Supabase (PostgreSQL + Realtime WebSockets)
+- **Frontend**: React, Vite, React-Leaflet
+- **Backend API**: Python, FastAPI, Uvicorn
+- **IoT Hardware Simulator**: Python (`simulator.py`)
+- **Database**: Supabase (PostgreSQL + Realtime WebSockets)
 
 ## Database Schema
 
 The database relies on two tables and an automated trigger to process incoming telemetry pings.
 
-|Table|Purpose|Key Columns|
-|-|-|-|
-|`bins`|Current state for the React map|`id`, `lat`, `long`, `fill_level`, `battery_level`, `time`|
-|`telemetry_logs`|Time-series historical data|`id`, `bin_id`, `fill_level`, `battery_level`, `time`|
+| Table            | Purpose                         | Key Columns                                                |
+| ---------------- | ------------------------------- | ---------------------------------------------------------- |
+| `bins`           | Current state for the React map | `id`, `lat`, `long`, `fill_level`, `battery_level`, `time` |
+| `telemetry_logs` | Time-series historical data     | `id`, `bin_id`, `fill_level`, `battery_level`, `time`      |
 
 > \*\*Automation Note:\*\* An `AFTER INSERT` trigger on `telemetry_logs` automatically updates `fill_level`, `battery_level`, and `time` on the corresponding record in `bins`.
 
 ## Prerequisites
 
-* **Node.js** (v18+ recommended)
-* **Python** (v3.10+ recommended)
+- **Node.js** (v18+ recommended)
+- **Python** (v3.10+ recommended)
 
 ## Environment Setup
 
@@ -34,14 +34,14 @@ Create two `.env` files locally before running the services (these are ignored b
 **1. Frontend (`frontend/.env`)**:
 
 ```text
-VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_CLIENT=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 **2. Backend (`backend/.env`)**:
 
 ```text
-SUPABASE_URL=your_supabase_project_url
+SUPABASE_CLIENT=your_supabase_project_url
 SUPABASE_KEY=your_supabase_service_role_key
 ```
 
@@ -69,19 +69,19 @@ cd backend
 
 #### Step A: Create and Activate Virtual Environment
 
-* **macOS / Linux**:
+- **macOS / Linux**:
 
 ```bash
   python3 -m venv venv
   source venv/bin/activate
-  ```
+```
 
-* **Windows (Command Prompt / PowerShell)**:
+- **Windows (Command Prompt / PowerShell)**:
 
 ```bash
   python -m venv venv
   .\venv\Scripts\activate
-  ```
+```
 
 > \*\*Note:\*\* Ensure `(venv)` appears at the start of your terminal prompt before installing packages.
 
@@ -112,4 +112,3 @@ In a separate terminal (with the virtual environment activated), start the telem
 ```bash
 python simulator.py
 ```
-
