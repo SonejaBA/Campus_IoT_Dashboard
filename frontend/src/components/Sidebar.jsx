@@ -14,7 +14,7 @@ function Sidebar(){
         flex-col
         h-full
         w-90
-        bg-[#262626] 
+        bg-[#1E1E1E] 
         text-white 
         p-6
         gap-4
@@ -22,11 +22,11 @@ function Sidebar(){
             <img
                 src={wordLogo}
                 alt='Sacramento State Sustainability'
-                className="h-32 w-auto object-contain object-[-20%_center]">
+                className="h-32 w-auto object-contain object-[-4%_center]">
                       
             </img>
 
-            <p className="text-emerald-400 text-xl">
+            <p className="text-[#0F583D] text-xl">
                 Coming soon.
             </p>
         </div>
