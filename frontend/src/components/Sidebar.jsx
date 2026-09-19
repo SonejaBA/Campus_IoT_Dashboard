@@ -1,7 +1,10 @@
 import { useState } from 'react'
 import treeLogo from "../assets/treeLogo.png";
 import wordLogo from "../assets/wordLogo.png";
-import { PanelLeftOpen, PanelLeftClose} from 'lucide-react';
+import { PanelLeftClose } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { MapPin, BarChart3, Wrench } from 'lucide-react';
+
 
 function Sidebar(){
 
@@ -22,34 +25,53 @@ function Sidebar(){
         text-white 
         p-6
         gap-4
-        ${isOpen ? "w-80" : "w-25"}
+        ${isOpen ? "w-80" : "w-28"}
         transition-all
         duration-200
         `}> 
-            <div className='flex flex-row justify-between'>
+            {/*Logo and sidebar colapase button */}
+            <div className={`flex flex-row  mb-6 ${isOpen ? "justify-between" : "justify-center px-0"}`}>
                 <img
                     onClick={handleLogoClick}
                     src={isOpen ? wordLogo : treeLogo}
                     alt='Sacramento State Sustainability'
+                    title="Open sidebar"
                     className={`
-                        w-auto 
-                        object-contain 
-                        object-[-4%_center] 
+                        w-auto
+                        object-contain
                         cursor-pointer
-                        ${isOpen ? "h-20 cursor-default pointer-events-none" : "h-10"}`}/>
+                        ${isOpen ? "h-20 cursor-default pointer-events-none" : "h-10 justify-center "}`}/>
 
                 <button 
                     onClick={() => setIsOpen(!isOpen)}
+                    title="Close sidebar"
                     className={`${isOpen ? "block" : "hidden"} cursor-pointer
                     text-[#F2F2F3] aria-label="Collapse Sidebar"`}>
                         <PanelLeftClose className="w-5 h-5 " />
                 </button>
             </div>
             
+            <nav className='flex-1 flex-col gap-2 px-1'>
+                <Link
+                    to="/"
+                    className={`flex items-center py-2 rounded-lg hover:bg-emerald-900/50 transition-colors text-white ${isOpen ? "justify-start gap-4" : "justify-center px-0"}`}>
 
-            <p className="text-[#0F583D] text-xl">
-                
-            </p>
+                        <MapPin className="shrink-0"/>
+                        <span className={`${isOpen ? "block" : "hidden"} font-medium whitespace-nowrap`}>
+                            Dashboard
+                        </span>
+                </Link>
+
+                <Link
+                    to="/analytics"
+                    className={`flex items-center py-2 rounded-lg hover:bg-emerald-900/50 transition-colors text-white ${isOpen ? "justify-start gap-4" : "justify-center px-0"}`}>
+
+                        <BarChart3 className="shrink-0"/>
+                        <span className={`${isOpen ? "block" : "hidden"} font-medium whitespace-nowrap`}>
+                            Analytics
+                        </span>
+                </Link>
+            </nav>
         </div>
     )
 }

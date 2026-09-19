@@ -22,11 +22,11 @@ const createBinIcon = (fillLevel) => {
     return L.divIcon({
         className: 'bg-transparent',
         html: `<div
-                class= "h-6 w-6 ${colorClass} rounded-full border-2 border-slate-700 shadow-md transition-transform  hover:scale-200"
+                class= "h-4 w-4 ${colorClass} rounded-full border-2 border-slate-700 shadow-md transition-transform  hover:scale-250"
                 >
                </div>`,
-        iconSize: [36,36],
-        iconAnchor: [16,16]
+        iconSize: [16,16],
+        iconAnchor: [8,8]
     })
 }
 
@@ -54,7 +54,6 @@ function DashboardMap({ bins }){
                 <Marker 
                 key={bin.id} 
                 position={[bin.lat, bin.long]}
-                radius={15}
                 icon={createBinIcon(bin.fill_level)}
                 >
                     <Popup>
