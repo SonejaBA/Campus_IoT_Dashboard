@@ -3,7 +3,7 @@ import treeLogo from "../assets/treeLogo.png";
 import wordLogo from "../assets/wordLogo.png";
 import { PanelLeftClose } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { MapPin, BarChart3, Wrench } from 'lucide-react';
+import { MapPin, BarChart3, Settings, Wrench  } from 'lucide-react';
 
 
 function Sidebar(){
@@ -71,7 +71,28 @@ function Sidebar(){
                             Analytics
                         </span>
                 </Link>
-            </nav>
+                
+                <Link
+                    to="/maintenance"
+                    className={`flex items-center py-2 rounded-lg hover:bg-emerald-900/50 transition-colors text-white ${isOpen ? "justify-start gap-4" : "justify-center px-0"}`}>
+
+                        <Wrench className="shrink-0"/>
+                        <span className={`${isOpen ? "block" : "hidden"} font-medium whitespace-nowrap`}>
+                            Maintenance
+                        </span>
+                </Link>
+                       
+                <Link
+                    to="/settings"
+                    className={`flex items-center py-2 rounded-lg hover:bg-emerald-900/50 transition-colors text-white ${isOpen ? "justify-start gap-4" : "justify-center px-0"}`}>
+
+                        <Settings className="shrink-0"/>
+                        <span className={`${isOpen ? "block" : "hidden"} font-medium whitespace-nowrap`}>
+                            Settings
+                        </span>
+                </Link>
+
+            </nav> 
         </div>
     )
 }
