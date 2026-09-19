@@ -17,7 +17,8 @@ app = FastAPI()
 origins = [
     "http://localhost:5173",    # Standard Vite React port
     "http://127.0.0.1:5500",    # VS Code Live Server
-    "http://127.0.0.1:5173"
+    "http://127.0.0.1:5173",
+    "http://localhost:5174"
 ]
 
 #allows frontend to connect to server

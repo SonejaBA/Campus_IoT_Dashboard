@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+/* Mutes standard OSM colors so bin markers pop, but keeps building names clear */
+.map-tiles-muted .leaflet-tile {
+  filter: grayscale(40%) contrast(92%) brightness(102%) saturate(80%);
+}
+
+.map-tiles-dark .leaflet-tile {
+  filter: brightness(0.6) invert(1) hue-rotate(180deg) saturate(1.2) contrast(0.85);
+}
