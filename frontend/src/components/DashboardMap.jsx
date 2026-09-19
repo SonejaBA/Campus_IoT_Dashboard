@@ -1,22 +1,34 @@
-import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
-
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'; 
 
-const fullColor = '#ff4f34'
-const mediumColor = '#f59e0b'
-const lowColor = '#10b981'
+const fullColor = "bg-red-500"
+const mediumColor = "bg-amber-500"
+const lowColor = "bg-emerald-500"
 
-const getBinColor = (fill_level) =>{
-    if (fill_level >= 80) return fullColor;
-    if (fill_level >= 50) return mediumColor; 
-    return lowColor;
-}
+
 
 const defaultCenter = [38.559677, -121.423202]; 
 const mapBounds = [
-    [38.550113, -121.436225],   //south west
-    [38.567932, -121.413505]    //north east
+    [38.54839610772975, -121.43695538673354],   //south west
+    [38.57178820331364, -121.40755894841233]    //north east
 ]
+
+const createBinIcon = (fillLevel) => {
+    const colorClass = 
+        fillLevel > 80 ? fullColor : 
+        fillLevel > 50 ? mediumColor : lowColor;
+
+    return L.divIcon({
+        className: 'bg-transparent',
+        html: `<div
+                class= "h-6 w-6 ${colorClass} rounded-full border-2 border-slate-700 shadow-md transition-transform  hover:scale-200"
+                >
+               </div>`,
+        iconSize: [36,36],
+        iconAnchor: [16,16]
+    })
+}
 
 function DashboardMap({ bins }){
     
@@ -35,24 +47,21 @@ function DashboardMap({ bins }){
             <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                className='map-tiles-dark'
             />
 
             {bins.map((bin) => (
-                <CircleMarker 
+                <Marker 
                 key={bin.id} 
-                center={[bin.lat, bin.long]}
+                position={[bin.lat, bin.long]}
                 radius={15}
-                pathOptions={{
-                color: getBinColor(bin.fill_level),
-                fillColor: getBinColor(bin.fill_level),
-                fillOpacity: 1,
-                weight: 2
-                }}>
+                icon={createBinIcon(bin.fill_level)}
+                >
                     <Popup>
                         Bin ID: {bin.id} <br />
                         Fill Level: {bin.fill_level}%
                     </Popup>
-                </CircleMarker>
+                </Marker>
             ))}
             </MapContainer>
         </div>
