@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from supabase import create_client, Client
 from dotenv import load_dotenv
@@ -42,3 +42,21 @@ def get_bins():
     
     # Return just the data portion of the Supabase response
     return response.data
+
+
+@app.get("/api/health")
+def health_check():
+    try:
+        supabase.table("bins").select("id").limit(1).execute()
+        return {
+            "status": "online",
+            "database": "connected"
+        }
+    except Exception:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "status": "offline",
+                "database": "disconnected"
+            }
+        )
