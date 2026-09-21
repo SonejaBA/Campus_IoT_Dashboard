@@ -57,7 +57,7 @@ def get_bin_logs(bin_id):
         .execute()
     )
     # Return the readings, or [] if none match; FastAPI sends them as JSON.
-    return response.data
+    return response.data[::-1]
 
 @app.get("/api/health")
 def health_check():
