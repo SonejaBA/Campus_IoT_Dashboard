@@ -44,6 +44,21 @@ def get_bins():
     return response.data
 
 
+@app.get("/api/analytics/{bin_id}")
+def get_bin_logs(bin_id):
+    # Get this bin's latest 100 readings from the telemetry_logs table.
+    response = (
+        supabase
+        .table("telemetry_logs")
+        .select("*")
+        .eq("bin_id", bin_id)
+        .order("time", desc=True)
+        .limit(100)
+        .execute()
+    )
+    # Return the readings, or [] if none match; FastAPI sends them as JSON.
+    return response.data[::-1]
+
 @app.get("/api/health")
 def health_check():
     try:
@@ -60,3 +75,5 @@ def health_check():
                 "database": "disconnected"
             }
         )
+
+    
