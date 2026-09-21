@@ -103,7 +103,6 @@ def interval_validation() -> int:
             interval = int(input("Enter an interval between [1-10]: "))
             if (interval < 1 or interval > 10):
                 print("Must be between [1-10]")
-                break
             else:
                 return interval
         except ValueError:
