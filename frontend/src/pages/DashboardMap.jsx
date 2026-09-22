@@ -1,12 +1,12 @@
+import { useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'; 
+import 'leaflet/dist/leaflet.css';
+import { Filter, ChevronDown } from 'lucide-react';
 
 const fullColor = "bg-red-500"
 const mediumColor = "bg-amber-500"
 const lowColor = "bg-emerald-500"
-
-
 
 const defaultCenter = [38.559677, -121.423202]; 
 const mapBounds = [
@@ -30,38 +30,90 @@ const createBinIcon = (fillLevel) => {
     })
 }
 
-function DashboardMap({ bins }){
-    
-    return (
-        <div className='flex-1'>
-            <MapContainer 
-            center={defaultCenter} 
-            zoom={17}
-            minZoom={16}
-            maxBounds={mapBounds}
-            maxBoundsViscosity={0.6}
-            className='h-full w-full'
-            zoomControl={false}
-            attributionControl={false}
-            >
-            <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                className='map-tiles-dark'
-            />
+const filterOptions = [
+    { value: "all", label: "All bins" },
+    { value: "green", label: "Green (0–49%)" },
+    { value: "yellow", label: "Yellow (50–79%)" },
+    { value: "red", label: "Red (80–100%)" },
+];
 
-            {bins.map((bin) => (
-                <Marker 
-                key={bin.id} 
-                position={[bin.lat, bin.long]}
-                icon={createBinIcon(bin.fill_level)}
-                >
-                    <Popup>
-                        Bin ID: {bin.id} <br />
-                        Fill Level: {bin.fill_level}%
-                    </Popup>
-                </Marker>
-            ))}
+function FilterButton({ activeFilter, onSelect }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const activeLabel = filterOptions.find(o => o.value === activeFilter).label;
+
+    return (
+        <div className="absolute top-4 right-4 z-[1000]">
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg shadow-md"
+            >
+                <Filter size={16} />
+                {activeLabel}
+                <ChevronDown size={14} className={isOpen ? "rotate-180 transition-transform" : "transition-transform"} />
+            </button>
+
+            {isOpen && (
+                <div className="mt-2 bg-slate-800 text-white rounded-lg shadow-md overflow-hidden">
+                    {filterOptions.map((option) => (
+                        <button
+                            key={option.value}
+                            onClick={() => {
+                                onSelect(option.value);
+                                setIsOpen(false);
+                            }}
+                            className="block w-full text-left px-4 py-2 hover:bg-slate-700"
+                        >
+                            {option.label}
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function DashboardMap({ bins }){
+    const [activeFilter, setActiveFilter] = useState("all");
+
+    const filteredBins = bins.filter((bin) => {
+        if (activeFilter === "all") return true;
+        if (activeFilter === "green") return bin.fill_level <= 49;
+        if (activeFilter === "yellow") return bin.fill_level > 50 && bin.fill_level <= 79;
+        if (activeFilter === "red") return bin.fill_level > 80;
+        return true;
+    });
+
+    return (
+        <div className='flex-1 relative'>
+            <FilterButton activeFilter={activeFilter} onSelect={setActiveFilter} />
+            <MapContainer 
+                center={defaultCenter} 
+                zoom={17}
+                minZoom={16}
+                maxBounds={mapBounds}
+                maxBoundsViscosity={0.6}
+                className='h-full w-full'
+                zoomControl={false}
+                attributionControl={false}
+            >
+                <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    className='map-tiles-dark'
+                />
+
+                {filteredBins.map((bin) => (
+                    <Marker 
+                        key={bin.id} 
+                        position={[bin.lat, bin.long]}
+                        icon={createBinIcon(bin.fill_level)}
+                    >
+                        <Popup>
+                            Bin ID: {bin.id} <br />
+                            Fill Level: {bin.fill_level}%
+                        </Popup>
+                    </Marker>
+                ))}
             </MapContainer>
         </div>
     )
