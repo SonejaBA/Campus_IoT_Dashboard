@@ -15,7 +15,7 @@ function MobileNav() {
             top-2
             left-2 
             z-[2000] 
-            p-1 
+            p-2
             bg-[#1E1E1E]/40 
             text-white 
             rounded-lg 

@@ -26,11 +26,13 @@ function Sidebar() {
         h-full
         bg-[#1E1E1E] 
         text-white 
-        p-6
+        p-4
         gap-4
         ${isOpen ? "w-60" : "w-20"}
         transition-all
         duration-200
+        border-r-2
+        border-[#adadad]
         `}
     >
       {/*Logo and sidebar colapase button */}
