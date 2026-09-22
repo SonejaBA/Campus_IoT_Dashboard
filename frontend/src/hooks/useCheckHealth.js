@@ -14,6 +14,10 @@ function checkHealth(){
                 setIsHealthy(false)
             }
         })
+        .catch(error => {
+                console.error("Server is completely unreachable:", error);
+                setIsHealthy(false);
+        });
     }, [])
     return isHealthy;
 }
