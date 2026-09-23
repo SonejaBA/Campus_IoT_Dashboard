@@ -1,8 +1,20 @@
-import { LineChart, Line, CartesianGrid, XAxis, YAxis } from 'recharts';
-
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from "recharts";
+import { useBinAnalytics } from '../hooks/useBinAnalytics';
 
 
 function Analytics(){
+  const data = useBinAnalytics(2);
+
+
     return (
         //flex 1 since its going to be under a flex parent
         <div className="flex-1 bg-[#262626] text-white p-10 h-full">
@@ -18,13 +30,9 @@ function Analytics(){
                     bg-[#1E1E1E]
                     rounded-xl
                     ">
-                    <h2 className="
-                        text-[#F2F2F3]
-                        text-2xl
-                        font-bold
-                        p-4">
-                        Empty Bins
-                    </h2>
+                    <ResponsiveContainer>
+                        
+                    </ResponsiveContainer>
                 </div>
             </div>
         </div>
