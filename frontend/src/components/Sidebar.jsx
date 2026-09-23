@@ -23,7 +23,7 @@ function Sidebar() {
         hidden 
         md:flex
         flex-col
-        h-
+        h-full
         bg-[#1E1E1E] 
         text-white 
         p-4
