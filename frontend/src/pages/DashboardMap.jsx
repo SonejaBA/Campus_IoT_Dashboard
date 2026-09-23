@@ -16,8 +16,8 @@ const mapBounds = [
 
 const createBinIcon = (fillLevel) => {
     const colorClass = 
-        fillLevel > 80 ? fullColor : 
-        fillLevel > 50 ? mediumColor : lowColor;
+        fillLevel >= 80 ? fullColor : 
+        fillLevel >= 50 ? mediumColor : lowColor;
 
     return L.divIcon({
         className: 'bg-transparent',
@@ -78,8 +78,8 @@ function DashboardMap({ bins }){
     const filteredBins = bins.filter((bin) => {
         if (activeFilter === "all") return true;
         if (activeFilter === "green") return bin.fill_level <= 49;
-        if (activeFilter === "yellow") return bin.fill_level > 50 && bin.fill_level <= 79;
-        if (activeFilter === "red") return bin.fill_level > 80;
+        if (activeFilter === "yellow") return bin.fill_level >= 50 && bin.fill_level <= 79;
+        if (activeFilter === "red") return bin.fill_level >= 80;
         return true;
     });
 
