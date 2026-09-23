@@ -11,16 +11,13 @@ function MobileNav() {
         onClick={() => setIsOpen(true)}
         className={`
             md:hidden 
-            fixed 
-            top-2
-            left-2 
             z-[2000] 
-            p-1 
+            p-2
             bg-[#1E1E1E]/40 
             text-white 
             rounded-lg 
             cursor-pointer
-            ${isOpen ? "hidden" : "fixed"}`}
+            ${isOpen ? "hidden" : "flex"}`}
       >
         <Menu />
       </button>

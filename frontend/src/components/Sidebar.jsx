@@ -26,16 +26,18 @@ function Sidebar() {
         h-full
         bg-[#1E1E1E] 
         text-white 
-        p-6
+        p-4
         gap-4
         ${isOpen ? "w-60" : "w-20"}
         transition-all
         duration-200
+        border-r-2
+        border-[#adadad]
         `}
     >
       {/*Logo and sidebar colapase button */}
       <div
-        className={`flex flex-row  mb-6 ${isOpen ? "justify-between" : "justify-center px-0"} items-center`}
+        className={`flex flex-row mb-6 ${isOpen ? "justify-between" : "justify-center px-0"} items-center -mt-1`}
       >
         <img
           onClick={handleLogoClick}
