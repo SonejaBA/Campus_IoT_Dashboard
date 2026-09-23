@@ -26,16 +26,18 @@ function Sidebar() {
         h-full
         bg-[#1E1E1E] 
         text-white 
-        p-6
+        p-4
         gap-4
-        ${isOpen ? "w-80" : "w-28"}
+        ${isOpen ? "w-60" : "w-20"}
         transition-all
         duration-200
+        border-r-2
+        border-[#adadad]
         `}
     >
       {/*Logo and sidebar colapase button */}
       <div
-        className={`flex flex-row  mb-6 ${isOpen ? "justify-between" : "justify-center px-0"} items-center`}
+        className={`flex flex-row mb-6 ${isOpen ? "justify-between" : "justify-center px-0"} items-center -mt-1`}
       >
         <img
           onClick={handleLogoClick}
@@ -73,15 +75,18 @@ function Sidebar() {
       <nav className="flex-1 flex-col gap-2 px-1">
         <Link
           to="/"
+          title={isOpen ? "" : "Dashboard"}
           className={`  flex 
                         items-center 
                         py-2 
                         rounded-lg 
-                        hover:bg-gradient-to-r
-                        hover:from-emerald-900/80
-                        hover:to-emerald-900/20
+                        ${
+                          isOpen
+                            ? "hover:bg-gradient-to-r hover:from-emerald-900/80 hover:to-emerald-900/20"
+                            : "hover:bg-emerald-900/80"
+                        }
                         transition-colors 
-                        text-white 
+                        text-white
                         ${
                           isOpen
                             ? "justify-start gap-4 "
@@ -98,13 +103,16 @@ function Sidebar() {
 
         <Link
           to="/analytics"
+          title={isOpen ? "" : "Analytics"}
           className={`  flex 
                         items-center 
                         py-2 
                         rounded-lg 
-                        hover:bg-gradient-to-r
-                        hover:from-emerald-900/80
-                        hover:to-emerald-900/20
+                        ${
+                          isOpen
+                            ? "hover:bg-gradient-to-r hover:from-emerald-900/80 hover:to-emerald-900/20"
+                            : "hover:bg-emerald-900/80"
+                        }
                         transition-colors 
                         text-white 
                         ${
@@ -123,13 +131,16 @@ function Sidebar() {
 
         <Link
           to="/maintenance"
+          title={isOpen ? "" : "Maintenance"}
           className={`  flex 
                         items-center 
                         py-2 
                         rounded-lg 
-                        hover:bg-gradient-to-r
-                        hover:from-emerald-900/80
-                        hover:to-emerald-900/20
+                        ${
+                          isOpen
+                            ? "hover:bg-gradient-to-r hover:from-emerald-900/80 hover:to-emerald-900/20"
+                            : "hover:bg-emerald-900/80"
+                        }
                         transition-colors 
                         text-white 
                         ${
@@ -148,13 +159,16 @@ function Sidebar() {
 
         <Link
           to="/settings"
+          title={isOpen ? "" : "Settings"}
           className={`  flex 
                         items-center 
                         py-2 
                         rounded-lg 
-                        hover:bg-gradient-to-r
-                        hover:from-emerald-900/80
-                        hover:to-emerald-900/20
+                        ${
+                          isOpen
+                            ? "hover:bg-gradient-to-r hover:from-emerald-900/80 hover:to-emerald-900/20"
+                            : "hover:bg-emerald-900/80"
+                        }
                         transition-colors 
                         text-white 
                         ${
