@@ -76,7 +76,7 @@ function Header() {
   const currentPath = location.pathname;
 
   return (
-    <div className="bg-[#1E1E1E] text-white p-4 h-15 items-center justify-between flex flex-row border-b-2 border-[#adadad]">
+    <div className="bg-[#1E1E1E] text-white p-4 h-14 items-center justify-between flex flex-row border-b-2 border-[#adadad]">
       <div className="gap-2 items-center flex ">
         <MobileNav />
         <h1 className="font-medium md:hidden"> {pageTitles[currentPath]} </h1>

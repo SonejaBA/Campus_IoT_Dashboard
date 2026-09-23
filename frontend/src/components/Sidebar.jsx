@@ -37,7 +37,7 @@ function Sidebar() {
     >
       {/*Logo and sidebar colapase button */}
       <div
-        className={`flex flex-row  mb-6 ${isOpen ? "justify-between" : "justify-center px-0"} items-center`}
+        className={`flex flex-row mb-6 ${isOpen ? "justify-between" : "justify-center px-0"} items-center -mt-1`}
       >
         <img
           onClick={handleLogoClick}
