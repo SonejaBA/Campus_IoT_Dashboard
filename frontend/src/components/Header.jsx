@@ -39,9 +39,14 @@ function StatusDot({ serverHealthy }) {
 function Header() {
   const isHealthy = checkHealth();
   return (
-    <div className="bg-[#1E1E1E] text-white p-4 h-15 items-center justify-end flex flex-row gap-2 border-b-2 border-[#adadad]">
+    <div
+      title="Database Health"
+      className="bg-[#1E1E1E] text-white p-4 h-15 items-center justify-end flex flex-row gap-2 border-b-2 border-[#adadad]"
+    >
       <StatusDot serverHealthy={isHealthy} />
-      <h1 className="font-medium">{isHealthy ? "System online" : "System offline"}</h1>
+      <h1 className="font-medium">
+        {isHealthy ? "System online" : "System offline"}
+      </h1>
     </div>
   );
 }
