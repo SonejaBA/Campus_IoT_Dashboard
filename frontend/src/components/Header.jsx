@@ -89,7 +89,7 @@ function Header() {
         </button>
         <Tally1/>
         <StatusDot serverHealthy={isHealthy} />
-        <h1 className="font-medium hidden sm:block">
+        <h1 className="font-medium hidden md:block">
           {isHealthy ? "System online" : "System offline"}
         </h1>
       </div>
