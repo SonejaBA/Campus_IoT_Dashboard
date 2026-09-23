@@ -1,18 +1,8 @@
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-} from "recharts";
 import { useBinAnalytics } from '../hooks/useBinAnalytics';
 
 
 function Analytics(){
-  const data = useBinAnalytics(2);
+  const data = useBinAnalytics(3);
 
 
     return (
@@ -30,9 +20,6 @@ function Analytics(){
                     bg-[#1E1E1E]
                     rounded-xl
                     ">
-                    <ResponsiveContainer>
-                        
-                    </ResponsiveContainer>
                 </div>
             </div>
         </div>
