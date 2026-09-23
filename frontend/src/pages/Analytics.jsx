@@ -1,7 +1,3 @@
-import { LineChart, Line, CartesianGrid, XAxis, YAxis } from 'recharts';
-
-
-
 function Analytics(){
     return (
         //flex 1 since its going to be under a flex parent
