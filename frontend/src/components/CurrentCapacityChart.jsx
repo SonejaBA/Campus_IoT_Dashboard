@@ -24,7 +24,7 @@ function CustomTooltip({ active, payload, label }) {
   return null;
 }
 
-function CurrentCapacityChart({ bin }) {
+function CurrentCapacityChart({ bin, isPopup = false}) {
   if (!bin) return null;
 
   const data = [
@@ -33,12 +33,16 @@ function CurrentCapacityChart({ bin }) {
     { name: "Landfill", value: bin.landfill, color: "#5E4E3F" },
   ];
 
+  const chartMargin = isPopup 
+    ? { top: 5, right: 20, left: 0, bottom: 5 }  // Tighter margins for the map popup
+    : { top: 5, right: 70, left: 15, bottom: 5 }
+
   return (
     <ResponsiveContainer width="100%" height="100%">
       <BarChart
         layout="vertical"
         data={data}
-        margin={{ top: 5, right: 30, left: 15, bottom: 5 }}
+        margin={chartMargin}
       >
         <CartesianGrid strokeDasharray="7 7" opacity={0.5} horizontal={false}/>
         

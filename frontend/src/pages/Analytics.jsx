@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import BinCard from "../components/BinCard";
+import HistoricalBinCard from "../components/HistoricalBinCard";
 import CurrentBinCard from "../components/CurrentBinCard";
 
 function Analytics({ bins }) {
@@ -10,7 +10,7 @@ function Analytics({ bins }) {
   useEffect(() => {
     if (selectedBin === "" && bins.length > 0) {
       setSelectedBin(bins[0].id);
-      setSearchQuery(`Bin ${bins[0].id}`);
+      setSearchQuery("");
     }
   }, [bins, selectedBin]);
 
@@ -19,7 +19,7 @@ function Analytics({ bins }) {
       .toString()
       .toLowerCase()
       .includes(searchQuery.toLowerCase().replace(/[^\d]/g, "")),
-  );
+  ).sort((a, b) => a.id - b.id);
 
   const activeBin = bins.find((bin) => bin.id === selectedBin);
 
@@ -70,20 +70,23 @@ function Analytics({ bins }) {
         )}
       </div>
 
-      <div className=" grid grid-cols-2 gap-8 items-center">
+      <div className=" grid grid-cols-2 grid-rows-2 gap-8 items-center">
         {/*Historical Bin Data*/}
-        <div>
-          <h2 className="font-semibold text-lg mb-2 ml-1">
+        <div className="col-start-1 row-start-1 shadow-md">
+          <h2 className="font-semibold text-lg mb-2 ml-1 ">
             Historical Bin Data
           </h2>
-          <BinCard binID={selectedBin} />
+          <HistoricalBinCard binID={selectedBin} />
         </div>
-
-        <div>
-          <h2 className="font-semibold text-lg mb-2 ml-1">
+        {/*Current Bin Data*/}
+        <div className="col-start-2 row-start-1 shadow-md">
+          <h2 className="font-semibold text-lg mb-2 ml-1 ">
             Current Bin Data
           </h2>
-          <CurrentBinCard bin={activeBin} />
+          <div className="h-50 md:h-100 flex">
+            <CurrentBinCard bin={activeBin} />
+          </div>
+          
         </div>
       </div>
     </div>
