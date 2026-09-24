@@ -12,17 +12,19 @@ function App() {
   const bins = useBins();
   return (
     <BrowserRouter>
-      <div className="h-screen w-screen flex flex-row font-sans">
+      <div className="h-screen w-screen flex flex-row font-sans bg-[#262626]">
         <Sidebar/>
 
         <div className='flex-1 flex flex-col h-full w-full'>
           <Header/>
+          <main className='flex-1 flex flex-col overflow-y-auto'>
           <Routes>
             <Route path="/" element={<DashboardMap bins={bins} />}/>
             <Route path="/analytics" element={<Analytics/>} />
             <Route path="/settings" element={<Settings/>} />
             <Route path="/maintenance" element={<Maintenance/>} />
           </Routes>
+          </main>
         </div>
         
       </div>

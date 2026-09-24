@@ -5,7 +5,7 @@ import BinCard from "../components/BinCard";
 function Analytics() {
   return (
     //flex 1 since its going to be under a flex parent
-    <div className="flex-1 bg-[#262626] text-white p-10 h-full">
+    <div className="flex-1 bg-[#262626] text-white p-10 ">
       <h1 className="text-4xl font-bold text-[#F2F2F3] mb-6 hidden md:block">
         Analytics
       </h1>
@@ -22,7 +22,7 @@ function Analytics() {
                     rounded-xl
                     "
         >
-          <BinCard binID="200" />
+          <BinCard binID="2" />
         </div>
       </div>
     </div>
