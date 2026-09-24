@@ -1,8 +1,13 @@
+import AreaChartComponent from "./AreaChart";
 
-function BinCard(){
+function BinCard({binID}){
+
     return(
-        <div className="p-3 bg">
-
+        <div className="p-4 bg-[#1E1E1E] rounded-xl h-150 border-[#adadad] border-2 flex flex-col">
+            <span className="font-medium text-xl flex-1 mb-2">    
+                Bin {binID}
+            </span>
+            <AreaChartComponent binID={binID}/>
         </div>
     )
 }
