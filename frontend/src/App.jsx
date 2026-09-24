@@ -20,7 +20,7 @@ function App() {
           <main className='flex-1 flex flex-col overflow-y-auto'>
           <Routes>
             <Route path="/" element={<DashboardMap bins={bins} />}/>
-            <Route path="/analytics" element={<Analytics/>} />
+            <Route path="/analytics" element={<Analytics bins={bins}/>} />
             <Route path="/settings" element={<Settings/>} />
             <Route path="/maintenance" element={<Maintenance/>} />
           </Routes>

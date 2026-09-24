@@ -1,7 +1,7 @@
 import AreaChartComponent from "./AreaChart";
 
 function BinCard({binID}){
-
+    if (!binID) return;
     return(
         <div className="p-4 bg-[#1E1E1E] rounded-xl h-50 md:h-100 border-[#adadad] border-2 flex flex-col">
             <span className="font-medium text-xl flex-1 mb-2">    
