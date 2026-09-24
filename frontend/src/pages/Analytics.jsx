@@ -36,7 +36,7 @@ function Analytics({ bins }) {
           onBlur={() =>
             setTimeout(() => {
               setIsOpen(false);
-            }, 150)
+            }, 250)
           }
           onChange={(e) => setSearchQuery(e.target.value)}
           value={searchQuery}
