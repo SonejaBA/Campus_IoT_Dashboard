@@ -8,3 +8,18 @@
 .map-tiles-dark .leaflet-tile {
   filter: brightness(0.6) invert(1) hue-rotate(180deg) saturate(1.2) contrast(0.85);
 }
+
+.dark-popup .leaflet-popup-content-wrapper,
+.dark-popup .leaflet-popup-tip {
+  background-color: #1E1E1E; 
+  color: #f1f5f9;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+.dark-popup .leaflet-popup-close-button {
+  color: #94a3b8 !important;
+}
+
+.dark-popup .leaflet-popup-close-button:hover {
+  color: #ffffff !important;
+}

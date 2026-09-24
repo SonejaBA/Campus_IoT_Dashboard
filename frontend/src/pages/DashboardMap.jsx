@@ -3,6 +3,8 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Filter, ChevronDown } from "lucide-react";
+import CurrentBinCard from "../components/CurrentBinCard";
+import CurrentCapacityChart from "../components/CurrentCapacityChart";
 
 const fullColor = "bg-red-500";
 const mediumColor = "bg-amber-500";
@@ -124,9 +126,13 @@ function DashboardMap({ bins }) {
             position={[bin.lat, bin.long]}
             icon={createBinIcon(bin.fill_level)}
           >
-            <Popup>
-              Bin ID: {bin.id} <br />
-              Fill Level: {bin.fill_level}%
+            <Popup className="dark-popup">
+              <div className="h-50 w-70 flex flex-col">
+                <span className="flex-1 font-medium text-l flex-1 mb-2 mt-2">
+                  Bin {bin["id"]}
+                </span>
+                <CurrentCapacityChart bin={bin} isPopup={true} />
+              </div>
             </Popup>
           </Marker>
         ))}
