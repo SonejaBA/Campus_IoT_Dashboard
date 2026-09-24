@@ -57,10 +57,9 @@ function CustomTooltip({active, payload, label}){
     }
 }
 
-function AreaChartComponent({binID = 203}) {
+function AreaChartComponent({binID}) {
 
   const binData = useBinAnalytics(binID);
-
   return (
     <ResponsiveContainer width="100%" height="100%">
       <AreaChart data={binData} margin={{right: 50}}>

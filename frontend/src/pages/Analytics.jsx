@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import BinCard from "../components/BinCard";
+import CurrentBinCard from "../components/CurrentBinCard";
 
 function Analytics({ bins }) {
   const [selectedBin, setSelectedBin] = useState("");
@@ -14,8 +15,13 @@ function Analytics({ bins }) {
   }, [bins, selectedBin]);
 
   const filteredBins = bins.filter((bin) =>
-    bin.id.toString().toLowerCase().includes(searchQuery.toLowerCase().replace(/[^\d]/g, "")),
+    bin.id
+      .toString()
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase().replace(/[^\d]/g, "")),
   );
+
+  const activeBin = bins.find((bin) => bin.id === selectedBin);
 
   return (
     //flex 1 since its going to be under a flex parent
@@ -23,8 +29,7 @@ function Analytics({ bins }) {
       <h1 className="text-4xl font-bold text-[#F2F2F3] mb-3 hidden md:block">
         Analytics
       </h1>
-
-      {/*search for bins*/}
+      {/*Universal Search Bar*/}
       <div className="relative w-40 h-10 bg-[#1E1E1E] rounded-xl border-2 border-[#adadad] ml-auto">
         <input
           onFocus={() => setIsOpen(true)}
@@ -48,7 +53,7 @@ function Analytics({ bins }) {
                   key={bin.id}
                   onClick={() => {
                     setIsOpen(false);
-                    setSearchQuery(`Bin ${bin.id}`);
+                    setSearchQuery("");
                     setSelectedBin(bin.id);
                   }}
                   className="hover:bg-[#333232] rounded-sm m-1 cursor-pointer"
@@ -65,9 +70,20 @@ function Analytics({ bins }) {
         )}
       </div>
 
-      <div className=" grid grid-cols-1 gap-4">
-        <div className="bg-[#1E1E1E] rounded-xl">
+      <div className=" grid grid-cols-2 gap-8 items-center">
+        {/*Historical Bin Data*/}
+        <div>
+          <h2 className="font-semibold text-lg mb-2 ml-1">
+            Historical Bin Data
+          </h2>
           <BinCard binID={selectedBin} />
+        </div>
+
+        <div>
+          <h2 className="font-semibold text-lg mb-2 ml-1">
+            Current Bin Data
+          </h2>
+          <CurrentBinCard bin={activeBin} />
         </div>
       </div>
     </div>
