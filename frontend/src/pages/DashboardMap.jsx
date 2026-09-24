@@ -3,7 +3,6 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Filter, ChevronDown } from "lucide-react";
-import CurrentBinCard from "../components/CurrentBinCard";
 import CurrentCapacityChart from "../components/CurrentCapacityChart";
 
 const fullColor = "bg-red-500";

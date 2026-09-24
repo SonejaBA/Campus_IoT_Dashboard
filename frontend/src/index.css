@@ -11,8 +11,8 @@
 
 .dark-popup .leaflet-popup-content-wrapper,
 .dark-popup .leaflet-popup-tip {
-  background-color: #1E1E1E; 
-  color: #f1f5f9;
+  background-color: #1E1E1E !important; 
+  color: #f1f5f9 !important;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
 }
 
