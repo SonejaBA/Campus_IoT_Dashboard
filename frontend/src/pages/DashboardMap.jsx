@@ -46,10 +46,12 @@ function FilterButton({ activeFilter, onSelect }) {
       <button
         onClick={() => setIsOpen(!isOpen)}
         title="Filters"
-        className="flex items-center gap-2 bg-[#1E1E1E]/90 text-white px-4 py-2 rounded-lg cursor-pointer shadow-md"
+        className="flex flex-row items-center bg-[#1E1E1E]/90 text-white px-4 py-2 rounded-lg cursor-pointer shadow-md w-44 justify-between"
       >
-        <Filter size={16} />
-        {activeLabel}
+        <div className="flex flex-1 items-center gap-2">
+          <Filter size={16} />
+          {activeLabel}
+        </div>
         <ChevronDown
           size={14}
           className={
