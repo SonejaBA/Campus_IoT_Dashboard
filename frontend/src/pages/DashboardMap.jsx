@@ -46,12 +46,10 @@ function FilterButton({ activeFilter, onSelect }) {
       <button
         onClick={() => setIsOpen(!isOpen)}
         title="Filters"
-        className="flex flex-row items-center bg-[#1E1E1E]/90 text-white px-4 py-2 rounded-lg cursor-pointer shadow-md w-44 justify-between"
+        className="flex items-center gap-2 bg-[#1E1E1E]/90 text-white px-4 py-2 rounded-lg cursor-pointer shadow-md justify-end"
       >
-        <div className="flex flex-1 items-center gap-2">
-          <Filter size={16} />
-          {activeLabel}
-        </div>
+        <Filter size={16} />
+        {activeLabel}
         <ChevronDown
           size={14}
           className={
@@ -61,7 +59,7 @@ function FilterButton({ activeFilter, onSelect }) {
       </button>
 
       {isOpen && (
-        <div className="mt-2 bg-[#1E1E1E]/90 text-white rounded-lg shadow-md overflow-hidden p-2">
+        <div className="absolute right-0 top-full mt-2 min-w-full bg-[#1E1E1E]/90 text-white rounded-lg shadow-md overflow-hidden p-2 whitespace-nowrap">
           {filterOptions.map((option) => (
             <button
               key={option.value}
