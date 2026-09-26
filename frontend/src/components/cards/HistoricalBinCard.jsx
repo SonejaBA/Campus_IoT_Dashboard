@@ -1,4 +1,4 @@
-import AreaChartComponent from "./AreaChart";
+import AreaChartComponent from "../charts/AreaChart";
 
 function HistoricalBinCard({binID}){
     if (!binID) return null;

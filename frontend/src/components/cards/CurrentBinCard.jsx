@@ -1,4 +1,4 @@
-import CurrentCapacityChart from "./CurrentCapacityChart";
+import CurrentCapacityChart from "../charts/CurrentCapacityChart";
 
 function CurrentBinCard({bin}){
     if (!bin) return null;

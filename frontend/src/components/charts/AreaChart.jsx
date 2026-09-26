@@ -8,7 +8,7 @@ import {
   Legend,
   Tooltip
 } from "recharts";
-import { useBinAnalytics } from "../hooks/useBinAnalytics";
+import { useBinAnalytics } from "../../hooks/useBinAnalytics";
 
 function capitalizeFirstLetter(str) {
   if (!str) return ""; // Check for empty strings
