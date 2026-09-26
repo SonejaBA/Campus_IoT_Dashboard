@@ -18,8 +18,19 @@ function Analytics({ bins }) {
     bin.id
       .toString()
       .toLowerCase()
-      .includes(searchQuery.toLowerCase().replace(/[^\d]/g, "")),
+      .includes(searchQuery.toLowerCase().replace(/\bb(?:in?)?\b\s*/g, "")),
   ).sort((a, b) => a.id - b.id);
+
+  const handleSubmit = (e) => {
+    console.log("hi")
+    e.preventDefault();
+    if(filteredBins.length > 0){
+      console.log("uhoh")
+      setSelectedBin(filteredBins[0].id);
+      setSearchQuery("");
+      setIsOpen(false);
+    }
+  };
 
   const activeBin = bins.find((bin) => bin.id === selectedBin);
 
@@ -31,20 +42,23 @@ function Analytics({ bins }) {
       </h1>
       {/*Universal Search Bar*/}
       <div className="relative w-40 h-10 bg-[#1E1E1E] rounded-xl border-2 border-[#adadad] ml-auto">
-        <input
-          onFocus={() => setIsOpen(true)}
-          onBlur={() =>
-            setTimeout(() => {
-              setIsOpen(false);
-            }, 150)
-          }
-          onChange={(e) => setSearchQuery(e.target.value)}
-          value={searchQuery}
-          type="text"
-          placeholder="Search bin..."
-          className="w-[90%] focus:outline-none absolute left-2 top-1/6"
-        ></input>
-
+        <form
+          onSubmit={handleSubmit}>
+          <input
+            onFocus={() => setIsOpen(true)}
+            onBlur={() =>
+              setTimeout(() => {
+                setIsOpen(false);
+              }, 150)
+            }
+            onChange={(e) => setSearchQuery(e.target.value)}
+            value={searchQuery}
+            type="text"
+            placeholder="Search bin..."
+            className="w-[90%] focus:outline-none absolute left-2 top-1/6"
+          />
+        </form>
+        {/*Drop down selection of bins*/}
         {isOpen && (
           <div className="absolute top-full right-0 left-0 mt-2 rounded-lg border-2 border-[#adadad] bg-[#1E1E1E] max-h-30 md:max-h-60 overflow-y-auto shadow-xl flex flex-col z-[100]">
             {filteredBins.length > 0 ? (
