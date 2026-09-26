@@ -130,7 +130,7 @@ function DashboardMap({ bins }) {
             <Popup className="dark-popup">
               <div className="h-50 w-70 flex flex-col">
                 <span className="flex-1 font-medium text-l flex-1 mb-2 mt-2">
-                  Bin {bin["id"]}
+                  BIN-{String(bin["id"]).padStart(3, '0')}
                 </span>
                 <CurrentCapacityChart bin={bin} isPopup={true} />
               </div>

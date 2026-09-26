@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 function BinSearchSelect({ bins, selectedBin, onSelectBin }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -62,7 +62,7 @@ function BinSearchSelect({ bins, selectedBin, onSelectBin }) {
                 }}
                 className="hover:bg-[#333232] rounded-sm m-1 cursor-pointer"
               >
-                Bin {bin.id}
+                BIN-{String(bin.id).padStart(3, '0')}
               </button>
             ))
           ) : (
