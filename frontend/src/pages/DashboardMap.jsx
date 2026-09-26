@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Filter, ChevronDown } from "lucide-react";
-import CurrentCapacityChart from "../components/CurrentCapacityChart";
+import CurrentCapacityChart from "../components/charts/CurrentCapacityChart";
 
 const fullColor = "bg-red-500";
 const mediumColor = "bg-amber-500";
@@ -46,7 +46,7 @@ function FilterButton({ activeFilter, onSelect }) {
       <button
         onClick={() => setIsOpen(!isOpen)}
         title="Filters"
-        className="flex items-center gap-2 bg-[#1E1E1E]/90 text-white px-4 py-2 rounded-lg cursor-pointer shadow-md"
+        className="flex items-center gap-2 bg-[#1E1E1E]/90 text-white px-4 py-2 rounded-lg cursor-pointer shadow-md justify-end"
       >
         <Filter size={16} />
         {activeLabel}
@@ -59,7 +59,7 @@ function FilterButton({ activeFilter, onSelect }) {
       </button>
 
       {isOpen && (
-        <div className="mt-2 bg-[#1E1E1E]/90 text-white rounded-lg shadow-md overflow-hidden p-2">
+        <div className="absolute right-0 top-full mt-2 min-w-full bg-[#1E1E1E]/90 text-white rounded-lg shadow-md overflow-hidden p-2 whitespace-nowrap">
           {filterOptions.map((option) => (
             <button
               key={option.value}
@@ -128,7 +128,7 @@ function DashboardMap({ bins }) {
             <Popup className="dark-popup">
               <div className="h-50 w-70 flex flex-col">
                 <span className="flex-1 font-medium text-l flex-1 mb-2 mt-2">
-                  Bin {bin["id"]}
+                  BIN-{String(bin["id"]).padStart(3, '0')}
                 </span>
                 <CurrentCapacityChart bin={bin} isPopup={true} />
               </div>

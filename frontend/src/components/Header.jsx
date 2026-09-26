@@ -63,7 +63,7 @@ function NotificationDot({ numOfNotifications = 10 }) {
       justify-center
       text-[10px] 
       font-bold 
-      -top-1"
+      top-1"
     >
       {numOfNotifications}
     </span>
@@ -83,9 +83,11 @@ function Header() {
       </div>
       <div className="gap-2 items-center flex ">
         <button
-          className="px-5 relative cursor-pointer">
+          className="px-4 relative cursor-pointer">
           <NotificationDot numOfNotifications={10} />
-          <Bell size={18} />
+          <div className="rounded-full hover:bg-white/10 p-2">
+            <Bell size={20} />
+          </div>
         </button>
         <Tally1/>
         <StatusDot serverHealthy={isHealthy} />
