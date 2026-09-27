@@ -50,34 +50,57 @@ def run_simulator():
 
     for bin in bins:
         previous_battery = 100.0
-        previous_fill = random.randint(1,100)
+        prev_compost = random.randint(0, 60)
+        prev_landfill = random.randint(0, 60)
+        prev_recycle = random.randint(0, 60)
+
         start_time = find_start_time(count_per_bin)
+
+        batch_payload = []
 
         for _ in range(count_per_bin):
             #generate a random float
-            battery_degredation = random.random()
-            updated_battery = previous_battery - battery_degredation if previous_battery - battery_degredation > 0 else 0
+            battery_degradation = random.random()
+            updated_battery = previous_battery - battery_degradation if previous_battery - battery_degradation > 0 else 0
             battery_payload = math.floor(updated_battery) 
 
             previous_battery = updated_battery
 
-            added_trash = random.randint(1, 15)
-            updated_fill = previous_fill + added_trash if previous_fill + added_trash <= 100 else 0
+            updated_compost = prev_compost + random.randint(0, 8)
+            updated_landfill = prev_landfill + random.randint(0, 15)
+            updated_recycle = prev_recycle + random.randint(0, 12)
 
-            previous_fill = updated_fill
+            # Determine overall fill level (highest of the three)
+            max_fill = max(updated_compost, updated_landfill, updated_recycle)
+
+            
+            if max_fill >= 90:
+                updated_compost = 0
+                updated_landfill = 0
+                updated_recycle = 0
+                max_fill = 0
+
+            # Store states for the next iteration
+            prev_compost = updated_compost
+            prev_landfill = updated_landfill
+            prev_recycle = updated_recycle
 
             sensor_payload = {
                 "bin_id": bin["id"],
-                "fill_level": updated_fill,
+                "compost": updated_compost,
+                "landfill": updated_landfill,
+                "recycle": updated_recycle,
+                "fill_level": max_fill, 
                 "battery_level": battery_payload,
-                #supabase take iso 8601
                 "time" : start_time.isoformat()
             }
 
             #add four hours to time
             start_time = start_time + timedelta(hours=4)
+            batch_payload.append(sensor_payload)
 
-            supabase.table("telemetry_logs").insert(sensor_payload).execute()
+        supabase.table("telemetry_logs").insert(batch_payload).execute()
+            
 
     
         
