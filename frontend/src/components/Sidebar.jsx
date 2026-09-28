@@ -1,191 +1,186 @@
-import { useState } from "react";
-import treeLogo from "../assets/treeLogo.png";
-import wordLogo from "../assets/wordLogo.png";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import {
-  PanelLeftClose,
-  MapPin,
+  Map,
   BarChart3,
-  Settings,
   Wrench,
+  Settings,
+  Leaf,
+  ChevronLeft,
 } from "lucide-react";
+import { useState } from "react";
 
 function Sidebar() {
-  const [isOpen, setIsOpen] = useState(true);
-  const handleLogoClick = () => {
-    if (isOpen) return;
-    setIsOpen(!isOpen);
-  };
+  const [collapsed, setCollapsed] = useState(false);
+
+  const navItems = [
+    {
+      name: "Overview",
+      path: "/",
+      icon: Map,
+    },
+    {
+      name: "Analytics",
+      path: "/analytics",
+      icon: BarChart3,
+    },
+    {
+      name: "Maintenance",
+      path: "/maintenance",
+      icon: Wrench,
+    },
+    {
+      name: "Settings",
+      path: "/settings",
+      icon: Settings,
+    },
+  ];
 
   return (
-    <div
+    <aside
       className={`
-        hidden 
-        md:flex
+        hidden md:flex
+        h-screen shrink-0
+        bg-[#0a1211]
+        border-r border-white/10
         flex-col
-        h-full
-        bg-[#1E1E1E] 
-        text-white 
-        p-4
-        gap-4
-        ${isOpen ? "w-60" : "w-20"}
-        transition-all
-        duration-200
-        border-r-2
-        border-[#adadad]
-        `}
+        relative
+        transition-[width] duration-200
+        ${collapsed ? "w-[72px]" : "w-[210px]"}
+      `}
     >
-      {/*Logo and sidebar colapase button */}
-      <div
-        className={`flex flex-row mb-6 ${isOpen ? "justify-between" : "justify-center px-0"} items-center -mt-1`}
-      >
-        <img
-          onClick={handleLogoClick}
-          src={isOpen ? wordLogo : treeLogo}
-          alt="Sacramento State Sustainability"
-          title="Open sidebar"
-          className={`
-                        w-auto
-                        object-contain
-                        cursor-pointer
-                        hover:bg-white/10
-                        ${isOpen ? "h-20 cursor-default pointer-events-none" : "h-10 justify-center rounded-full"}`}
-        />
+      {/* BRAND */}
+      <div className="h-[92px] border-b border-white/10 flex items-center px-5">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 shrink-0 border border-emerald-400/30 flex items-center justify-center bg-emerald-400/5">
+            <Leaf size={21} className="text-emerald-400" />
+          </div>
 
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          title="Close sidebar"
-          className={`${isOpen ? "block" : "hidden"} 
-                        flex
-                        items-center
-                        justify-center
-                        w-10 
-                        h-10 
-                        cursor-pointer
-                        text-[#F2F2F3] 
-                        aria-label="Collapse Sidebar" 
-                        rounded-full 
-                        hover:bg-white/10
-                        `}
-        >
-          <PanelLeftClose className="w-5 h-5 text-gray-300" />
-        </button>
+          {!collapsed && (
+            <div className="min-w-0">
+              <p className="text-[10px] tracking-[0.22em] uppercase text-emerald-400 font-semibold">
+                Sac State
+              </p>
+
+              <p className="text-[13px] font-semibold text-slate-100 leading-tight mt-0.5">
+                Waste Operations
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
-      <nav className="flex-1 flex-col gap-2 px-1">
-        <Link
-          to="/"
-          title={isOpen ? "" : "Dashboard"}
-          className={`  flex 
-                        items-center 
-                        py-2 
-                        rounded-lg 
-                        ${
-                          isOpen
-                            ? "hover:bg-gradient-to-r hover:from-emerald-900/80 hover:to-emerald-900/20"
-                            : "hover:bg-emerald-900/80"
-                        }
-                        transition-colors 
-                        text-white
-                        ${
-                          isOpen
-                            ? "justify-start gap-4 "
-                            : "justify-center px-0"
-                        }`}
-        >
-          <MapPin className="shrink-0 text-gray-300" />
-          <span
-            className={`${isOpen ? "block" : "hidden"} font-medium whitespace-nowrap text-gray-300`}
-          >
-            Dashboard
-          </span>
-        </Link>
+      {/* SECTION LABEL */}
+      {!collapsed && (
+        <div className="px-5 pt-7 pb-2">
+          <p className="text-[9px] uppercase tracking-[0.22em] text-slate-600 font-semibold">
+            Operations
+          </p>
+        </div>
+      )}
 
-        <Link
-          to="/analytics"
-          title={isOpen ? "" : "Analytics"}
-          className={`  flex 
-                        items-center 
-                        py-2 
-                        rounded-lg 
-                        ${
-                          isOpen
-                            ? "hover:bg-gradient-to-r hover:from-emerald-900/80 hover:to-emerald-900/20"
-                            : "hover:bg-emerald-900/80"
-                        }
-                        transition-colors 
-                        text-white 
-                        ${
-                          isOpen
-                            ? "justify-start gap-4 "
-                            : "justify-center px-0"
-                        }`}
-        >
-          <BarChart3 className="shrink-0 text-gray-300" />
-          <span
-            className={`${isOpen ? "block" : "hidden"} font-medium whitespace-nowrap text-gray-300`}
-          >
-            Analytics
-          </span>
-        </Link>
+      {/* NAVIGATION */}
+      <nav className={`flex flex-col ${collapsed ? "pt-6" : ""}`}>
+        {navItems.map((item) => {
+          const Icon = item.icon;
 
-        <Link
-          to="/maintenance"
-          title={isOpen ? "" : "Maintenance"}
-          className={`  flex 
-                        items-center 
-                        py-2 
-                        rounded-lg 
-                        ${
-                          isOpen
-                            ? "hover:bg-gradient-to-r hover:from-emerald-900/80 hover:to-emerald-900/20"
-                            : "hover:bg-emerald-900/80"
-                        }
-                        transition-colors 
-                        text-white 
-                        ${
-                          isOpen
-                            ? "justify-start gap-4 "
-                            : "justify-center px-0"
-                        }`}
-        >
-          <Wrench className="shrink-0 text-gray-300" />
-          <span
-            className={`${isOpen ? "block" : "hidden"} font-medium whitespace-nowrap text-gray-300`}
-          >
-            Maintenance
-          </span>
-        </Link>
+          return (
+            <NavLink
+              key={item.name}
+              to={item.path}
+              end={item.path === "/"}
+              className={({ isActive }) =>
+                `
+                  relative
+                  h-[52px]
+                  flex items-center
+                  transition-colors
+                  ${
+                    collapsed
+                      ? "justify-center px-0"
+                      : "gap-3 px-5"
+                  }
+                  ${
+                    isActive
+                      ? "bg-emerald-400/[0.07] text-white"
+                      : "text-slate-400 hover:text-slate-100 hover:bg-white/[0.025]"
+                  }
+                `
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  {isActive && (
+                    <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.45)]" />
+                  )}
 
-        <Link
-          to="/settings"
-          title={isOpen ? "" : "Settings"}
-          className={`  flex 
-                        items-center 
-                        py-2 
-                        rounded-lg 
-                        ${
-                          isOpen
-                            ? "hover:bg-gradient-to-r hover:from-emerald-900/80 hover:to-emerald-900/20"
-                            : "hover:bg-emerald-900/80"
-                        }
-                        transition-colors 
-                        text-white 
-                        ${
-                          isOpen
-                            ? "justify-start gap-4 "
-                            : "justify-center px-0"
-                        }`}
-        >
-          <Settings className="shrink-0 text-gray-300" />
-          <span
-            className={`${isOpen ? "block" : "hidden"} font-medium whitespace-nowrap text-gray-300`}
-          >
-            Settings
-          </span>
-        </Link>
+                  <Icon
+                    size={19}
+                    strokeWidth={1.8}
+                    className={
+                      isActive
+                        ? "text-emerald-400"
+                        : "text-slate-500"
+                    }
+                  />
+
+                  {!collapsed && (
+                    <span className="text-[13px] font-medium tracking-wide">
+                      {item.name}
+                    </span>
+                  )}
+                </>
+              )}
+            </NavLink>
+          );
+        })}
       </nav>
-    </div>
+
+      {/* BOTTOM SYSTEM AREA */}
+      <div className="mt-auto">
+        {!collapsed && (
+          <div className="mx-5 mb-5 pt-4 border-t border-white/10">
+            <div className="flex items-center gap-2">
+              <span className="relative flex w-2 h-2">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-30" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+              </span>
+
+              <span className="text-[10px] uppercase tracking-[0.16em] text-slate-500">
+                System Online
+              </span>
+            </div>
+
+            <p className="mt-2 text-[10px] leading-relaxed text-slate-700">
+              Sacramento State
+              <br />
+              Campus Waste Network
+            </p>
+          </div>
+        )}
+
+        {/* COLLAPSE CONTROL */}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="
+            h-12 w-full
+            border-t border-white/10
+            flex items-center justify-center
+            text-slate-600
+            hover:text-emerald-400
+            hover:bg-white/[0.025]
+            transition-colors
+          "
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          <ChevronLeft
+            size={17}
+            className={`transition-transform duration-200 ${
+              collapsed ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+      </div>
+    </aside>
   );
 }
 

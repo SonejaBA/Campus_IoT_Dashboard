@@ -35,6 +35,19 @@ app.add_middleware(
 def reed_root():
     return {"message" : "FastAPI is running! (json)"}
 
+
+@app.get("/api/analytics/fill-activity")
+def get_fill_activity():
+    response = (
+        supabase.table("telemetry_logs")
+        .select("bin_id, fill_level, time")
+        .order("time", desc=True)
+        .limit(1000)
+        .execute()
+    )
+
+    return response.data
+
 @app.get("/api/bins")
 def get_bins():
     # Go to the 'bins' table, select all columns (*), and execute the query
@@ -42,7 +55,6 @@ def get_bins():
     
     # Return just the data portion of the Supabase response
     return response.data
-
 
 @app.get("/api/analytics/{bin_id}")
 def get_bin_logs(bin_id):

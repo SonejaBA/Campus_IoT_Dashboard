@@ -1,34 +1,52 @@
-import { useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { useMemo, useState } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Filter, ChevronDown } from "lucide-react";
-import CurrentCapacityChart from "../components/charts/CurrentCapacityChart";
+import FillDistribution from "../components/dashboard/FillDistribution";
+import BatteryHealth from "../components/dashboard/BatteryHealth";
+import CollectionActivity from "../components/dashboard/CollectionActivity";
+const defaultCenter = [38.559677, -121.423202];
 
-const fullColor = "bg-red-500";
-const mediumColor = "bg-amber-500";
-const lowColor = "bg-emerald-500";
-
-const defaultCenter = [38.5597502210662, -121.42347776852866];
 const mapBounds = [
-  [38.54655942770578, -121.43688277888091], //south west
-  [38.56960798353561, -121.40695667626277], //north east
+  [38.54839610772975, -121.43695538673354],
+  [38.57178820331364, -121.40755894841233],
 ];
 
-const createBinIcon = (fillLevel) => {
-  const colorClass =
-    fillLevel >= 80 ? fullColor : fillLevel >= 50 ? mediumColor : lowColor;
+function getStatus(fillLevel) {
+  if (fillLevel >= 80) return "critical";
+  if (fillLevel >= 50) return "warning";
+  return "normal";
+}
+
+function createBinIcon(fillLevel, selected = false) {
+  const status = getStatus(fillLevel);
+
+  const color =
+    status === "critical"
+      ? "#ef4444"
+      : status === "warning"
+      ? "#f59e0b"
+      : "#4ade80";
 
   return L.divIcon({
-    className: "bg-transparent",
-    html: `<div
-                class= "h-4 w-4 ${colorClass} rounded-full border-2 border-slate-700 shadow-md transition-transform  hover:scale-250"
-                >
-               </div>`,
-    iconSize: [16, 16],
-    iconAnchor: [8, 8],
+    className: "bin-marker-wrapper",
+    html: `
+      <div
+        style="
+          width:${selected ? "22px" : "16px"};
+          height:${selected ? "22px" : "16px"};
+          background:${color};
+          border:3px solid ${selected ? "#ffffff" : "#101917"};
+          box-shadow:0 0 0 2px ${color}55, 0 3px 10px #000000aa;
+          border-radius:50%;
+        "
+      ></div>
+    `,
+    iconSize: selected ? [22, 22] : [16, 16],
+    iconAnchor: selected ? [11, 11] : [8, 8],
   });
-};
+}
 
 const filterOptions = [
   { value: "all", label: "All bins" },
@@ -39,27 +57,29 @@ const filterOptions = [
 
 function FilterButton({ activeFilter, onSelect }) {
   const [isOpen, setIsOpen] = useState(false);
-  const activeLabel = filterOptions.find((o) => o.value === activeFilter).label;
+
+  const activeLabel =
+    filterOptions.find((option) => option.value === activeFilter)?.label ||
+    "All bins";
 
   return (
     <div className="absolute top-4 right-4 z-[1000]">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        title="Filters"
-        className="flex items-center gap-2 bg-[#1E1E1E]/90 text-white px-4 py-2 rounded-lg cursor-pointer shadow-md justify-end"
+        className="flex items-center gap-2 bg-[#091310]/95 border border-white/10 text-slate-200 px-4 py-2 shadow-xl"
       >
         <Filter size={16} />
         {activeLabel}
         <ChevronDown
           size={14}
-          className={
-            isOpen ? "rotate-180 transition-transform" : "transition-transform"
-          }
+          className={`transition-transform ${
+            isOpen ? "rotate-180" : ""
+          }`}
         />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 min-w-full bg-[#1E1E1E]/90 text-white rounded-lg shadow-md overflow-hidden p-2 whitespace-nowrap">
+        <div className="absolute right-0 top-full mt-2 min-w-full bg-[#091310]/95 border border-white/10 shadow-xl p-2 whitespace-nowrap">
           {filterOptions.map((option) => (
             <button
               key={option.value}
@@ -67,17 +87,7 @@ function FilterButton({ activeFilter, onSelect }) {
                 onSelect(option.value);
                 setIsOpen(false);
               }}
-              className="
-                block 
-                w-full 
-                text-left 
-                px-4 
-                py-2
-                rounded-lg
-                hover:bg-gradient-to-l
-                hover:from-emerald-900/80
-                hover:to-emerald-900/20 cursor-pointer
-              "
+              className="block w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-emerald-400"
             >
               {option.label}
             </button>
@@ -88,55 +98,341 @@ function FilterButton({ activeFilter, onSelect }) {
   );
 }
 
-function DashboardMap({ bins }) {
+function MapFlyToBin({ bin }) {
+  const map = useMap();
+
+  if (bin?.lat && bin?.long) {
+    map.flyTo([bin.lat, bin.long], 18);
+  }
+
+  return null;
+}
+
+function DashboardMap({ bins = [] }) {
+  const [selectedBinId, setSelectedBinId] = useState(null);
   const [activeFilter, setActiveFilter] = useState("all");
 
-  const filteredBins = bins.filter((bin) => {
-    if (activeFilter === "all") return true;
-    if (activeFilter === "green") return bin.fill_level <= 49;
-    if (activeFilter === "yellow")
-      return bin.fill_level >= 50 && bin.fill_level <= 79;
-    if (activeFilter === "red") return bin.fill_level >= 80;
-    return true;
-  });
+  const filteredBins = useMemo(() => {
+    return bins.filter((bin) => {
+      if (activeFilter === "all") return true;
+      if (activeFilter === "green") return bin.fill_level < 50;
 
+      if (activeFilter === "yellow")
+        return bin.fill_level >= 50 && bin.fill_level < 80;
+
+      if (activeFilter === "red") return bin.fill_level >= 80;
+
+      return true;
+    });
+  }, [bins, activeFilter]);
+
+  const stats = useMemo(() => {
+  const critical = bins.filter((bin) => bin.fill_level >= 80).length;
+
+  const warning = bins.filter(
+    (bin) => bin.fill_level >= 50 && bin.fill_level < 80
+  ).length;
+
+  const healthy = bins.filter((bin) => bin.fill_level < 50).length;
+
+  return {
+    total: bins.length,
+    critical,
+    warning,
+    healthy,
+  };
+}, [bins]);
+
+const attentionBins = useMemo(() => {
+  return [...bins]
+    .filter((bin) => bin.fill_level >= 80)
+    .sort((a, b) => b.fill_level - a.fill_level)
+    .slice(0, 100);
+}, [bins]);
+
+const selectedBin =
+  bins.find((bin) => bin.id === selectedBinId) ||
+  attentionBins[0] ||
+  null;
   return (
-    <div className="flex-1 relative">
-      <FilterButton activeFilter={activeFilter} onSelect={setActiveFilter} />
-      <MapContainer
-        center={defaultCenter}
-        zoom={17}
-        minZoom={16}
-        maxBounds={mapBounds}
-        maxBoundsViscosity={0.6}
-        className="h-full w-full"
-        zoomControl={false}
-        attributionControl={false}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          className="map-tiles-dark"
-        />
+    <main className="flex-1 min-w-0 h-full bg-[#08110f] text-slate-100 overflow-hidden">
+      <div className="h-full flex flex-col">
 
-        {filteredBins.map((bin) => (
-          <Marker
-            key={bin.id}
-            position={[bin.lat, bin.long]}
-            icon={createBinIcon(bin.fill_level)}
-          >
-            <Popup className="dark-popup">
-              <div className="h-50 w-70 flex flex-col">
-                <span className="flex-1 font-medium text-l flex-1 mb-2 mt-2">
-                  BIN-{String(bin["id"]).padStart(3, '0')}
-                </span>
-                <CurrentCapacityChart bin={bin} isPopup={true} />
+        {/* TOP HEADER */}
+        <header className="h-[76px] shrink-0 border-b border-white/10 bg-[#0b1513] px-6 flex items-center justify-between">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.24em] text-emerald-400 font-semibold">
+              Sacramento State
+            </p>
+
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Campus Waste Operations
+            </h1>
+
+            <p className="text-xs text-slate-500 mt-0.5">
+              Live campus bin monitoring
+            </p>
+          </div>
+
+          <div className="flex items-center gap-8">
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-slate-500">
+                Monitored
+              </p>
+              <p className="text-xl font-semibold">{stats.total}</p>
+            </div>
+
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-slate-500">
+                Need Attention
+              </p>
+              <p className="text-xl font-semibold text-red-400">
+                {stats.critical}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-slate-500">
+                Warning
+              </p>
+              <p className="text-xl font-semibold text-amber-400">
+                {stats.warning}
+              </p>
+            </div>
+
+            <div className="border-l border-white/10 pl-6 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#4ade80]" />
+              <span className="text-xs font-semibold tracking-wider text-emerald-300">
+                LIVE
+              </span>
+            </div>
+          </div>
+        </header>
+
+        {/* MAIN OPERATIONS AREA */}
+        <section className="flex-1 min-h-0 grid grid-cols-[minmax(0,1fr)_330px]">
+
+        {/* MAP + ANALYTICS */}
+        <div className="min-w-0 min-h-0 border-r border-white/10 flex flex-col">
+
+          {/* MAP */}
+          <div className="relative flex-1 min-h-0">
+            <FilterButton
+              activeFilter={activeFilter}
+              onSelect={setActiveFilter}
+            />
+            <MapContainer
+              center={defaultCenter}
+              zoom={17}
+              minZoom={16}
+              maxBounds={mapBounds}
+              maxBoundsViscosity={0.6}
+              zoomControl={true}
+              attributionControl={false}
+              className="h-full w-full map-tiles-dark"
+            >
+              <MapFlyToBin bin={selectedBin} />
+              
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+
+              {filteredBins.map((bin) => (
+                <Marker
+                  key={bin.id}
+                  position={[bin.lat, bin.long]}
+                  icon={createBinIcon(
+                    bin.fill_level,
+                    selectedBin?.id === bin.id
+                  )}
+                  eventHandlers={{
+                    click: () => setSelectedBinId(bin.id),
+                  }}
+                >
+                  <Popup>
+                    <div>
+                      <strong>Bin {bin.id}</strong>
+                      <br />
+                      Fill: {bin.fill_level}%
+                      <br />
+                      Battery: {bin.battery_level}%
+                    </div>
+                  </Popup>
+                </Marker>
+              ))}
+            </MapContainer>
+
+            {/* MAP LEGEND */}
+            <div className="absolute z-[500] top-4 left-4 bg-[#091310]/95 border border-white/10 shadow-xl px-4 py-3">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400 mb-3">
+                Fill Status
+              </p>
+
+              <div className="space-y-2 text-xs">
+
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                  <span>Normal</span>
+                  <span className="ml-auto text-slate-500">&lt; 50%</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                  <span>Warning</span>
+                  <span className="ml-auto text-slate-500">50–79%</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                  <span>Critical</span>
+                  <span className="ml-auto text-slate-500">80%+</span>
+                </div>
+
               </div>
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
-    </div>
+            </div>
+
+            </div>
+
+        {/* BOTTOM ANALYTICS */}
+        <div className="h-[180px] shrink-0 bg-[#08110f] pb-3">
+          <div className="h-full grid grid-cols-3 border-b border-white/40">
+            <FillDistribution bins={bins} />
+            <BatteryHealth bins={bins} />
+            <CollectionActivity bins={bins} />
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT OPERATIONS PANEL */}
+      <aside className="min-h-0 bg-[#0b1513] flex flex-col">
+
+            <div className="h-12 shrink-0 border-b border-white/10 px-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-1 h-5 bg-red-500" />
+                <h2 className="text-sm font-semibold">Needs Attention</h2>
+              </div>
+
+              <span className="text-xs text-red-400">
+                {stats.critical} bins
+              </span>
+            </div>
+
+            <div className="shrink-0 max-h-[310px] overflow-y-auto">
+              {attentionBins.map((bin) => (
+                <button
+                  key={bin.id}
+                  onClick={() => setSelectedBinId(bin.id)}
+                  className={`w-full text-left px-4 py-3 border-b border-white/5 transition-colors ${
+                    selectedBin?.id === bin.id
+                      ? "bg-emerald-400/10"
+                      : "hover:bg-white/5"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="mt-1.5 w-2 h-2 rounded-full bg-red-500 shadow-[0_0_7px_#ef4444]" />
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex justify-between gap-3">
+                        <span className="text-sm font-medium">
+                          Bin {bin.id}
+                        </span>
+
+                        <span className="text-sm font-bold text-red-400">
+                          {bin.fill_level}%
+                        </span>
+                      </div>
+
+                      <p className="mt-1 text-[11px] text-slate-500 truncate">
+                        {bin.location || "Location unavailable"}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* SELECTED BIN */}
+            <div className="flex-1 min-h-0 border-t border-white/10 p-4 overflow-y-auto">
+              {selectedBin ? (
+                <>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-emerald-400">
+                    Selected Bin
+                  </p>
+
+                  <div className="mt-2 flex items-end justify-between gap-3">
+                    <div>
+                      <h2 className="text-xl font-semibold">
+                        Bin {selectedBin.id}
+                      </h2>
+
+                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                        {selectedBin.location || "Location unavailable"}
+                      </p>
+                    </div>
+
+                    <span
+                      className={`text-2xl font-bold ${
+                        selectedBin.fill_level >= 80
+                          ? "text-red-400"
+                          : selectedBin.fill_level >= 50
+                          ? "text-amber-400"
+                          : "text-emerald-400"
+                      }`}
+                    >
+                      {selectedBin.fill_level}%
+                    </span>
+                  </div>
+
+                  <div className="mt-5 border-t border-white/10">
+                    <div className="grid grid-cols-2 border-b border-white/10">
+                      <div className="py-4 pr-3 border-r border-white/10">
+                        <p className="text-[10px] uppercase tracking-wider text-slate-500">
+                          Battery
+                        </p>
+                        <p className="mt-1 text-lg font-semibold">
+                          {selectedBin.battery_level}%
+                        </p>
+                      </div>
+
+                      <div className="py-4 pl-3">
+                        <p className="text-[10px] uppercase tracking-wider text-slate-500">
+                          Status
+                        </p>
+                        <p className="mt-1 text-sm font-semibold capitalize">
+                          {getStatus(selectedBin.fill_level)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="py-4">
+                      <p className="text-[10px] uppercase tracking-wider text-slate-500">
+                        Last Reading
+                      </p>
+
+                      <p className="mt-1 text-xs text-slate-300">
+                        {new Date(selectedBin.time).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="h-full flex items-center justify-center text-center">
+                  <div>
+                    <p className="text-sm text-slate-400">
+                      Select a bin
+                    </p>
+                    <p className="text-xs text-slate-600 mt-1">
+                      Choose a marker or an alert to inspect it.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </aside>
+        </section>
+      </div>
+    </main>
   );
 }
+
 export default DashboardMap;
