@@ -15,23 +15,23 @@ function ErrorBanner({ errorMessage }) {
   return <div className="text-red-400">{formattedErrorMessage}</div>;
 }
 
-function LogInCard() {
-  const { logIn } = useAuth();
+function ForgotPassCard () {
+  const { forgotPassword } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const buttonText = loading ? "Signing in" : "Sign in";
+  const buttonText = loading ? "Sending" : "Send email";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
-      await logIn(email, password);
-      navigate("/");
+      await forgotPassword(email);
+      console.log("ran")
     } catch (err) {
       setError(err.message);
       setEmail("");
@@ -63,19 +63,6 @@ function LogInCard() {
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1 text-white/90">
-            Password
-          </label>
-          <input
-            type="password"
-            placeholder="••••••••"
-            className="w-full px-4 py-3 bg-emerald-200/10 border border-emerald-500/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-white placeholder-white/40 transition"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-
         <button
           disabled={loading}
           type="submit"
@@ -83,22 +70,15 @@ function LogInCard() {
         >
           {buttonText}
         </button>
-        <div className="flex justify-between">
-          <Link
-            to="/signup"
+                  <Link
+            to="/login"
             className="text-center text-sm text-white/80 hover:text-emerald-400 underline transition duration-200 mt-2"
           >
-            Sign up
+            Log in
           </Link>
-          <Link
-            to="/forgotpassword" 
-            className="text-center text-sm text-white/80 hover:text-emerald-400 underline transition duration-200 mt-2">
-            Forgot Password
-          </Link>
-        </div>
       </form>
     </div>
   );
 }
 
-export default LogInCard;
+export default ForgotPassCard;

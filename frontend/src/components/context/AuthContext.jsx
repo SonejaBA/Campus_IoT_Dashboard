@@ -40,12 +40,14 @@ export default function AuthProvider({children}){
         return data;
     }
 
-    const forgotPassword = async(email) =>{
-        const {data, error} = await supabase.auth.resetPasswordForEmail(email);
+    const forgotPassword = async (email) => {
+        const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: "http://localhost:5173/update-password",
+        });
 
-        if (error) throw error; 
+        if (error) throw error;
         return data;
-    }
+  };
 
 
     const logOut = async() =>{

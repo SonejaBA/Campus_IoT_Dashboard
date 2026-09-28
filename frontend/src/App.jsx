@@ -9,6 +9,8 @@ import SignUp from "./pages/SignUp.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AuthProvider from "./components/context/AuthContext.jsx";
 import AppLayout from "./pages/AppLayout.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
+import UpdatePassword from "./pages/UpdatePassword.jsx";
 
 function App() {
   const bins = useBins();
@@ -18,6 +20,8 @@ function App() {
               <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<SignUp />} />
+                <Route path="/forgotpassword" element={<ForgotPassword />} />
+                <Route path="/update-password" element={<UpdatePassword />} />
                 <Route element={<ProtectedRoute><AppLayout/></ProtectedRoute>}>
                   <Route path="/" element={<DashboardMap bins={bins} />} />
                   <Route path="/analytics" element={<Analytics bins={bins} />} />

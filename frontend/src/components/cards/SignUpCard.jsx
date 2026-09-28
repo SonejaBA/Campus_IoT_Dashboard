@@ -110,9 +110,11 @@ function SignUpCard() {
           >
             Log in
           </Link>
-          <div className="text-center text-sm text-white/80 hover:text-emerald-400 underline transition duration-200 mt-2">
+          <Link
+            to="/forgotpassword" 
+            className="text-center text-sm text-white/80 hover:text-emerald-400 underline transition duration-200 mt-2">
             Forgot Password
-          </div>
+          </Link>
         </div>
       </form>
     </div>
