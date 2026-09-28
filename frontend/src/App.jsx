@@ -5,6 +5,7 @@ import Analytics from "./pages/Analytics.jsx";
 import Settings from "./pages/Settings.jsx";
 import Maintenance from "./pages/Maintenance.jsx";
 import Login from "./pages/Login.jsx";
+import SignUp from "./pages/SignUp.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AuthProvider from "./components/context/AuthContext.jsx";
 import AppLayout from "./pages/AppLayout.jsx";
@@ -15,13 +16,14 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
               <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<SignUp />} />
                 <Route element={<ProtectedRoute><AppLayout/></ProtectedRoute>}>
                   <Route path="/" element={<DashboardMap bins={bins} />} />
                   <Route path="/analytics" element={<Analytics bins={bins} />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/maintenance" element={<Maintenance />} />
                 </Route>
-                <Route path="/login" element={<Login />} />
               </Routes>
       </BrowserRouter>
     </AuthProvider>

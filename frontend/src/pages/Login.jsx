@@ -1,18 +1,16 @@
-import LoginBackground from "../assets/loginBackground.jpg"
-import { useState } from "react";
+import LogInCard from "../components/cards/LogInCard";
 
-const [email, setEmail] = useState("");
-const [password, setPassword] = useState("");
-const [error, setError] = useState(null);
-const [loading, setLoading] = useState(true);
+function Login() {
 
-function Login(){
-    return (
-        //flex 1 since its going to be under a flex parent
-        <div className="w-screen h-dvh bg-slate-700">
-            <img src={LoginBackground} className="w-screen h-screen object-cover blur-xs scale-105 overflow-hidden"/>
-        </div>
-    )    
+  return (
+    <div
+      className="w-screen h-dvh bg-cover bg-center flex items-center justify-center"
+      style={{ backgroundImage: "url('/src/assets/loginBackground.jpg')" }}
+    >
+        <div className="absolute inset-0 bg-black/30"></div>
+        <LogInCard />
+    </div>
+  );
 }
 
 export default Login;

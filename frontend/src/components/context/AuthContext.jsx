@@ -40,6 +40,14 @@ export default function AuthProvider({children}){
         return data;
     }
 
+    const forgotPassword = async(email) =>{
+        const {data, error} = await supabase.auth.resetPasswordForEmail(email);
+
+        if (error) throw error; 
+        return data;
+    }
+
+
     const logOut = async() =>{
         await supabase.auth.signOut();
     }
@@ -49,6 +57,7 @@ export default function AuthProvider({children}){
         loading,
         signUp,
         logIn,
+        forgotPassword,
         logOut
     };
 
