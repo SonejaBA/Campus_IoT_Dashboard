@@ -47,7 +47,16 @@ export default function AuthProvider({children}){
 
         if (error) throw error;
         return data;
-  };
+    };
+
+    const updatePassword = async (newPassword) => {
+        const { data, error } = await supabase.auth.updateUser({
+            password: newPassword
+        });
+
+        if (error) throw error;
+        return data;
+    };
 
 
     const logOut = async() =>{
@@ -60,6 +69,7 @@ export default function AuthProvider({children}){
         signUp,
         logIn,
         forgotPassword,
+        updatePassword,
         logOut
     };
 

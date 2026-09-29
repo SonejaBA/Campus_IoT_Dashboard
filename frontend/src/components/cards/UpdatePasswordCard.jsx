@@ -14,7 +14,7 @@ function ErrorBanner({ errorMessage }) {
 }
 
 function UpdatePasswordCard() {
-  const { forgotPassword } = useAuth();
+  const { updatePassword } = useAuth();
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -33,7 +33,7 @@ function UpdatePasswordCard() {
 
     setLoading(true);
     try {
-      await forgotPassword(password);
+      await updatePassword(password);
       navigate("/login");
     } catch (err) {
       setError(err.message);

@@ -31,7 +31,6 @@ function ForgotPassCard () {
     setLoading(true);
     try {
       await forgotPassword(email);
-      console.log("ran")
     } catch (err) {
       setError(err.message);
       setEmail("");
