@@ -1,6 +1,6 @@
 function FillDistribution({ bins = [] }) {
   const total = bins.length;
-
+  // Counts bins in each fill-level category
   const normal = bins.filter((bin) => bin.fill_level < 50).length;
 
   const warning = bins.filter(
@@ -9,6 +9,7 @@ function FillDistribution({ bins = [] }) {
 
   const critical = bins.filter((bin) => bin.fill_level >= 80).length;
 
+  // Defines the three fill-level groups used in the chart
   const groups = [
     {
       label: "< 50%",
@@ -29,7 +30,7 @@ function FillDistribution({ bins = [] }) {
       bar: "bg-red-500",
     },
   ];
-
+  // Scales the chart bars based on the largest group
   const maxValue = Math.max(...groups.map((group) => group.value), 1);
 
   return (

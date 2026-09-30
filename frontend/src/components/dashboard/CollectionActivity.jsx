@@ -1,8 +1,9 @@
+// Calculates the current average fill level for all monitored bins
 function CollectionActivity({ bins = [] }) {
   const validBins = bins.filter(
     (bin) => bin.fill_level !== null && bin.fill_level !== undefined
   );
-
+  // Averages the fill levels from bins that have valid readings
   const averageFill =
     validBins.length > 0
       ? Math.round(
@@ -31,7 +32,7 @@ function CollectionActivity({ bins = [] }) {
         </span>
       </div>
 
-      <div className="mt-5">
+      <div className="mt-3">
         <div className="flex items-end gap-2">
           <p className="text-3xl font-semibold text-slate-100">
             {averageFill}%
@@ -55,7 +56,10 @@ function CollectionActivity({ bins = [] }) {
       <div className="grid grid-cols-2 gap-4 mt-5 pt-3 border-t border-white/10">
         <div>
           <p className="text-sm font-semibold text-slate-200">
-            {validBins.length}
+            {validBins.length}{" "}
+            <span className="text-[10px] font-normal text-slate-500">
+              bins
+            </span>
           </p>
 
           <p className="text-[10px] text-slate-600 mt-1">
@@ -65,7 +69,10 @@ function CollectionActivity({ bins = [] }) {
 
         <div>
           <p className="text-sm font-semibold text-slate-200">
-            {averageFill}%
+            {averageFill}%{" "}
+            <span className="text-[10px] font-normal text-slate-500">
+              average fill
+            </span>
           </p>
 
           <p className="text-[10px] text-slate-600 mt-1">

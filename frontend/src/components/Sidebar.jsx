@@ -10,8 +10,9 @@ import {
 import { useState } from "react";
 
 function Sidebar() {
+  // Tracks whether the sidebar is expanded or collapsed
   const [collapsed, setCollapsed] = useState(false);
-
+  // Defines the sidebar navigation links and icons
   const navItems = [
     {
       name: "Overview",

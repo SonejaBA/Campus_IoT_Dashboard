@@ -12,13 +12,13 @@ const mapBounds = [
   [38.54839610772975, -121.43695538673354],
   [38.57178820331364, -121.40755894841233],
 ];
-
+// Sets the bin status based on fill level.
 function getStatus(fillLevel) {
   if (fillLevel >= 80) return "critical";
   if (fillLevel >= 50) return "warning";
   return "normal";
 }
-
+// Creates color-coded map markers and highlights the selected bin
 function createBinIcon(fillLevel, selected = false) {
   const status = getStatus(fillLevel);
 
@@ -43,18 +43,18 @@ function createBinIcon(fillLevel, selected = false) {
         "
       ></div>
     `,
-    iconSize: selected ? [22, 22] : [16, 16],
-    iconAnchor: selected ? [11, 11] : [8, 8],
+    iconSize: selected ? [34, 34] : [28, 28],
+    iconAnchor: selected ? [17, 17] : [14, 14],
   });
 }
-
+// Filter choices for showing bins by fill level
 const filterOptions = [
   { value: "all", label: "All bins" },
   { value: "green", label: "Green (0–49%)" },
   { value: "yellow", label: "Yellow (50–79%)" },
   { value: "red", label: "Red (80–100%)" },
 ];
-
+// Dropdown used to filter bins displayed on the map
 function FilterButton({ activeFilter, onSelect }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -97,7 +97,7 @@ function FilterButton({ activeFilter, onSelect }) {
     </div>
   );
 }
-
+// Moves the map to the selected bin 
 function MapFlyToBin({ bin }) {
   const map = useMap();
 
@@ -111,7 +111,7 @@ function MapFlyToBin({ bin }) {
 function DashboardMap({ bins = [] }) {
   const [selectedBinId, setSelectedBinId] = useState(null);
   const [activeFilter, setActiveFilter] = useState("all");
-
+  // Filters which bins are displayed on the map
   const filteredBins = useMemo(() => {
     return bins.filter((bin) => {
       if (activeFilter === "all") return true;
@@ -125,7 +125,7 @@ function DashboardMap({ bins = [] }) {
       return true;
     });
   }, [bins, activeFilter]);
-
+  // Calculates totals for normal, warning, and critical bins
   const stats = useMemo(() => {
   const critical = bins.filter((bin) => bin.fill_level >= 80).length;
 
@@ -142,14 +142,14 @@ function DashboardMap({ bins = [] }) {
     healthy,
   };
 }, [bins]);
-
+// Finds critical bins and sorts the fullest bins first
 const attentionBins = useMemo(() => {
   return [...bins]
     .filter((bin) => bin.fill_level >= 80)
     .sort((a, b) => b.fill_level - a.fill_level)
     .slice(0, 100);
 }, [bins]);
-
+// Tracks the bin selected from the map or attention list
 const selectedBin =
   bins.find((bin) => bin.id === selectedBinId) ||
   attentionBins[0] ||
@@ -231,14 +231,24 @@ const selectedBin =
               attributionControl={false}
               className="h-full w-full map-tiles-vibrant"
             >
+              {/* Moves the map to the selected bin. */}
               <MapFlyToBin bin={selectedBin} />
               
+              {/* Uses satellite imagery for the campus map. */}
               <TileLayer
                 attribution="Tiles © Esri"
                 url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
                 maxZoom={20}
               />
-
+              {/*<TileLayer
+                  attribution="© Mapbox"
+                  url="https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.jpg?access_token=YOUR_MAPBOX_ACCESS_TOKEN"
+                />
+                <TileLayer
+                  attribution="© MapTiler © OpenStreetMap contributors"
+                  url="https://api.maptiler.com/maps/satellite-v4/{z}/{x}/{y}.png?key=YOUR_MAPTILER_API_KEY"
+                />*/}
+              {/* Displays each filtered bin as a color-coded map marker. */}
               {filteredBins.map((bin) => (
                 <Marker
                   key={bin.id}

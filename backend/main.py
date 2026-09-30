@@ -35,7 +35,7 @@ app.add_middleware(
 def reed_root():
     return {"message" : "FastAPI is running! (json)"}
 
-
+# Returns recent fill-level telemetry for dashboard activity
 @app.get("/api/analytics/fill-activity")
 def get_fill_activity():
     response = (

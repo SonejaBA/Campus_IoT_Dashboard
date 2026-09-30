@@ -1,22 +1,19 @@
 function BatteryHealth({ bins = [] }) {
+  // Battery level that triggers a replacement warning.
+  const REPLACE_THRESHOLD = 25;
+
+  // Collects valid battery readings from all bins.
   const batteries = bins
     .map((bin) => Number(bin.battery_level))
     .filter((battery) => Number.isFinite(battery));
 
-  const averageBattery =
-    batteries.length > 0
-      ? Math.round(
-          batteries.reduce((sum, battery) => sum + battery, 0) /
-            batteries.length
-        )
-      : 0;
-
-  const lowestBattery =
-    batteries.length > 0 ? Math.min(...batteries) : 0;
-
-  const lowBatteryCount = batteries.filter(
-    (battery) => battery < 25
+  // Counts batteries that need to be replaced.
+  const replaceCount = batteries.filter(
+    (battery) => battery < REPLACE_THRESHOLD
   ).length;
+
+  const okCount = batteries.length - replaceCount;
+  const allOkay = replaceCount === 0;
 
   return (
     <section className="h-full min-h-0 bg-[#0b1513] border border-white/10 px-4 py-3 overflow-hidden">
@@ -32,62 +29,71 @@ function BatteryHealth({ bins = [] }) {
           </p>
         </div>
 
-        <span className="text-[10px] text-emerald-400 font-semibold">
-          {averageBattery}% AVG
+        <span
+          className={`text-[10px] font-semibold ${
+            allOkay ? "text-emerald-400" : "text-red-400"
+          }`}
+        >
+          {allOkay ? "ALL OK" : "ATTENTION"}
         </span>
       </div>
 
-      {/* BATTERY SUMMARY */}
-      <div className="mt-3">
-        <div className="flex items-end justify-between">
-          <div>
-            <span className="text-2xl font-semibold text-slate-100">
-              {averageBattery}%
-            </span>
+      {/* BATTERY STATUS */}
+      <div className="mt-4">
+        <div className="flex items-center gap-3">
+          <span
+            className={`w-3 h-3 rounded-full ${
+              allOkay
+                ? "bg-emerald-400"
+                : "bg-red-500"
+            }`}
+          />
 
-            <span className="text-[10px] text-slate-500 ml-2">
-              average
-            </span>
-          </div>
-
-          <span className="text-[10px] text-slate-400">
-            Lowest {lowestBattery}%
+          <span
+            className={`text-2xl font-semibold ${
+              allOkay
+                ? "text-emerald-400"
+                : "text-red-400"
+            }`}
+          >
+            {allOkay ? "Battery OK" : "Replace Battery"}
           </span>
         </div>
 
-        <div className="h-2 bg-white/5 mt-2 overflow-hidden">
-          <div
-            className="h-full bg-emerald-400"
-            style={{ width: `${averageBattery}%` }}
-          />
-        </div>
+        <p className="text-[10px] text-slate-500 mt-2">
+          {allOkay
+            ? "All sensor batteries operating normally"
+            : `${replaceCount} sensor battery ${
+                replaceCount === 1 ? "needs" : "need"
+              } replacement`}
+        </p>
       </div>
 
       {/* SENSOR STATS */}
       <div className="grid grid-cols-2 gap-4 mt-5 pt-3 border-t border-white/10">
         <div>
-          <p className="text-sm font-semibold text-slate-200">
-            {batteries.length}
+          <p className="text-sm font-semibold text-emerald-400">
+            {okCount}
           </p>
 
           <p className="text-[9px] uppercase tracking-wider text-slate-600">
-            Sensors
+            Battery OK
           </p>
         </div>
 
         <div>
           <p
             className={`text-sm font-semibold ${
-              lowBatteryCount > 0
-                ? "text-amber-400"
-                : "text-emerald-400"
+              replaceCount > 0
+                ? "text-red-400"
+                : "text-slate-400"
             }`}
           >
-            {lowBatteryCount}
+            {replaceCount}
           </p>
 
           <p className="text-[9px] uppercase tracking-wider text-slate-600">
-            Below 25%
+            Replace
           </p>
         </div>
       </div>

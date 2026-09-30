@@ -5,6 +5,7 @@
   filter: grayscale(40%) contrast(92%) brightness(102%) saturate(80%);
 }
 
+/* Makes the satellite map slightly brighter and more natural. */
 .map-tiles-vibrant .leaflet-tile {
   filter:
     saturate(1.15)
