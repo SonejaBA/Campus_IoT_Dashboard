@@ -229,12 +229,14 @@ const selectedBin =
               maxBoundsViscosity={0.6}
               zoomControl={true}
               attributionControl={false}
-              className="h-full w-full map-tiles-dark"
+              className="h-full w-full map-tiles-vibrant"
             >
               <MapFlyToBin bin={selectedBin} />
               
               <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution="Tiles © Esri"
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                maxZoom={20}
               />
 
               {filteredBins.map((bin) => (
@@ -249,15 +251,75 @@ const selectedBin =
                     click: () => setSelectedBinId(bin.id),
                   }}
                 >
-                  <Popup>
-                    <div>
-                      <strong>Bin {bin.id}</strong>
-                      <br />
-                      Fill: {bin.fill_level}%
-                      <br />
-                      Battery: {bin.battery_level}%
-                    </div>
-                  </Popup>
+        <Popup className="bin-popup">
+        <div className="w-[160px]">
+          <div className="flex items-start justify-between gap-2 pb-2 border-b border-white/10">
+            <div>
+              <p className="text-[8px] font-bold tracking-[0.18em] uppercase text-amber-400">
+                🐝 Stinger Sensor
+              </p>
+
+              <h3 className="mt-0.5 text-base font-bold text-white">
+                Bin {bin.id}
+              </h3>
+            </div>
+
+            <span
+              className={`px-1.5 py-0.5 text-[8px] font-bold uppercase ${
+                getStatus(bin.fill_level) === "critical"
+                  ? "bg-red-500/15 text-red-400"
+                  : getStatus(bin.fill_level) === "warning"
+                  ? "bg-amber-400/15 text-amber-300"
+                  : "bg-emerald-400/15 text-emerald-300"
+              }`}
+            >
+              {getStatus(bin.fill_level)}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <div>
+              <p className="text-[8px] uppercase tracking-wider text-slate-500">
+                Fill
+              </p>
+
+              <p
+                className={`text-lg font-bold ${
+                  bin.fill_level >= 80
+                    ? "text-red-400"
+                    : bin.fill_level >= 50
+                    ? "text-amber-300"
+                    : "text-emerald-400"
+                }`}
+              >
+                {bin.fill_level}%
+              </p>
+            </div>
+
+            <div>
+              <p className="text-[8px] uppercase tracking-wider text-slate-500">
+                Battery
+              </p>
+
+              <p className="text-lg font-bold text-cyan-300">
+                {bin.battery_level}%
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-2 pt-2 border-t border-white/10">
+            <p className="text-[8px] uppercase tracking-wider text-slate-500">
+              Last Reading
+            </p>
+
+            <p className="mt-0.5 text-[10px] text-slate-200">
+              {bin.time
+                ? new Date(bin.time).toLocaleString()
+                : "No reading available"}
+            </p>
+          </div>
+        </div>
+      </Popup>
                 </Marker>
               ))}
             </MapContainer>
