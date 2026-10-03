@@ -6,7 +6,7 @@ function useBins(){
     const [bins, setBins] = useState([]);
 
     useEffect(() =>{
-        fetch('http://127.0.0.1:8000/api/bins')
+        fetch(`${import.meta.env.VITE_API_URL}/api/bins`)
         .then(response => response.json())
         .then(data => setBins(data))
 
