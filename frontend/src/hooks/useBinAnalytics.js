@@ -4,7 +4,7 @@ function useBinAnalytics(bin_id){
     const [binHistory, setBinHistory] = useState([]);
 
     useEffect(() =>{
-        fetch(`http://127.0.0.1:8000/api/analytics/${bin_id}`)
+        fetch(`${import.meta.env.VITE_API_URL}/api/analytics/${bin_id}`)
         .then(response => response.json())
         .then(data => setBinHistory(data))
 
