@@ -30,6 +30,25 @@ const createBinIcon = (fillLevel) => {
   });
 };
 
+const getRelativeTime = (timeString) => {
+  if (!timeString) return "No data";
+
+  const then = new Date(timeString);
+  const now = new Date();
+  const secondsAgo = Math.floor((now - then) / 1000);
+
+  if (secondsAgo < 60) return `${secondsAgo}s ago`;
+
+  const minutesAgo = Math.floor(secondsAgo / 60);
+  if (minutesAgo < 60) return `${minutesAgo}m ago`;
+
+  const hoursAgo = Math.floor(minutesAgo / 60);
+  if (hoursAgo < 24) return `${hoursAgo}h ago`;
+
+  const daysAgo = Math.floor(hoursAgo / 24);
+  return `${daysAgo}d ago`;
+};
+
 const filterOptions = [
   { value: "all", label: "All bins" },
   { value: "green", label: "Green (0–49%)" },
@@ -125,14 +144,21 @@ function DashboardMap({ bins }) {
             position={[bin.lat, bin.long]}
             icon={createBinIcon(bin.fill_level)}
           >
+
             <Popup className="dark-popup">
               <div className="h-50 w-70 flex flex-col">
-                <span className="flex-1 font-medium text-l flex-1 mb-2 mt-2">
-                  BIN-{String(bin["id"]).padStart(3, '0')}
-                </span>
+                <div className="flex items-center justify-between mb-2 mt-2">
+                  <span className="font-medium text-l">
+                    BIN-{String(bin["id"]).padStart(3, '0')}
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    {getRelativeTime(bin.time)}
+                  </span>
+                </div>
                 <CurrentCapacityChart bin={bin} isPopup={true} />
               </div>
             </Popup>
+
           </Marker>
         ))}
       </MapContainer>
