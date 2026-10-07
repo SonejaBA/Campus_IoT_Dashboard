@@ -3,9 +3,12 @@ import { useLocation } from "react-router-dom";
 import { Bell } from "lucide-react";
 import { Tally1 } from "lucide-react";
 import MobileNav from "../components/MobileNav.jsx";
-
+import { useMemo, useState } from "react";
 const connected = "bg-emerald-500";
 const disconnected = "bg-red-500";
+const FILL_THRESHOLD = 80; //threshold for when the sensor should notify a bin needs service
+const BATTERY_THRESHOLD = 25; //charge lvl threshold for when a battery needs to be serviced
+
 
 const pageTitles = {
   "/": "Dashboard",
@@ -13,6 +16,57 @@ const pageTitles = {
   "/settings": "Settings",
   "/maintenance": "Maintenance",
 };
+
+const filterOptions = [
+  { value: "all", label: "All bins" },
+  { value: "green", label: "Green (0–49%)" },
+  { value: "yellow", label: "Yellow (50–79%)" },
+  { value: "red", label: "Red (80–100%)" },
+];
+
+// Dropdown used to filter bins displayed on the map (thanks chris -kenneth)
+function FilterButton({ activeFilter, onSelect }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const activeLabel =
+    filterOptions.find((option) => option.value === activeFilter)?.label ||
+    "All bins";
+
+  return (
+    <div className="absolute top-4 right-4 z-[1000]">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 bg-[#091310]/95 border border-white/10 text-slate-200 px-4 py-2 shadow-xl"
+      >
+        <Filter size={16} />
+        {activeLabel}
+        <ChevronDown
+          size={14}
+          className={`transition-transform ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 top-full mt-2 min-w-full bg-[#091310]/95 border border-white/10 shadow-xl p-2 whitespace-nowrap">
+          {filterOptions.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => {
+                onSelect(option.value);
+                setIsOpen(false);
+              }}
+              className="block w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-emerald-400"
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function StatusDot({ serverHealthy }) {
   const isDisconnected = serverHealthy === false;
@@ -70,11 +124,21 @@ function NotificationDot({ numOfNotifications = 10 }) {
   );
 }
 
-function Header() {
+function Header({bins}) {
   const isHealthy = checkHealth();
   const location = useLocation();
   const currentPath = location.pathname;
-
+  const [isOpen, setIsOpen] = useState(false);
+  const attentionBins = useMemo(() => {
+  return [...(bins ?? [])]
+    .filter((bin) => bin.fill_level >= FILL_THRESHOLD) 
+    .sort((a, b) => b.fill_level - a.fill_level);
+}, [bins]);
+const lowBatteryBins = useMemo(() => {
+  return (bins ?? []).filter(
+    (bin) => bin.battery_level != null && bin.battery_level < BATTERY_THRESHOLD
+  );
+}, [bins]);
   return (
     <div className="bg-[#1E1E1E] text-white p-4 h-14 items-center justify-between flex flex-row border-b-2 border-[#adadad]">
       <div className="gap-2 items-center flex ">
@@ -82,13 +146,32 @@ function Header() {
         <h1 className="font-medium md:hidden"> {pageTitles[currentPath]} </h1>
       </div>
       <div className="gap-2 items-center flex ">
+
+        <div className="relative">
         <button
-          className="px-4 relative cursor-pointer">
+          className="px-4 relative cursor-pointer"
+          onClick = {() => setIsOpen(!isOpen)}
+          >
           <NotificationDot numOfNotifications={10} />
           <div className="rounded-full hover:bg-white/10 p-2">
             <Bell size={20} />
           </div>
         </button>
+
+        {isOpen && (
+        <div className="absolute right-0 top-12 z-2000 w-72 h-40 bg-[#1E1E1E] border border-white" > 
+          {attentionBins.map((bin) => (
+  <p key={bin.id}>Bin {bin.id}: {bin.fill_level}%</p>
+))}
+
+{lowBatteryBins.map((bin) => (
+  <p key={`${bin.id}-battery`}>
+    Battery level critical: Bin {bin.id} ({bin.battery_level}%)
+  </p>
+))}
+        </div> )}
+        </div>
+        
         <Tally1/>
         <StatusDot serverHealthy={isHealthy} />
         <h1 className="font-medium hidden md:block">

@@ -22,7 +22,7 @@ function App() {
                 <Route path="/signup" element={<SignUp />} />
                 <Route path="/forgotpassword" element={<ForgotPassword />} />
                 <Route path="/update-password" element={<UpdatePassword />} />
-                <Route element={<ProtectedRoute><AppLayout/></ProtectedRoute>}>
+                <Route element={<ProtectedRoute><AppLayout bins = {bins}/></ProtectedRoute>}>
                   <Route path="/" element={<DashboardMap bins={bins} />} />
                   <Route path="/analytics" element={<Analytics bins={bins} />} />
                   <Route path="/settings" element={<Settings />} />
