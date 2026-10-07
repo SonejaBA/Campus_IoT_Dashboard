@@ -49,7 +49,7 @@ function FilterButton({ activeFilter, onSelect }) {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 min-w-full bg-[#091310]/95 border border-white/10 shadow-xl p-2 whitespace-nowrap">
+        <div className="flex flex-col absolute rounded-full opacity-75  right-0 top-full max-h-64 overflow-y-auto overscroll-contain mt-2 min-w-full bg-[#091310]/95 border border-white/10 shadow-xl p-2 whitespace-nowrap">
           {filterOptions.map((option) => (
             <button
               key={option.value}
@@ -159,7 +159,7 @@ const lowBatteryBins = useMemo(() => {
         </button>
 
         {isOpen && (
-        <div className="absolute right-0 top-12 z-2000 w-72 h-40 bg-[#1E1E1E] border border-white" > 
+        <div className="absolute right-0 topabsolute right-0 top-12 z-[2000] w-72 max-h-64 overflow-y-auto overscroll-contain flex flex-col gap-1 p-2 text-sm text-slate-200 rounded-lg bg-[#1E1E1E]/90 backdrop-blur-sm border border-white/10 shadow-xl-12 z-2000 w-72 h-40 bg-[#1E1E1E] border border-white overflow-y-auto overscroll-contain" > 
           {attentionBins.map((bin) => (
   <p key={bin.id}>Bin {bin.id}: {bin.fill_level}%</p>
 ))}
