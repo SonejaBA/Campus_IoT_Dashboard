@@ -11,7 +11,7 @@
 
 .dark-popup .leaflet-popup-content-wrapper,
 .dark-popup .leaflet-popup-tip {
-  background-color: #1E1E1E !important; 
+  background-color: #1e1e1e !important;
   color: #f1f5f9 !important;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
 }
@@ -22,4 +22,134 @@
 
 .dark-popup .leaflet-popup-close-button:hover {
   color: #ffffff !important;
+}
+
+/* basic styling for the battery and threshold sliders */
+.threshold-slider,
+#batteryWarning {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 8px;
+  border-radius: 999px;
+  background: #334155;
+}
+
+.threshold-slider::-webkit-slider-thumb,
+#batteryWarning::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+}
+
+.threshold-slider::-moz-range-thumb,
+#batteryWarning::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 3px solid #0f172a;
+  cursor: pointer;
+}
+
+/* combined fill-level sliders */
+.threshold-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 36px !important;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent !important;
+  cursor: pointer;
+  pointer-events: none;
+}
+
+.threshold-slider::-webkit-slider-runnable-track {
+  height: 12px;
+  background: transparent;
+}
+
+.threshold-slider::-moz-range-track {
+  height: 12px;
+  background: transparent;
+}
+
+.threshold-slider::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 44px;
+  height: 44px;
+  margin-top: -16px;
+  border: none;
+  border-radius: 0;
+  background: url("/three-bin.png") center / contain no-repeat;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.threshold-slider::-moz-range-thumb {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 0;
+  background: url("/three-bin.png") center / contain no-repeat;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.threshold-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border: 3px solid #0f172a;
+  border-radius: 50%;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+/* warning handle is yellow */
+/*.warning-slider {
+  z-index: 2;
+}
+
+.warning-slider::-webkit-slider-thumb {
+  background: linear-gradient(to right, #34d399 0 50%, #fbbf24 50% 100%);
+}
+
+.warning-slider::-moz-range-thumb {
+  background: linear-gradient(to right, #34d399 0 50%, #fbbf24 50% 100%);
+}
+*/
+/* critical handle is red */
+.critical-slider {
+  z-index: 1;
+}
+/*garbage-bin img* fro slider/
+.critical-slider::-webkit-slider-thumb {
+  background: url("/three-bin.png") center / contain no-repeat;
+}
+
+.critical-slider::-moz-range-thumb {
+  background: url("/three-bin.png") center / contain no-repeat;
+}
+
+/*This is green/yellow circle*/
+/*.critical-slider::-webkit-slider-thumb {
+  background: linear-gradient(to right, #fbbf24 0 50%, #f87171 50% 100%);
+}
+
+.critical-slider::-moz-range-thumb {
+  background: linear-gradient(to right, #fbbf24 0 50%, #f87171 50% 100%);
+}
+*/
+/* battery handle is blue */
+#batteryWarning::-webkit-slider-thumb {
+  background: #60a5fa;
+}
+
+#batteryWarning::-moz-range-thumb {
+  background: #60a5fa;
 }
