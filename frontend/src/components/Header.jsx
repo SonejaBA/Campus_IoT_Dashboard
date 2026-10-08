@@ -90,13 +90,13 @@ function Header({ bins }) {
     return [...(bins ?? [])]
       .filter((bin) => bin.fill_level >= FILL_THRESHOLD)
       .sort((a, b) => b.fill_level - a.fill_level);
-  }, [bins]);
+  }, [bins,FILL_THRESHOLD]);
   const lowBatteryBins = useMemo(() => {
     return (bins ?? []).filter(
       (bin) =>
         bin.battery_level != null && bin.battery_level < BATTERY_THRESHOLD,
     );
-  }, [bins]);
+  }, [bins,BATTERY_THRESHOLD]);
   return (
     <div className="bg-[#1E1E1E] text-white p-4 h-14 items-center justify-between flex flex-row border-b-2 border-[#adadad]">
       <div className="gap-2 items-center flex ">
