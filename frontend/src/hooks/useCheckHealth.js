@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-function checkHealth(){
+function useCheckHealth(){
     const [isHealthy,setIsHealthy] = useState(false)
 
     useEffect(() =>{
@@ -22,4 +22,4 @@ function checkHealth(){
     return isHealthy;
 }
 
-export {checkHealth}
+export {useCheckHealth}

@@ -1,6 +1,6 @@
-import { checkHealth } from "../hooks/useCheckHealth";
+import { useCheckHealth } from "../hooks/useCheckHealth";
 import { useLocation } from "react-router-dom";
-import { Bell, Tally1, BatteryLow, Trash } from "lucide-react";
+import { Bell, Tally1, BatteryLow, Trash, Filter } from "lucide-react";
 import MobileNav from "../components/MobileNav.jsx";
 import { useMemo, useState } from "react";
 import { useSettings } from "../components/context/SettingsContext.jsx";
@@ -20,48 +20,6 @@ const filterOptions = [
   { value: "yellow", label: "Yellow (50–79%)" },
   { value: "red", label: "Red (80–100%)" },
 ];
-
-// Dropdown used to filter bins displayed on the map (thanks chris -kenneth)
-function FilterButton({ activeFilter, onSelect }) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const activeLabel =
-    filterOptions.find((option) => option.value === activeFilter)?.label ||
-    "All bins";
-
-  return (
-    <div className="absolute top-4 right-4 z-[1000]">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 bg-[#091310]/95 border border-white/10 text-slate-200 px-4 py-2 shadow-xl"
-      >
-        <Filter size={16} />
-        {activeLabel}
-        <ChevronDown
-          size={14}
-          className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
-        />
-      </button>
-
-      {isOpen && (
-        <div className="flex flex-col absolute rounded-full opacity-75  right-0 top-full max-h-64 overflow-y-auto overscroll-contain mt-2 min-w-full bg-[#091310]/95 border border-white/10 shadow-xl p-2 whitespace-nowrap">
-          {filterOptions.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => {
-                onSelect(option.value);
-                setIsOpen(false);
-              }}
-              className="block w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-emerald-400"
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function StatusDot({ serverHealthy }) {
   const isDisconnected = serverHealthy === false;
@@ -124,7 +82,7 @@ function Header({ bins }) {
   const FILL_THRESHOLD = settings.fillCritical;
   const BATTERY_THRESHOLD = settings.batteryWarning;
 
-  const isHealthy = checkHealth();
+  const isHealthy = useCheckHealth();
   const location = useLocation();
   const currentPath = location.pathname;
   const [isOpen, setIsOpen] = useState(false);
