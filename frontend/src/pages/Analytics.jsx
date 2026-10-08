@@ -5,13 +5,18 @@ import BinSearchSelect from "../components/BinSearchSelect";
 import KPICard from "../components/cards/KPICard";
 
 function Analytics({ bins }) {
+  const fullColor = "bg-red-500";
+  const mediumColor = "bg-amber-500";
+  const lowColor = "bg-emerald-500";
+
   const [selectedBin, setSelectedBin] = useState("");
   const binsCount = bins.length;
   const activeBin = bins.find((bin) => bin.id === selectedBin);
-  
-  const averageFill = binsCount > 0 
-  ? bins.reduce((acc, curr) => acc + curr.fill_level, 0) / binsCount 
-  : 0;
+
+  const averageFill =
+    binsCount > 0
+      ? bins.reduce((acc, curr) => acc + curr.fill_level, 0) / binsCount
+      : 0;
 
   let critical = 0;
   let warning = 0;
@@ -34,23 +39,29 @@ function Analytics({ bins }) {
         Analytics
       </h1>
       <div className="grid grid-cols-2 grid-rows-2 md:grid-cols-4 md:grid-rows-1 gap-8 items-center mb-3">
-        <KPICard title={"Average Fill"} 
-        count={averageFill.toFixed(2)}/>
+        <KPICard
+          title={"Average Fill"}
+          count={averageFill.toFixed(2)}
+          percent_card={true}
+        />
         <KPICard
           title={"Critical"}
           count={critical}
+          color={fullColor}
           sum_card={true}
           bin_count={binsCount}
         />
         <KPICard
           title={"Warning"}
           count={warning}
+          color={mediumColor}
           sum_card={true}
           bin_count={binsCount}
         />
         <KPICard
           title={"OK"}
           count={ok}
+          color={lowColor}
           sum_card={true}
           bin_count={binsCount}
         />
