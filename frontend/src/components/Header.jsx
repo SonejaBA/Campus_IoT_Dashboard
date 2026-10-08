@@ -104,7 +104,7 @@ function Header({ bins }) {
         <h1 className="font-medium md:hidden"> {pageTitles[currentPath]} </h1>
       </div>
       <div className="gap-2 items-center flex ">
-        <div className="relative">
+        <div className="relative top-1">
           <button
             className="px-4 relative cursor-pointer"
             onClick={() => setIsOpen(!isOpen)}
