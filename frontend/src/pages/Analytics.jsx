@@ -2,6 +2,7 @@ import { useState } from "react";
 import HistoricalBinCard from "../components/cards/HistoricalBinCard";
 import CurrentBinCard from "../components/cards/CurrentBinCard";
 import BinSearchSelect from "../components/BinSearchSelect";
+import KPICard from "../components/cards/KPICard";
 
 function Analytics({ bins }) {
   const [selectedBin, setSelectedBin] = useState("");
