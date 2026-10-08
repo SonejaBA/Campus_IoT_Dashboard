@@ -3,11 +3,9 @@ import { useLocation } from "react-router-dom";
 import { Bell, Tally1, BatteryLow, Trash } from "lucide-react";
 import MobileNav from "../components/MobileNav.jsx";
 import { useMemo, useState } from "react";
+import { useSettings } from "../components/context/SettingsContext.jsx";
 const connected = "bg-emerald-500";
 const disconnected = "bg-red-500";
-const FILL_THRESHOLD = 80; //threshold for when the sensor should notify a bin needs service
-const BATTERY_THRESHOLD = 25; //charge lvl threshold for when a battery needs to be serviced
-
 
 const pageTitles = {
   "/": "Dashboard",
@@ -41,9 +39,7 @@ function FilterButton({ activeFilter, onSelect }) {
         {activeLabel}
         <ChevronDown
           size={14}
-          className={`transition-transform ${
-            isOpen ? "rotate-180" : ""
-          }`}
+          className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -123,21 +119,26 @@ function NotificationDot({ numOfNotifications = 10 }) {
   );
 }
 
-function Header({bins}) {
+function Header({ bins }) {
+  const { settings } = useSettings();
+  const FILL_THRESHOLD = settings.fillCritical;
+  const BATTERY_THRESHOLD = settings.batteryWarning;
+
   const isHealthy = checkHealth();
   const location = useLocation();
   const currentPath = location.pathname;
   const [isOpen, setIsOpen] = useState(false);
   const attentionBins = useMemo(() => {
-  return [...(bins ?? [])]
-    .filter((bin) => bin.fill_level >= FILL_THRESHOLD) 
-    .sort((a, b) => b.fill_level - a.fill_level);
-}, [bins]);
-const lowBatteryBins = useMemo(() => {
-  return (bins ?? []).filter(
-    (bin) => bin.battery_level != null && bin.battery_level < BATTERY_THRESHOLD
-  );
-}, [bins]);
+    return [...(bins ?? [])]
+      .filter((bin) => bin.fill_level >= FILL_THRESHOLD)
+      .sort((a, b) => b.fill_level - a.fill_level);
+  }, [bins]);
+  const lowBatteryBins = useMemo(() => {
+    return (bins ?? []).filter(
+      (bin) =>
+        bin.battery_level != null && bin.battery_level < BATTERY_THRESHOLD,
+    );
+  }, [bins]);
   return (
     <div className="bg-[#1E1E1E] text-white p-4 h-14 items-center justify-between flex flex-row border-b-2 border-[#adadad]">
       <div className="gap-2 items-center flex ">
@@ -145,36 +146,40 @@ const lowBatteryBins = useMemo(() => {
         <h1 className="font-medium md:hidden"> {pageTitles[currentPath]} </h1>
       </div>
       <div className="gap-2 items-center flex ">
-
         <div className="relative">
-        <button
-          className="px-4 relative cursor-pointer"
-          onClick = {() => setIsOpen(!isOpen)}
+          <button
+            className="px-4 relative cursor-pointer"
+            onClick={() => setIsOpen(!isOpen)}
           >
-          <NotificationDot numOfNotifications={10} />
-          <div className="rounded-full hover:bg-white/10 p-2">
-            <Bell size={20} />
-          </div>
-        </button>
+            <NotificationDot numOfNotifications={10} />
+            <div className="rounded-full hover:bg-white/10 p-2">
+              <Bell size={20} />
+            </div>
+          </button>
 
-        {isOpen && (
-        <div className="absolute right-0 topabsolute right-0 top-12 z-[2000] w-72 max-h-64 overflow-y-auto overscroll-contain flex flex-col gap-1 p-2 text-sm text-slate-200 rounded-lg bg-[#1E1E1E]/90 backdrop-blur-sm border border-white/10 shadow-xl-12 z-2000 w-72 h-40 bg-[#1E1E1E] border border-white overflow-y-auto overscroll-contain" > 
-          {attentionBins.map((bin) => (
-  <p key={bin.id} className = "flex items-center gap-2">
-    <Trash size={16} className="shrink-0 text-red-400" />
-    Bin {bin.id}: {bin.fill_level}%</p>
-))}
+          {isOpen && (
+            <div className="absolute right-0 top-12 z-[2000] w-72 max-h-64 overflow-y-auto overscroll-contain flex flex-col gap-1 p-2 text-sm text-slate-200 rounded-lg bg-[#1E1E1E]/90 backdrop-blur-sm border border-white/10 shadow-xl">
+              {attentionBins.map((bin) => (
+                <p key={bin.id} className="flex items-center gap-2">
+                  <Trash size={16} className="shrink-0 text-red-400" />
+                  Bin {bin.id}: {bin.fill_level}%
+                </p>
+              ))}
 
-{lowBatteryBins.map((bin) => (
-  <p key={`${bin.id}-battery`} className="flex items-center gap-2">
-    <BatteryLow size={16} className="shrink-0 text-amber-400" />
-    Battery level critical: Bin {bin.id} ({bin.battery_level}%)
-  </p>
-))}
-        </div> )}
+              {lowBatteryBins.map((bin) => (
+                <p
+                  key={`${bin.id}-battery`}
+                  className="flex items-center gap-2"
+                >
+                  <BatteryLow size={16} className="shrink-0 text-amber-400" />
+                  Battery level critical: Bin {bin.id} ({bin.battery_level}%)
+                </p>
+              ))}
+            </div>
+          )}
         </div>
-        
-        <Tally1/>
+
+        <Tally1 />
         <StatusDot serverHealthy={isHealthy} />
         <h1 className="font-medium hidden md:block">
           {isHealthy ? "System online" : "System offline"}
