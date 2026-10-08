@@ -1,7 +1,6 @@
 import { checkHealth } from "../hooks/useCheckHealth";
 import { useLocation } from "react-router-dom";
-import { Bell } from "lucide-react";
-import { Tally1 } from "lucide-react";
+import { Bell, Tally1, BatteryLow, Trash } from "lucide-react";
 import MobileNav from "../components/MobileNav.jsx";
 import { useMemo, useState } from "react";
 const connected = "bg-emerald-500";
@@ -161,11 +160,14 @@ const lowBatteryBins = useMemo(() => {
         {isOpen && (
         <div className="absolute right-0 topabsolute right-0 top-12 z-[2000] w-72 max-h-64 overflow-y-auto overscroll-contain flex flex-col gap-1 p-2 text-sm text-slate-200 rounded-lg bg-[#1E1E1E]/90 backdrop-blur-sm border border-white/10 shadow-xl-12 z-2000 w-72 h-40 bg-[#1E1E1E] border border-white overflow-y-auto overscroll-contain" > 
           {attentionBins.map((bin) => (
-  <p key={bin.id}>Bin {bin.id}: {bin.fill_level}%</p>
+  <p key={bin.id} className = "flex items-center gap-2">
+    <Trash size={16} className="shrink-0 text-red-400" />
+    Bin {bin.id}: {bin.fill_level}%</p>
 ))}
 
 {lowBatteryBins.map((bin) => (
-  <p key={`${bin.id}-battery`}>
+  <p key={`${bin.id}-battery`} className="flex items-center gap-2">
+    <BatteryLow size={16} className="shrink-0 text-amber-400" />
     Battery level critical: Bin {bin.id} ({bin.battery_level}%)
   </p>
 ))}
