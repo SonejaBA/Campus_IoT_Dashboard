@@ -74,7 +74,7 @@ function Sidebar() {
 
       <nav className="flex-1 flex-col gap-2 px-1">
         <Link
-          to="/"
+          to="/dashboard"
           title={isOpen ? "" : "Dashboard"}
           className={`  flex 
                         items-center 

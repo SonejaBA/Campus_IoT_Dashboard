@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import wordLogo from "../../assets/wordLogo.png";
 
+
 function ErrorBanner({ errorMessage }) {
   let formattedErrorMessage = "";
   if (errorMessage === "missing email or phone") {
@@ -31,7 +32,7 @@ function LogInCard() {
     setLoading(true);
     try {
       await logIn(email, password);
-      navigate("/");
+      navigate("/dashboard"); // Redirect to the dashboard after successful login
     } catch (err) {
       setError(err.message);
       setEmail("");
@@ -43,6 +44,13 @@ function LogInCard() {
 
   return (
     <div className="relative z-10 w-full max-w-sm p-8 bg-emerald-500/10 backdrop-blur-xl border border-emerald-500/30 rounded-2xl shadow-2xl text-white m-5">
+      <Link
+        to="/"
+        className="absolute top-8 left-8 text-sm text-white/80 hover:text-emerald-400 underline transition duration-200"
+      >
+        Home
+      </Link>
+
       <div className="flex flex-col">
         <img src={wordLogo} className="h-20 object-contain" />
         <h2 className="text-3xl font-bold mb-6 text-center">Bin Tracker</h2>
