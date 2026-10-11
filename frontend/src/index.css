@@ -1,5 +1,27 @@
 @import "tailwindcss";
 
+:root, .theme-dark {
+  --bg-page: #262626;
+  --bg-card: #1e1e1e;
+  --bg-card-strong: #1e1e1e;
+  --border-card: 2px solid #adadad;
+  --backdrop-blur: none;
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --text-primary: #ffffff;
+}
+
+.theme-glass {
+  /* Layer a 60% black dark overlay (rgba(0, 0, 0, 0.6)) over the background image */
+  --bg-page: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url("/generalImageBackground.jpg") center / cover no-repeat #0f172a;
+  
+  --bg-card: rgba(255, 255, 255, 0.08);
+  --bg-card-strong: rgba(0, 0, 0, 0.8);
+  --border-card: 1px solid rgba(255, 255, 255, 0.18);
+  --backdrop-blur: 16px;
+  --shadow-card: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --text-primary: #ffffff;
+}
+
 /* Mutes standard OSM colors so bin markers pop, but keeps building names clear */
 .map-tiles-muted .leaflet-tile {
   filter: grayscale(40%) contrast(92%) brightness(102%) saturate(80%);
@@ -153,3 +175,4 @@
 #batteryWarning::-moz-range-thumb {
   background: #60a5fa;
 }
+
