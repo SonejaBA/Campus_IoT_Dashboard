@@ -30,7 +30,7 @@ function KPICard({
   percent_card = false,
 }) {
   return (
-    <div className="p-4 rounded-xl flex flex-col gap-5 bg-[var(--bg-card)] md:h-50 [border:var(--border-card)] text-[var(--text-primary)] shadow-[var(--shadow-card)] backdrop-blur-[var(--backdrop-blur)]">
+    <div className="p-4 rounded-xl flex flex-col gap-5 min-h-40 bg-[var(--bg-card)] md:h-50 [border:var(--border-card)] text-[var(--text-primary)] shadow-[var(--shadow-card)] backdrop-blur-[var(--backdrop-blur)]">
       <div className="flex items-center mb-2">
         <span className="font-medium text-normal md:text-xl flex-1 ">
           {title}

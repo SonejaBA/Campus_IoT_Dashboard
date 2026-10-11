@@ -13,7 +13,6 @@ function MobileNav() {
             md:hidden 
             z-[2000] 
             p-2
-            bg-[#1E1E1E]/40 
             text-white 
             rounded-lg 
             cursor-pointer
@@ -23,7 +22,17 @@ function MobileNav() {
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-[3000] flex items-start justify-left bg-black/40 backdrop-blur-xs p-2">
+        <div
+          className="fixed 
+        inset-0 
+        z-[3000] 
+        flex 
+        items-start
+        justify-left 
+        bg-[var(--bg-card)]
+        backdrop-blur-[var(--backdrop-blur-light)] 
+        p-2"
+        >
           <div className="relative bg-[#1E1E1E]/80 backdrop-blur-md border border-white/10 p-6 rounded-2xl flex flex-col gap-6 w-3/4 max-w-xs shadow-2xl">
             <button
               onClick={() => setIsOpen(false)}
@@ -40,15 +49,15 @@ function MobileNav() {
                         items-center 
                         py-2 
                         rounded-lg 
-                        hover:bg-gradient-to-r
-                        hover:from-emerald-900/80
-                        hover:to-emerald-900/20
+                        hover:bg-[var(--bg-hover)]
                         transition-colors 
                         text-white 
 `}
               >
-                <span className={`font-medium whitespace-nowrap text-gray-300 pl-2`}>
-                Dashboard
+                <span
+                  className={`font-medium whitespace-nowrap text-gray-300 pl-2`}
+                >
+                  Dashboard
                 </span>
               </Link>
 
@@ -59,14 +68,14 @@ function MobileNav() {
                         items-center 
                         py-2 
                         rounded-lg 
-                        hover:bg-gradient-to-r
-                        hover:from-emerald-900/80
-                        hover:to-emerald-900/20
+                        hover:bg-[var(--bg-hover)]
                         transition-colors 
                         text-white 
 `}
               >
-                <span className={`font-medium whitespace-nowrap text-gray-300 pl-2`}>
+                <span
+                  className={`font-medium whitespace-nowrap text-gray-300 pl-2`}
+                >
                   Analytics
                 </span>
               </Link>
@@ -78,14 +87,14 @@ function MobileNav() {
                         items-center 
                         py-2 
                         rounded-lg 
-                        hover:bg-gradient-to-r
-                        hover:from-emerald-900/80
-                        hover:to-emerald-900/20
+                        hover:bg-[var(--bg-hover)]
                         transition-colors 
                         text-white 
 `}
               >
-                <span className={`font-medium whitespace-nowrap text-gray-300 pl-2`}>
+                <span
+                  className={`font-medium whitespace-nowrap text-gray-300 pl-2`}
+                >
                   Maintenance
                 </span>
               </Link>
@@ -97,14 +106,14 @@ function MobileNav() {
                         items-center 
                         py-2 
                         rounded-lg 
-                        hover:bg-gradient-to-r
-                        hover:from-emerald-900/80
-                        hover:to-emerald-900/20
+                        hover:bg-[var(--bg-hover)]
                         transition-colors 
                         text-white 
 `}
               >
-                <span className={`font-medium whitespace-nowrap text-gray-300 pl-2`}>
+                <span
+                  className={`font-medium whitespace-nowrap text-gray-300 pl-2`}
+                >
                   Settings
                 </span>
               </Link>

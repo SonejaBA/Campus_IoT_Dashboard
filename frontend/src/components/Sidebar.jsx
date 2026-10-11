@@ -24,15 +24,15 @@ function Sidebar() {
         md:flex
         flex-col
         h-full
-        bg-[#1E1E1E] 
-        text-white 
+        bg-[var(--bg-sidebar)]
+        text[var(--text-primary)]
         p-4
         gap-4
         ${isOpen ? "w-60" : "w-20"}
         transition-all
         duration-200
-        border-r-2
-        border-[#adadad]
+        [border:var(--border-card)]
+        backdrop-blur-[var(--backdrop-blur-strong)]
         `}
     >
       {/*Logo and sidebar colapase button */}
@@ -62,7 +62,7 @@ function Sidebar() {
                         w-10 
                         h-10 
                         cursor-pointer
-                        text-[#F2F2F3] 
+                        text-[var(--text-primary)] 
                         aria-label="Collapse Sidebar" 
                         rounded-full 
                         hover:bg-white/10
@@ -80,11 +80,7 @@ function Sidebar() {
                         items-center 
                         py-2 
                         rounded-lg 
-                        ${
-                          isOpen
-                            ? "hover:bg-gradient-to-r hover:from-emerald-900/80 hover:to-emerald-900/20"
-                            : "hover:bg-emerald-900/80"
-                        }
+                        hover:bg-[var(--bg-hover)]
                         transition-colors 
                         text-white
                         ${
@@ -108,11 +104,7 @@ function Sidebar() {
                         items-center 
                         py-2 
                         rounded-lg 
-                        ${
-                          isOpen
-                            ? "hover:bg-gradient-to-r hover:from-emerald-900/80 hover:to-emerald-900/20"
-                            : "hover:bg-emerald-900/80"
-                        }
+                        hover:bg-[var(--bg-hover)]
                         transition-colors 
                         text-white 
                         ${
@@ -136,11 +128,7 @@ function Sidebar() {
                         items-center 
                         py-2 
                         rounded-lg 
-                        ${
-                          isOpen
-                            ? "hover:bg-gradient-to-r hover:from-emerald-900/80 hover:to-emerald-900/20"
-                            : "hover:bg-emerald-900/80"
-                        }
+                        hover:bg-[var(--bg-hover)]
                         transition-colors 
                         text-white 
                         ${
@@ -164,11 +152,7 @@ function Sidebar() {
                         items-center 
                         py-2 
                         rounded-lg 
-                        ${
-                          isOpen
-                            ? "hover:bg-gradient-to-r hover:from-emerald-900/80 hover:to-emerald-900/20"
-                            : "hover:bg-emerald-900/80"
-                        }
+                        hover:bg-[var(--bg-hover)]
                         transition-colors 
                         text-white 
                         ${

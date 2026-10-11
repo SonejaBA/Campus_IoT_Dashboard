@@ -65,7 +65,18 @@ function FilterButton({ activeFilter, onSelect }) {
       <button
         onClick={() => setIsOpen(!isOpen)}
         title="Filters"
-        className="flex items-center gap-2 bg-[#1E1E1E]/90 text-white px-4 py-2 rounded-lg cursor-pointer shadow-md justify-end"
+        className="flex 
+        items-center 
+        gap-2 
+        bg-[var(--bg-card)]
+        text-[var(--text-primary)]
+        px-4 
+        py-2 
+        rounded-lg 
+        cursor-pointer 
+        shadow-[var(--shadow-card)]
+        backdrop-blur-[var(--backdrop-blur-light)]
+        justify-end"
       >
         <Filter size={16} />
         {activeLabel}
@@ -78,7 +89,19 @@ function FilterButton({ activeFilter, onSelect }) {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 min-w-full bg-[#1E1E1E]/90 text-white rounded-lg shadow-md overflow-hidden p-2 whitespace-nowrap">
+        <div className="absolute 
+        right-0 
+        top-full 
+        mt-2 
+        min-w-full 
+        bg-[var(--bg-card)]
+        text-[var(--text-primary)] 
+        rounded-lg 
+        shadow-[var(--shadow-card)] 
+        backdrop-blur-[var(--backdrop-blur-light)]
+        overflow-hidden 
+        p-2 
+        whitespace-nowrap">
           {filterOptions.map((option) => (
             <button
               key={option.value}
@@ -93,9 +116,7 @@ function FilterButton({ activeFilter, onSelect }) {
                 px-4 
                 py-2
                 rounded-lg
-                hover:bg-gradient-to-l
-                hover:from-emerald-900/80
-                hover:to-emerald-900/20 cursor-pointer
+                hover:bg-[var(--bg-hover)]
               "
             >
               {option.label}
@@ -144,12 +165,11 @@ function DashboardMap({ bins }) {
             position={[bin.lat, bin.long]}
             icon={createBinIcon(bin.fill_level)}
           >
-
             <Popup className="dark-popup">
               <div className="h-50 w-70 flex flex-col">
                 <div className="flex items-center justify-between mb-2 mt-2">
                   <span className="font-medium text-l">
-                    BIN-{String(bin["id"]).padStart(3, '0')}
+                    BIN-{String(bin["id"]).padStart(3, "0")}
                   </span>
                   <span className="text-xs text-gray-400">
                     {getRelativeTime(bin.time)}
@@ -158,7 +178,6 @@ function DashboardMap({ bins }) {
                 <CurrentCapacityChart bin={bin} isPopup={true} />
               </div>
             </Popup>
-
           </Marker>
         ))}
       </MapContainer>

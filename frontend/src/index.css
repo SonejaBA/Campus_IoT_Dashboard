@@ -1,27 +1,49 @@
 @import "tailwindcss";
 
 :root, .theme-dark {
-  --bg-page: #262626;
+  --bg-page: #121212;
+  --bg-sidebar: #18181b;
+  --bg-header: #18181b;
   --bg-card: #1e1e1e;
-  --bg-card-strong: #1e1e1e;
-  --border-card: 2px solid #adadad;
-  --backdrop-blur: none;
-  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --bg-card-strong: #27272a;
+  
+  --bg-hover: rgba(255, 255, 255, 0.08);
+  --bg-active: rgba(255, 255, 255, 0.15);
+  
+  --border-card: 1px solid rgba(255, 255, 255, 0.12);
+  --border-subtle: 1px solid rgba(255, 255, 255, 0.06);
+  
+  --backdrop-blur-light: 0px;
+  --backdrop-blur: 0px;
+  --backdrop-blur-strong: 0px;
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.5);
   --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
 }
 
 .theme-glass {
-  /* Layer a 60% black dark overlay (rgba(0, 0, 0, 0.6)) over the background image */
-  --bg-page: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url("/generalImageBackground.jpg") center / cover no-repeat #0f172a;
+  --bg-page: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)), 
+             url("/generalImageBackground.jpg") center / cover no-repeat fixed #0f172a;
   
-  --bg-card: rgba(255, 255, 255, 0.08);
-  --bg-card-strong: rgba(0, 0, 0, 0.8);
+  --bg-sidebar: rgba(0, 86, 63, 0.10);
+  --bg-header: rgba(0, 86, 63, 0.05);
+  
+  --bg-card: rgba(255, 255, 255, 0.07);
+  --bg-card-strong: rgba(0, 0, 0, 0.85);
+  
+  --bg-hover: rgba(255, 255, 255, 0.12);
+  --bg-active: rgba(255, 255, 255, 0.22);
+  
   --border-card: 1px solid rgba(255, 255, 255, 0.18);
+  --border-subtle: 1px solid rgba(255, 255, 255, 0.1);
+  
+  --backdrop-blur-light: 4px;
   --backdrop-blur: 16px;
+  --backdrop-blur-strong: 32px;
   --shadow-card: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   --text-primary: #ffffff;
+  --text-secondary: #cbd5e1;
 }
-
 /* Mutes standard OSM colors so bin markers pop, but keeps building names clear */
 .map-tiles-muted .leaflet-tile {
   filter: grayscale(40%) contrast(92%) brightness(102%) saturate(80%);
