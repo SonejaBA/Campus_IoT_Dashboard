@@ -23,7 +23,7 @@
 
 .theme-glass {
   --bg-page: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)), 
-             url("/generalImageBackground.jpg") center / cover no-repeat fixed #0f172a;
+             url("/generalImageBackground.jpg") center / cover no-repeat #0f172a;
   
   --bg-sidebar: rgba(0, 86, 63, 0.10);
   --bg-header: rgba(0, 86, 63, 0.05);

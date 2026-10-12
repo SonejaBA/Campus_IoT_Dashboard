@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
+import { createPortal } from "react-dom";
 
 function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,6 +14,7 @@ function MobileNav() {
             md:hidden 
             z-[2000] 
             p-2
+            bg-[#1E1E1E]/40 
             text-white 
             rounded-lg 
             cursor-pointer
@@ -21,19 +23,33 @@ function MobileNav() {
         <Menu />
       </button>
 
-      {isOpen && (
+      {isOpen && createPortal(
         <div
-          className="fixed 
+          className="
+        fixed 
         inset-0 
         z-[3000] 
-        flex 
-        items-start
+        flex
+        bg-black/70
+        items-start 
         justify-left 
-        bg-[var(--bg-card)]
-        backdrop-blur-[var(--backdrop-blur-light)] 
         p-2"
         >
-          <div className="relative bg-[#1E1E1E]/80 backdrop-blur-md border border-white/10 p-6 rounded-2xl flex flex-col gap-6 w-3/4 max-w-xs shadow-2xl">
+          <div
+            className="
+          relative 
+          bg-[var(--bg-card)] 
+          backdrop-blur-md 
+          border-[var(--border-subtle)]
+          p-6 
+          rounded-2xl 
+          flex 
+          flex-col 
+          gap-6 
+          w-3/4 
+          max-w-xs 
+          shadow-2xl"
+          >
             <button
               onClick={() => setIsOpen(false)}
               className="absolute top-4 right-4 text-gray-400 cursor-pointer"
@@ -49,7 +65,9 @@ function MobileNav() {
                         items-center 
                         py-2 
                         rounded-lg 
-                        hover:bg-[var(--bg-hover)]
+                        hover:bg-gradient-to-r
+                        hover:from-emerald-900/80
+                        hover:to-emerald-900/20
                         transition-colors 
                         text-white 
 `}
@@ -68,7 +86,9 @@ function MobileNav() {
                         items-center 
                         py-2 
                         rounded-lg 
-                        hover:bg-[var(--bg-hover)]
+                        hover:bg-gradient-to-r
+                        hover:from-emerald-900/80
+                        hover:to-emerald-900/20
                         transition-colors 
                         text-white 
 `}
@@ -87,7 +107,9 @@ function MobileNav() {
                         items-center 
                         py-2 
                         rounded-lg 
-                        hover:bg-[var(--bg-hover)]
+                        hover:bg-gradient-to-r
+                        hover:from-emerald-900/80
+                        hover:to-emerald-900/20
                         transition-colors 
                         text-white 
 `}
@@ -106,7 +128,9 @@ function MobileNav() {
                         items-center 
                         py-2 
                         rounded-lg 
-                        hover:bg-[var(--bg-hover)]
+                        hover:bg-gradient-to-r
+                        hover:from-emerald-900/80
+                        hover:to-emerald-900/20
                         transition-colors 
                         text-white 
 `}
@@ -119,7 +143,7 @@ function MobileNav() {
               </Link>
             </nav>
           </div>
-        </div>
+        </div>, document.body
       )}
     </div>
   );

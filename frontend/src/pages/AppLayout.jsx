@@ -5,7 +5,7 @@ import { Outlet } from "react-router-dom";
 function AppLayout({ bins }) {
   return (
     <div 
-      className="theme-glass h-screen w-screen flex flex-row font-sans overflow-hidden text-[var(--text-primary)]"
+      className="theme-glass h-screen w-screen flex flex-row font-sans overflow-clip text-[var(--text-primary)]"
       style={{ background: "var(--bg-page)" }}
     >
       <Sidebar />
