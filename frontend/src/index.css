@@ -10,12 +10,14 @@
   --bg-hover: rgba(255, 255, 255, 0.08);
   --bg-active: rgba(255, 255, 255, 0.15);
   
+  --border-hover: 1px solid rgba(255, 255, 255, 0.18);
   --border-card: 1px solid rgba(255, 255, 255, 0.12);
   --border-subtle: 1px solid rgba(255, 255, 255, 0.06);
   
   --backdrop-blur-light: 0px;
   --backdrop-blur: 0px;
   --backdrop-blur-strong: 0px;
+  --shadow-card-subtle: 0 8px 32px 0 rgba(0, 0, 0, 0.10);
   --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.5);
   --text-primary: #ffffff;
   --text-secondary: #a1a1aa;
@@ -34,13 +36,15 @@
   --bg-hover: rgba(255, 255, 255, 0.12);
   --bg-active: rgba(255, 255, 255, 0.22);
   
+  --border-hover: 1px solid rgba(255, 255, 255, 0.18);
   --border-card: 1px solid rgba(255, 255, 255, 0.18);
   --border-subtle: 1px solid rgba(255, 255, 255, 0.1);
   
   --backdrop-blur-light: 4px;
-  --backdrop-blur: 16px;
-  --backdrop-blur-strong: 32px;
+  --backdrop-blur: 32px;
+  --backdrop-blur-strong: 64px;
   --shadow-card: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --shadow-card-subtle: 0 8px 32px 0 rgba(0, 0, 0, 0.10);
   --text-primary: #ffffff;
   --text-secondary: #cbd5e1;
 }

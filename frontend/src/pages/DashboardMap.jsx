@@ -117,6 +117,7 @@ function FilterButton({ activeFilter, onSelect }) {
                 py-2
                 rounded-lg
                 hover:bg-[var(--bg-hover)]
+                hover:[border:var(--border-hover)]
               "
             >
               {option.label}

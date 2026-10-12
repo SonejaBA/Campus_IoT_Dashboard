@@ -130,7 +130,26 @@ function Header({ bins }) {
           </button>
 
           {isOpen && (
-            <div className="absolute right-0 top-12 z-[2000] w-72 max-h-64 overflow-y-auto overscroll-contain flex flex-col gap-1 p-2 text-sm text-slate-200 rounded-lg bg-[#1E1E1E]/90 backdrop-blur-sm border border-white/10 shadow-xl z-[100]">
+            <div
+              className="absolute 
+            right-0 
+            top-12 
+            z-[2000] 
+            w-72 
+            max-h-64 
+            overflow-y-auto 
+            overscroll-contain 
+            flex 
+            flex-col 
+            gap-1 
+            p-2 
+            text-sm 
+            text-[var(--text-secondary)]
+            rounded-lg 
+            bg-[var(--bg-card-strong)]
+            [border:var(--border-card)]
+            shadow-[var(--shadow-card-subtle)]"
+            >
               {attentionBins.map((bin) => (
                 <p key={bin.id} className="flex items-center gap-2">
                   <Trash size={16} className="shrink-0 text-red-400" />
