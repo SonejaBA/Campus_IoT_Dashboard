@@ -3,7 +3,7 @@ import AreaChartComponent from "../charts/AreaChart";
 function HistoricalBinCard({binID}){
     if (!binID) return null;
     return(
-        <div className="p-4 bg-[#1E1E1E] rounded-xl h-50 md:h-100 border-[#adadad] border-2 flex flex-col">
+        <div className="p-4 rounded-xl flex flex-1 flex-col bg-[var(--bg-card)] [border:var(--border-card)] text-[var(--text-primary)] shadow-[var(--shadow-card)] backdrop-blur-[var(--backdrop-blur)]">
             <span className="font-medium text-xl flex-1 mb-2">    
                 BIN-{String(binID).padStart(3, '0')}
             </span>

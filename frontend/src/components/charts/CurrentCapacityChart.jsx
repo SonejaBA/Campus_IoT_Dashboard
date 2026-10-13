@@ -13,8 +13,8 @@ function CustomTooltip({ active, payload, label }) {
     const barData = payload[0].payload;
 
     return (
-      <div className="p-4 bg-[#1E1E1E] rounded-xl shadow-lg">
-        <p className="font-bold text-lg text-white mb-1">{label}</p>
+      <div className="p-4 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-card)] text-[var(--text-primary)] shadow-[var(--shadow-card)] backdrop-blur-[var(--backdrop-blur)]">
+        <p className="font-bold text-lg mb-1">{label}</p>
         <p className="text-sm font-semibold" style={{ color: barData.color }}>
           Fill Level: {payload[0].value}%
         </p>
@@ -29,8 +29,8 @@ function CustomTooltipDashboard({ active, payload, label }) {
     const barData = payload[0].payload;
 
     return (
-      <div className="p-2 bg-[#1E1E1E] rounded-xl shadow-lg">
-        <p className="font-semibold text-md text-white">{label}</p>
+      <div className="p-2 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-card)] text-[var(--text-primary)] shadow-[var(--shadow-card)] backdrop-blur-[var(--backdrop-blur)]">
+        <p className="font-semibold text-md">{label}</p>
         <p className="text-sm font-medium" style={{ color: barData.color }}>
           Fill Level: {payload[0].value}%
         </p>

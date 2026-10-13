@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
+import { createPortal } from "react-dom";
 
 function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
@@ -22,9 +23,33 @@ function MobileNav() {
         <Menu />
       </button>
 
-      {isOpen && (
-        <div className="fixed inset-0 z-[3000] flex items-start justify-left bg-black/40 backdrop-blur-xs p-2">
-          <div className="relative bg-[#1E1E1E]/80 backdrop-blur-md border border-white/10 p-6 rounded-2xl flex flex-col gap-6 w-3/4 max-w-xs shadow-2xl">
+      {isOpen && createPortal(
+        <div
+          className="
+        fixed 
+        inset-0 
+        z-[3000] 
+        flex
+        bg-black/70
+        items-start 
+        justify-left 
+        p-2"
+        >
+          <div
+            className="
+          relative 
+          bg-[var(--bg-card)] 
+          backdrop-blur-md 
+          border-[var(--border-subtle)]
+          p-6 
+          rounded-2xl 
+          flex 
+          flex-col 
+          gap-6 
+          w-3/4 
+          max-w-xs 
+          shadow-2xl"
+          >
             <button
               onClick={() => setIsOpen(false)}
               className="absolute top-4 right-4 text-gray-400 cursor-pointer"
@@ -47,8 +72,10 @@ function MobileNav() {
                         text-white 
 `}
               >
-                <span className={`font-medium whitespace-nowrap text-gray-300 pl-2`}>
-                Dashboard
+                <span
+                  className={`font-medium whitespace-nowrap text-gray-300 pl-2`}
+                >
+                  Dashboard
                 </span>
               </Link>
 
@@ -66,7 +93,9 @@ function MobileNav() {
                         text-white 
 `}
               >
-                <span className={`font-medium whitespace-nowrap text-gray-300 pl-2`}>
+                <span
+                  className={`font-medium whitespace-nowrap text-gray-300 pl-2`}
+                >
                   Analytics
                 </span>
               </Link>
@@ -85,7 +114,9 @@ function MobileNav() {
                         text-white 
 `}
               >
-                <span className={`font-medium whitespace-nowrap text-gray-300 pl-2`}>
+                <span
+                  className={`font-medium whitespace-nowrap text-gray-300 pl-2`}
+                >
                   Maintenance
                 </span>
               </Link>
@@ -104,13 +135,15 @@ function MobileNav() {
                         text-white 
 `}
               >
-                <span className={`font-medium whitespace-nowrap text-gray-300 pl-2`}>
+                <span
+                  className={`font-medium whitespace-nowrap text-gray-300 pl-2`}
+                >
                   Settings
                 </span>
               </Link>
             </nav>
           </div>
-        </div>
+        </div>, document.body
       )}
     </div>
   );

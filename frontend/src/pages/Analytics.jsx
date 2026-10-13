@@ -34,7 +34,10 @@ function Analytics({ bins }) {
 
   return (
     //flex 1 since its going to be under a flex parent
-    <div className="flex-1 bg-[#262626] text-white p-10 flex flex-col gap-4">
+    <div
+      className="flex-1 text-white p-10 flex flex-col gap-4"
+      style={{ background: "var(--bg-page)" }}
+    >
       <h1 className="text-4xl font-bold text-[#F2F2F3] mb-3 hidden md:block">
         Analytics
       </h1>
@@ -89,7 +92,9 @@ function Analytics({ bins }) {
             <h2 className="font-semibold text-lg mb-2 ml-1">
               Historical Bin Data
             </h2>
-            <HistoricalBinCard binID={selectedBin} />
+            <div className="h-50 md:h-100 flex w-full">
+              <HistoricalBinCard binID={selectedBin} />
+            </div>
           </div>
 
           {/* Current Bin Data */}

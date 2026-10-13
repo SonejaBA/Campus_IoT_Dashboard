@@ -35,26 +35,22 @@ function formatDateNoTime(utcString) {
   });
 }
 
-function CustomTooltip({active, payload, label}){
-    if (active && payload && payload.length){
-        return (
-            <div className="p-4 bg-[#1E1E1E] rounded-xl">
-                <p className="font-medium text-lg">{formatDateTime(label)}</p>
-                <p className="text-sm text-[#55BA47]">
-                    <span>{capitalizeFirstLetter(payload[0].dataKey)}: {payload[0].value}%</span>
-                </p>
-                <p className="text-sm text-[#5a9fab]">
-                    <span>{capitalizeFirstLetter(payload[1].dataKey)}: {payload[1].value}%</span>
-                </p>
-                <p className="text-sm text-[#a58a6f]">
-                    <span>{capitalizeFirstLetter(payload[2].dataKey)}: {payload[2].value}%</span>
-                </p>
-            </div>
-        )
-    }
-    else{
-        return null;
-    }
+function CustomTooltip({ active, payload, label }) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="p-4 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-card)] text-[var(--text-primary)] shadow-[var(--shadow-card)] backdrop-blur-[var(--backdrop-blur-strong)]">
+        <p className="font-medium text-lg mb-2">{formatDateTime(label)}</p>
+        
+        {payload.map((item, index) => (
+          <p key={index} className="text-sm font-medium" style={{ color: item.color }}>
+            <span>{capitalizeFirstLetter(item.dataKey)}: {item.value}%</span>
+          </p>
+        ))}
+      </div>
+    );
+  }
+  
+  return null;
 }
 
 function AreaChartComponent({binID}) {
