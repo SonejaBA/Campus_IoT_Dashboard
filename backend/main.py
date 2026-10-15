@@ -76,4 +76,41 @@ def health_check():
             }
         )
 
+
+# Export telemetry data
+@app.get("/api/export/telemetry")
+def export_telemetry(bin_id: int | None = None):
+    # This function will return the full telemetry history for the CSV report.
+    # Giving the function a bin_id will allow us to view history of a specific bin.
+
+    # We have to use bins table instead of the telemetry_logs table to get the location.
+    bins_response = supabase.table("bins").select("id, location").execute()
+    locations = {b["id"]: b["location"] for b in bins_response.data}
+
+    rows = []
+    page_size = 1000 # According to Supabase documention, max number of rows you can return is 1000
+    start = 0
+
+    while True:
+        query = (
+            supabase.table("telemetry_logs")
+            .select("*")
+            .order("time")
+            .order("id")
+            .range(start, start + page_size - 1)
+        )
+        if bin_id is not None:
+            query = query.eq("bin_id", bin_id)
+
+        batch = query.execute().data
+        rows.extend(batch)
+
+        if len(batch) < page_size:
+            break
+        start += page_size
+
+    for row in rows:
+        row["location"] = locations.get(row["bin_id"], "")
+
+    return rows
     

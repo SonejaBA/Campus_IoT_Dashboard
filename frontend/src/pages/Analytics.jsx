@@ -3,6 +3,7 @@ import HistoricalBinCard from "../components/cards/HistoricalBinCard";
 import CurrentBinCard from "../components/cards/CurrentBinCard";
 import BinSearchSelect from "../components/BinSearchSelect";
 import KPICard from "../components/cards/KPICard";
+import ExportCsvButton from "../components/ExportCsvButton";
 
 function Analytics({ bins }) {
   const fullColor = "bg-red-500";
@@ -79,12 +80,18 @@ function Analytics({ bins }) {
       </div>
 
       <div>
-        {/*Universal Search Bar*/}
-        <BinSearchSelect
-          bins={bins}
-          selectedBin={selectedBin}
-          onSelectBin={setSelectedBin}
-        />
+        {/*Universal Search Bar + exports*/}
+        <div className="flex flex-wrap items-start justify-end gap-3">
+          <ExportCsvButton label="Export all bins" />
+          {selectedBin !== "" && (
+            <ExportCsvButton binId={selectedBin} label="Export this bin" />
+          )}
+          <BinSearchSelect
+            bins={bins}
+            selectedBin={selectedBin}
+            onSelectBin={setSelectedBin}
+          />
+        </div>
 
         <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           {/* Historical Bin Data */}
