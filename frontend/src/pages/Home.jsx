@@ -4,7 +4,7 @@ import wordLogo from "../assets/wordLogo.png";
 export default function Home() {
   return (
     <div className="min-h-screen bg-white font-sans text-slate-800 flex flex-col justify-between">
-      
+
       {/* 1. Official Sac State Top Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -61,7 +61,7 @@ export default function Home() {
 
       {/* Expanded Main Content Area */}
         <main className="max-w-7xl mx-auto px-6 py-12 flex-1 w-full space-y-12">
-        
+
         {/* Main Section Header */}
         <div>
             <h2 className="text-4xl md:text-5xl font-light text-[#004E38] tracking-tight mb-8">
