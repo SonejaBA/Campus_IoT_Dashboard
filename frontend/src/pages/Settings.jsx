@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BatteryMedium,
+  Bell,
   Lock,
   LogOut,
   RotateCcw,
@@ -56,9 +57,31 @@ function Settings() {
   };
 
   // put all three preferences back to their starting values
-  const handleReset = () => {
-    resetSettings();
-  };
+const handleReset = () => {
+  resetSettings();
+};
+
+const handleBrowserNotificationsChange = async (event) => {
+  const enabled = event.target.checked;
+
+  if (!enabled) {
+    updateSetting("browserNotifications", false);
+    return;
+  }
+
+  if (!("Notification" in window)) {
+    alert("Browser notifications are not supported on this device.");
+    return;
+  }
+
+  const permission = await Notification.requestPermission();
+
+  if (permission === "granted") {
+    updateSetting("browserNotifications", true);
+  } else {
+    updateSetting("browserNotifications", false);
+  }
+};
 
   // log out before sending the user back to the login page
   const handleLogOut = async () => {
@@ -222,6 +245,7 @@ function Settings() {
             </div>
           </SettingsCard>
 
+
           <div className="rounded-xl border border-white/5 bg-slate-900/40 px-4 py-3">
             <div className="flex items-center gap-3">
               <BatteryMedium size={17} className="shrink-0 text-blue-300" />
@@ -257,6 +281,48 @@ function Settings() {
             </div>
           </div>
         </div>
+
+<SettingsCard
+  icon={Bell}
+  title="Notification preferences"
+  description="Choose how you want to receive bin alerts on this device."
+>
+  <div className="space-y-4">
+    <label className="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-slate-950/30 p-4">
+      <div>
+        <p className="font-semibold">Email Notifications</p>
+        <p className="mt-1 text-sm text-slate-400">
+          Enable email notification preferences.
+        </p>
+      </div>
+
+      <input
+        type="checkbox"
+        checked={settings.emailNotifications}
+        onChange={(event) =>
+          updateSetting("emailNotifications", event.target.checked)
+        }
+        className="h-5 w-5 cursor-pointer accent-emerald-400"
+      />
+    </label>
+
+    <label className="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-slate-950/30 p-4">
+      <div>
+        <p className="font-semibold">Browser Notifications</p>
+        <p className="mt-1 text-sm text-slate-400">
+          Receive desktop alerts when browser notifications are enabled.
+        </p>
+      </div>
+
+      <input
+        type="checkbox"
+        checked={settings.browserNotifications}
+        onChange={handleBrowserNotificationsChange}
+        className="h-5 w-5 cursor-pointer accent-emerald-400"
+      />
+    </label>
+  </div>
+</SettingsCard>
 
         <footer className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-5 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-slate-500">
