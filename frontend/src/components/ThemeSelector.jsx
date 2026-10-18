@@ -15,7 +15,7 @@ function ThemeSelector() {
       <select
         value={settings.theme}
         onChange={(e) => updateSetting("theme", e.target.value)}
-        className="rounded-lg bg-[var(--bg-card-strong)] [border:var(--border-card)] px-2 py-1.5 text-sm text-[var(--text-primary)] focus:outline-none"
+        className="rounded-lg bg-[var(--bg-card-strong)] [border:var(--border-card)] px-2 py-1.5 text-sm text-[var(--text-primary)] focus:outline-none cursor-pointer"
       >
         <option value="dark">Dark</option>
         <option value="light">Light</option>

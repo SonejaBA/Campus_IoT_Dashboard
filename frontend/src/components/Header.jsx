@@ -54,7 +54,7 @@ function StatusDot({ serverHealthy }) {
   );
 }
 
-function NotificationDot({ numOfNotifications = 10 }) {
+function NotificationDot({ numOfNotifications }) {
   const moreThanNine = numOfNotifications > 9;
   numOfNotifications = moreThanNine ? "9+" : numOfNotifications;
 
@@ -97,6 +97,7 @@ function Header({ bins }) {
         bin.battery_level != null && bin.battery_level < BATTERY_THRESHOLD,
     );
   }, [bins, BATTERY_THRESHOLD]);
+  const notificationCount = attentionBins.length + lowBatteryBins.length;
   return (
     <div
       className="
@@ -123,7 +124,7 @@ function Header({ bins }) {
             className="px-4 relative cursor-pointer"
             onClick={() => setIsOpen(!isOpen)}
           >
-            <NotificationDot numOfNotifications={10} />
+            <NotificationDot numOfNotifications={notificationCount} />
             <div className="rounded-full hover:bg-white/10 p-2">
               <Bell size={20} />
             </div>
@@ -152,7 +153,7 @@ function Header({ bins }) {
             >
               {attentionBins.map((bin) => (
                 <p key={bin.id} className="flex items-center gap-2">
-                  <Trash size={16} className="shrink-0 text-red-400" />
+                  <Trash size={16} className="shrink-0 text-[var(--status-critical)]" />
                   Bin {bin.id}: {bin.fill_level}%
                 </p>
               ))}
@@ -162,7 +163,7 @@ function Header({ bins }) {
                   key={`${bin.id}-battery`}
                   className="flex items-center gap-2"
                 >
-                  <BatteryLow size={16} className="shrink-0 text-amber-400" />
+                  <BatteryLow size={16} className="shrink-0 text-[var(--status-warning)]" />
                   Battery level critical: Bin {bin.id} ({bin.battery_level}%)
                 </p>
               ))}
