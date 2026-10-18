@@ -184,12 +184,12 @@ function Settings() {
             <StatusSummaryRow
               color="status-marker-warning"
               label="Warning"
-              value={`${settings.fillWarning+1}% to ${settings.fillCritical}%`}
+              value={`${settings.fillWarning}% to ${settings.fillCritical}%`}
             />
             <StatusSummaryRow
               color="status-marker-critical"
               label="Critical"
-              value={`${settings.fillCritical+1}-100%`}
+              value={`${settings.fillCritical}% to 100%`}
             />
           </section>
         </div>
