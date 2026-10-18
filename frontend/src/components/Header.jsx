@@ -169,6 +169,8 @@ function Header({ bins }) {
                   Battery level critical: Bin {bin.id} ({bin.battery_level}%)
                 </p>
               ))}
+
+              {!notificationCount && "No Notifications"}
             </div>
           )}
         </div>
