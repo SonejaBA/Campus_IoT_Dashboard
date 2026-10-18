@@ -58,6 +58,8 @@ function NotificationDot({ numOfNotifications }) {
   const moreThanNine = numOfNotifications > 9;
   numOfNotifications = moreThanNine ? "9+" : numOfNotifications;
 
+  if (!numOfNotifications || numOfNotifications <= 0) return null;
+
   return (
     <span
       className="
