@@ -60,8 +60,18 @@ function CurrentCapacityChart({ bin, isPopup = false }) {
       <BarChart layout="vertical" data={data} margin={chartMargin}>
         <CartesianGrid strokeDasharray="7 7" opacity={0.5} horizontal={false} />
 
-        <XAxis type="number" domain={[0, 100]} stroke="#adadad" />
-        <YAxis dataKey="name" type="category" stroke="#F2F2F3" opacity={0.6} />
+        <XAxis
+          type="number"
+          domain={[0, 100]}
+          stroke="var(--text-primary)"
+          tick={{ fill: "var(--text-primary)", fontSize: 12 }}
+        />
+        <YAxis
+          dataKey="name"
+          type="category"
+          stroke="var(--text-primary)"
+          tick={{ fill: "var(--text-primary)", fontSize: 13, fontWeight: 500 }}
+        />
         <Tooltip content={whichToolTip} cursor={false} />
 
         <Bar

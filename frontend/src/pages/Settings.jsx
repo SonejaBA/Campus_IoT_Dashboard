@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../components/context/AuthContext.jsx";
 import { useSettings } from "../components/context/SettingsContext.jsx";
+import ThemeSelector from "../components/ThemeSelector.jsx";
 
 // Reusable status summary for the fill-level thresholds.
 function StatusSummaryRow({ label, value, color }) {
@@ -74,7 +75,6 @@ function Settings() {
               Settings
             </h1>
           </div>
-
           <button
             type="button"
             onClick={handleLogOut}
@@ -228,7 +228,9 @@ function Settings() {
             className="mt-4 w-full cursor-pointer"
           />
         </section>
-
+        <div className="mt-4">
+          <ThemeSelector/>
+        </div>
         <footer className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-[var(--text-secondary)]">
             Preferences are saved locally on this device.

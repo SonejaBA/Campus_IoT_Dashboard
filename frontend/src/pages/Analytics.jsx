@@ -36,10 +36,9 @@ function Analytics({ bins }) {
   return (
     //flex 1 since its going to be under a flex parent
     <div
-      className="flex-1 text-white p-10 flex flex-col gap-4"
-      style={{ background: "var(--bg-page)" }}
+      className="flex-1 text-[var(--text-primary)] p-10 flex flex-col gap-4"
     >
-      <h1 className="text-4xl font-bold text-[#F2F2F3] mb-3 hidden md:block">
+      <h1 className="text-4xl font-bold text-[var(--text-primary)] mb-3 hidden md:block">
         Analytics
       </h1>
       <div className="grid grid-cols-2 grid-rows-2 lg:grid-cols-4 md:grid-rows-1 gap-8 items-center mb-3">

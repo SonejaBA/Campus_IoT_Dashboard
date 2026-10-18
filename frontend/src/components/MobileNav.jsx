@@ -14,7 +14,6 @@ function MobileNav() {
             md:hidden 
             z-[2000] 
             p-2
-            bg-[#1E1E1E]/40 
             text-white 
             rounded-lg 
             cursor-pointer

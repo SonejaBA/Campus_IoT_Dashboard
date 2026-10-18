@@ -26,7 +26,9 @@
   --text-primary: #ffffff;
   --text-secondary: #a1a1aa;
 
-  /* Shared bin status colors */
+  --button-color: #D1D5DC;
+
+  /* Bin status colors */
   --status-normal: #006b50;
   --status-warning: #fcd34d;
   --status-critical: #800020;
@@ -70,14 +72,85 @@
   --popup-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
 }
 
-/* Glass theme */
+/* 2. Light Theme */
+.theme-light {
+  --bg-page: #f8fafc;
+  --bg-sidebar: #ffffff;
+  --bg-header: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-strong: #f1f5f9;
+
+  --bg-hover: rgba(15, 23, 42, 0.04);
+  --bg-active: rgba(15, 23, 42, 0.08);
+
+  --border-hover: 1px solid rgba(15, 23, 42, 0.15);
+  --border-card: 1px solid rgba(15, 23, 42, 0.08);
+  --border-subtle: 1px solid rgba(15, 23, 42, 0.05);
+
+  --backdrop-blur-light: 0px;
+  --backdrop-blur: 0px;
+  --backdrop-blur-strong: 0px;
+
+  --shadow-card-subtle: 0 4px 12px rgba(0, 0, 0, 0.03);
+  --shadow-card: 0 4px 12px rgba(15, 23, 42, 0.08);
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+
+  --button-color: #034113;
+
+  /* Bin status colors (high contrast for light background) */
+  --status-normal: #006b50;
+  --status-warning: #d97706;
+  --status-critical: #991b1b;
+
+  /* Neutral controls for light background */
+  --control-bg: rgba(15, 23, 42, 0.05);
+  --control-border: rgba(15, 23, 42, 0.15);
+  --control-text: #0f172a;
+  --control-hover: rgba(15, 23, 42, 0.10);
+  --control-thumb: #475569;
+
+  /* Logout button */
+  --btn-logout-bg: var(--control-bg);
+  --btn-logout-border: var(--control-border);
+  --btn-logout-text: var(--control-text);
+  --btn-logout-hover: var(--control-hover);
+
+  /* Reset and lock buttons */
+  --btn-reset-bg: var(--control-bg);
+  --btn-reset-border: var(--control-border);
+  --btn-reset-text: var(--control-text);
+  --btn-reset-hover: var(--control-hover);
+
+  /* Unlock button */
+  --btn-unlock-bg: var(--control-bg);
+  --btn-unlock-border: var(--control-border);
+  --btn-unlock-text: var(--control-text);
+  --btn-unlock-hover: var(--control-hover);
+
+  /* Slider colors */
+  --slider-gap: #ffffff;
+  --slider-focus: var(--control-thumb);
+  --slider-battery-handle: var(--control-thumb);
+  --slider-battery-track: #cbd5e1;
+
+  /* Map popup colors */
+  --popup-bg: #ffffff;
+  --popup-text: #0f172a;
+  --popup-close: #64748b;
+  --popup-close-hover: var(--text-primary);
+  --popup-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* 3. Glass Theme */
 .theme-glass {
   --bg-page:
     linear-gradient(
       rgba(0, 0, 0, 0.35),
       rgba(0, 0, 0, 0.35)
     ),
-    url("/generalImageBackground.jpg") center / cover no-repeat #0f172a;
+    url("/glassBotanical.jpg") center / cover no-repeat #0f172a;
 
   --bg-sidebar: rgba(0, 86, 63, 0.10);
   --bg-header: rgba(0, 86, 63, 0.05);
@@ -101,7 +174,204 @@
   --text-primary: #ffffff;
   --text-secondary: #cbd5e1;
 
+  --button-color: #c7ffd9;
+
+  /* Bin status colors */
+  --status-normal: #006b50;
+  --status-warning: #fcd34d;
+  --status-critical: #800020;
+
+  /* Neutral office-style controls */
+  --control-bg: rgba(148, 163, 184, 0.10);
+  --control-border: rgba(148, 163, 184, 0.30);
+  --control-text: #e2e8f0;
+  --control-hover: rgba(148, 163, 184, 0.20);
+  --control-thumb: #cbd5e1;
+
+  /* Logout button */
+  --btn-logout-bg: var(--control-bg);
+  --btn-logout-border: var(--control-border);
+  --btn-logout-text: var(--control-text);
+  --btn-logout-hover: var(--control-hover);
+
+  /* Reset and lock buttons */
+  --btn-reset-bg: var(--control-bg);
+  --btn-reset-border: var(--control-border);
+  --btn-reset-text: var(--control-text);
+  --btn-reset-hover: var(--control-hover);
+
+  /* Unlock button */
+  --btn-unlock-bg: var(--control-bg);
+  --btn-unlock-border: var(--control-border);
+  --btn-unlock-text: var(--control-text);
+  --btn-unlock-hover: var(--control-hover);
+
+  /* Slider colors */
   --slider-gap: var(--bg-card-strong);
+  --slider-focus: var(--control-thumb);
+  --slider-battery-handle: var(--control-thumb);
+  --slider-battery-track: #64748b;
+
+  /* Map popup colors */
+  --popup-bg: #0A160B;
+  --popup-text: #f1f5f9;
+  --popup-close: #94a3b8;
+  --popup-close-hover: var(--text-primary);
+  --popup-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+/* 4. Glass Blue Gradient Theme */
+.theme-glass-blue-gradient {
+  --bg-page:
+    linear-gradient(
+      rgba(0, 0, 0, 0.35),
+      rgba(0, 0, 0, 0.35)
+    ),
+    url("/glassBlueGradient.jpg") center / cover no-repeat #0f172a;
+
+  --bg-sidebar: rgba(0, 86, 63, 0.10);
+  --bg-header: rgba(0, 86, 63, 0.05);
+  --bg-card: rgba(188, 255, 255, 0.2);
+  --bg-card-strong: rgba(0, 0, 0, 0.85);
+
+  --bg-hover: rgba(255, 255, 255, 0.12);
+  --bg-active: rgba(255, 255, 255, 0.22);
+
+  --border-hover: 1px solid rgba(255, 255, 255, 0.18);
+  --border-card: 1px solid rgba(255, 255, 255, 0.18);
+  --border-subtle: 1px solid rgba(255, 255, 255, 0.10);
+
+  --backdrop-blur-light: 4px;
+  --backdrop-blur: 32px;
+  --backdrop-blur-strong: 64px;
+
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.37);
+  --shadow-card-subtle: 0 8px 32px rgba(0, 0, 0, 0.10);
+
+  --text-primary: #ffffff;
+  --text-secondary: #cbd5e1;
+
+  --button-color: #dae7fe;
+
+  /* Bin status colors */
+  --status-normal: #006b50;
+  --status-warning: #fcd34d;
+  --status-critical: #800020;
+
+  /* Neutral office-style controls */
+  --control-bg: rgba(148, 163, 184, 0.10);
+  --control-border: rgba(148, 163, 184, 0.30);
+  --control-text: #e2e8f0;
+  --control-hover: rgba(148, 163, 184, 0.20);
+  --control-thumb: #cbd5e1;
+
+  /* Logout button */
+  --btn-logout-bg: var(--control-bg);
+  --btn-logout-border: var(--control-border);
+  --btn-logout-text: var(--control-text);
+  --btn-logout-hover: var(--control-hover);
+
+  /* Reset and lock buttons */
+  --btn-reset-bg: var(--control-bg);
+  --btn-reset-border: var(--control-border);
+  --btn-reset-text: var(--control-text);
+  --btn-reset-hover: var(--control-hover);
+
+  /* Unlock button */
+  --btn-unlock-bg: var(--control-bg);
+  --btn-unlock-border: var(--control-border);
+  --btn-unlock-text: var(--control-text);
+  --btn-unlock-hover: var(--control-hover);
+
+  /* Slider colors */
+  --slider-gap: var(--bg-card-strong);
+  --slider-focus: var(--control-thumb);
+  --slider-battery-handle: var(--control-thumb);
+  --slider-battery-track: #64748b;
+
+  /* Map popup colors */
+  --popup-bg: #1C2D2F;
+  --popup-text: #f1f5f9;
+  --popup-close: #94a3b8;
+  --popup-close-hover: var(--text-primary);
+  --popup-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+/* 5. Hills Theme */
+.theme-hills {
+  --bg-page:
+    linear-gradient(
+      rgba(0, 0, 0, 0.35),
+      rgba(0, 0, 0, 0.35)
+    ),
+    url("/hills.jpg") center / cover no-repeat #0f172a;
+
+  --bg-sidebar: rgba(0, 86, 14, 0.1);
+  --bg-header: rgba(0, 86, 14, 0.05);
+  --bg-card: rgba(1, 60, 25, 0.328);
+  --bg-card-strong: rgba(0, 0, 0, 0.85);
+
+  --bg-hover: rgba(255, 255, 255, 0.12);
+  --bg-active: rgba(255, 255, 255, 0.22);
+
+  --border-hover: 1px solid rgba(255, 255, 255, 0.18);
+  --border-card: 1px solid rgba(255, 255, 255, 0.18);
+  --border-subtle: 1px solid rgba(255, 255, 255, 0.10);
+
+  --backdrop-blur-light: 4px;
+  --backdrop-blur: 32px;
+  --backdrop-blur-strong: 64px;
+
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.37);
+  --shadow-card-subtle: 0 8px 32px rgba(0, 0, 0, 0.10);
+
+  --text-primary: #ffffff;
+  --text-secondary: #cbd5e1;
+
+  --button-color: rgb(198, 253, 255);
+
+  /* Bin status colors */
+  --status-normal: #006b50;
+  --status-warning: #fcd34d;
+  --status-critical: #800020;
+
+  /* Neutral office-style controls */
+  --control-bg: rgba(148, 163, 184, 0.10);
+  --control-border: rgba(148, 163, 184, 0.30);
+  --control-text: #e2e8f0;
+  --control-hover: rgba(148, 163, 184, 0.20);
+  --control-thumb: #cbd5e1;
+
+  /* Logout button */
+  --btn-logout-bg: var(--control-bg);
+  --btn-logout-border: var(--control-border);
+  --btn-logout-text: var(--control-text);
+  --btn-logout-hover: var(--control-hover);
+
+  /* Reset and lock buttons */
+  --btn-reset-bg: var(--control-bg);
+  --btn-reset-border: var(--control-border);
+  --btn-reset-text: var(--control-text);
+  --btn-reset-hover: var(--control-hover);
+
+  /* Unlock button */
+  --btn-unlock-bg: var(--control-bg);
+  --btn-unlock-border: var(--control-border);
+  --btn-unlock-text: var(--control-text);
+  --btn-unlock-hover: var(--control-hover);
+
+  /* Slider colors */
+  --slider-gap: var(--bg-card-strong);
+  --slider-focus: var(--control-thumb);
+  --slider-battery-handle: var(--control-thumb);
+  --slider-battery-track: #64748b;
+
+  /* Map popup colors */
+  --popup-bg: #133116;
+  --popup-text: #f1f5f9;
+  --popup-close: #94a3b8;
+  --popup-close-hover: var(--text-primary);
+  --popup-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
 }
 
 /* Map tiles */
