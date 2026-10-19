@@ -378,7 +378,7 @@
   --bg-card: rgba(1, 60, 25, 0.328);
   --bg-card-strong: rgba(0, 0, 0, 0.85);
 
-  --map-filter: grayscale(40%) contrast(120%) brightness(95%) saturate(160%) hue-rotate(15deg);
+  --map-filter: grayscale(55%) contrast(120%) brightness(95%) saturate(160%) hue-rotate(10deg);
 
   --bg-hover: rgba(255, 255, 255, 0.12);
   --bg-active: rgba(255, 255, 255, 0.22);
