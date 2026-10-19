@@ -8,6 +8,7 @@ import {
   SlidersHorizontal,
   Trash2,
   Unlock,
+  Bell,
 } from "lucide-react";
 import { useAuth } from "../components/context/AuthContext.jsx";
 import { useSettings } from "../components/context/SettingsContext.jsx";
@@ -23,9 +24,7 @@ function StatusSummaryRow({ label, value, color }) {
           className={`status-summary-icon ${color}`}
           aria-hidden="true"
         />
-        <span className="font-medium text-[var(--text-primary)]">
-          {label}
-        </span>
+        <span className="font-medium text-[var(--text-primary)]">{label}</span>
       </div>
 
       <span className="text-right font-semibold text-[var(--text-primary)]">
@@ -51,6 +50,28 @@ function Settings() {
   const handleCriticalChange = (event) => {
     const value = Number(event.target.value);
     updateSetting("fillCritical", Math.max(value, settings.fillWarning + 1));
+  };
+
+  const handleBrowserNotificationsChange = async (event) => {
+    const enabled = event.target.checked;
+
+    if (!enabled) {
+      updateSetting("browserNotifications", false);
+      return;
+    }
+
+    if (!("Notification" in window)) {
+      alert("Browser notifications are not supported on this device.");
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+
+    if (permission === "granted") {
+      updateSetting("browserNotifications", true);
+    } else {
+      updateSetting("browserNotifications", false);
+    }
   };
 
   const handleLogOut = async () => {
@@ -198,10 +219,7 @@ function Settings() {
         <section className="mt-4 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] px-5 py-4 shadow-[var(--shadow-card-subtle)]">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <BatteryMedium
-                size={19}
-                className="battery-accent shrink-0"
-              />
+              <BatteryMedium size={19} className="battery-accent shrink-0" />
               <div>
                 <h2 className="font-semibold">Battery warning</h2>
                 <p className="mt-1 text-xs text-[var(--text-secondary)]">
@@ -228,8 +246,59 @@ function Settings() {
             className="mt-4 w-full cursor-pointer"
           />
         </section>
+
+        <section className="mt-4 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] p-5 shadow-[var(--shadow-card-subtle)]">
+          <div className="flex items-center gap-3 mb-4">
+            <Bell size={21} className="shrink-0" />
+            <div>
+              <h2 className="text-lg font-semibold">
+                Notification preferences
+              </h2>
+              <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                Choose how you want to receive bin alerts on this device.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <label className="flex items-center justify-between gap-4 rounded-xl bg-[var(--bg-card)] [border:var(--border-subtle)] p-4">
+              <div>
+                <p className="font-semibold text-sm">Email Notifications</p>
+                <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                  Enable email notification preferences.
+                </p>
+              </div>
+
+              <input
+                type="checkbox"
+                checked={settings.emailNotifications}
+                onChange={(event) =>
+                  updateSetting("emailNotifications", event.target.checked)
+                }
+                className="h-5 w-5 cursor-pointer accent-emerald-400"
+              />
+            </label>
+
+            <label className="flex items-center justify-between gap-4 rounded-xl bg-[var(--bg-card)] [border:var(--border-subtle)] p-4">
+              <div>
+                <p className="font-semibold text-sm">Browser Notifications</p>
+                <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                  Receive desktop alerts when browser notifications are enabled.
+                </p>
+              </div>
+
+              <input
+                type="checkbox"
+                checked={settings.browserNotifications}
+                onChange={handleBrowserNotificationsChange}
+                className="h-5 w-5 cursor-pointer accent-emerald-400"
+              />
+            </label>
+          </div>
+        </section>
+
         <div className="mt-4">
-          <ThemeSelector/>
+          <ThemeSelector />
         </div>
         <footer className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-[var(--text-secondary)]">
@@ -251,5 +320,3 @@ function Settings() {
 }
 
 export default Settings;
-
-
