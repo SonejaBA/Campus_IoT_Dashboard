@@ -82,7 +82,7 @@
   --bg-card: #f1efeb;
   --bg-card-strong: #e6e4df;
 
-  --map-filter: grayscale(40%) contrast(92%) brightness(102%) saturate(80%);
+  --map-filter: grayscale(50%) sepia(15%) contrast(90%) brightness(104%) saturate(75%);
 
   --bg-hover: rgba(15, 23, 42, 0.04);
   --bg-active: rgba(15, 23, 42, 0.08);

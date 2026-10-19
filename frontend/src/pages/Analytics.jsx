@@ -42,14 +42,14 @@ function Analytics({ bins }) {
         Analytics
       </h1>
       <div className="grid grid-cols-2 grid-rows-2 lg:grid-cols-4 md:grid-rows-1 gap-8 items-center mb-3">
-        <div className="shadow-md">
+        <div>
           <KPICard
             title={"Average Fill"}
             count={averageFill.toFixed(2)}
             percent_card={true}
           />
         </div>
-        <div className="shadow-md">
+        <div>
           <KPICard
             title={"Critical"}
             count={critical}
@@ -58,7 +58,7 @@ function Analytics({ bins }) {
             bin_count={binsCount}
           />
         </div>
-        <div className="shadow-md">
+        <div>
           <KPICard
             title={"Warning"}
             count={warning}
@@ -67,7 +67,7 @@ function Analytics({ bins }) {
             bin_count={binsCount}
           />
         </div>
-        <div className="shadow-md">
+        <div>
           <KPICard
             title={"OK"}
             count={ok}
@@ -94,7 +94,7 @@ function Analytics({ bins }) {
 
         <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           {/* Historical Bin Data */}
-          <div className="shadow-md">
+          <div>
             <h2 className="font-semibold text-lg mb-2 ml-1">
               Historical Bin Data
             </h2>
@@ -104,7 +104,7 @@ function Analytics({ bins }) {
           </div>
 
           {/* Current Bin Data */}
-          <div className="shadow-md">
+          <div>
             <h2 className="font-semibold text-lg mb-2 ml-1">
               Current Bin Data
             </h2>
