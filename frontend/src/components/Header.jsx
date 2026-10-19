@@ -72,7 +72,8 @@ function NotificationDot({ numOfNotifications }) {
       justify-center
       text-[10px] 
       font-bold 
-      top-1"
+      top-1
+      text-white"
     >
       {numOfNotifications}
     </span>

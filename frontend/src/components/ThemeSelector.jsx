@@ -19,6 +19,7 @@ function ThemeSelector() {
       >
         <option value="dark">Dark</option>
         <option value="light">Light</option>
+        <option value="sunny">Sunny</option>
         <option value="glass">Botanical</option>
         <option value="glass-blue-gradient">Blue Gradient</option>
         <option value="hills">Hills</option>
