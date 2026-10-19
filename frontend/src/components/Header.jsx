@@ -127,7 +127,7 @@ function Header({ bins }) {
             onClick={() => setIsOpen(!isOpen)}
           >
             <NotificationDot numOfNotifications={notificationCount} />
-            <div className="rounded-full hover:bg-white/10 p-2">
+            <div className="rounded-full hover:bg-white/10 p-2 text-[var(--button-color)]">
               <Bell size={20} />
             </div>
           </button>
@@ -175,9 +175,9 @@ function Header({ bins }) {
           )}
         </div>
 
-        <Tally1 />
+        <Tally1 className="text-[var(--button-color)]"/>
         <StatusDot serverHealthy={isHealthy} />
-        <h1 className="font-medium hidden md:block">
+        <h1 className="font-medium hidden md:block text-[var(--button-color)]">
           {isHealthy ? "System online" : "System offline"}
         </h1>
       </div>

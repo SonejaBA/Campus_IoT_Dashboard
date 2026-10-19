@@ -76,11 +76,11 @@
 
 /* 2. Light Theme */
 .theme-light {
-  --bg-page: #f8fafc;
-  --bg-sidebar: #ffffff;
-  --bg-header: #ffffff;
-  --bg-card: #ffffff;
-  --bg-card-strong: #f1f5f9;
+  --bg-page: #f5f4f0;
+  --bg-sidebar: #ebe9e4;
+  --bg-header: #ebe9e4;
+  --bg-card: #f1efeb;
+  --bg-card-strong: #e6e4df;
 
   --map-filter: grayscale(40%) contrast(92%) brightness(102%) saturate(80%);
 
@@ -140,7 +140,7 @@
   --slider-battery-track: #cbd5e1;
 
   /* Map popup colors */
-  --popup-bg: #ffffff;
+  --popup-bg: #ebe9e4;
   --popup-text: #0f172a;
   --popup-close: #64748b;
   --popup-close-hover: var(--text-primary);
