@@ -1,6 +1,6 @@
 import { useCheckHealth } from "../hooks/useCheckHealth";
 import { useLocation } from "react-router-dom";
-import { Bell, Tally1, BatteryLow, Trash, Filter } from "lucide-react";
+import { Bell, Tally1, BatteryLow, Trash } from "lucide-react";
 import MobileNav from "../components/MobileNav.jsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSettings } from "../components/context/SettingsContext.jsx";
@@ -13,13 +13,6 @@ const pageTitles = {
   "/settings": "Settings",
   "/maintenance": "Maintenance",
 };
-
-const filterOptions = [
-  { value: "all", label: "All bins" },
-  { value: "green", label: "Green (0–49%)" },
-  { value: "yellow", label: "Yellow (50–79%)" },
-  { value: "red", label: "Red (80–100%)" },
-];
 
 function StatusDot({ serverHealthy }) {
   const isDisconnected = serverHealthy === false;
@@ -54,9 +47,11 @@ function StatusDot({ serverHealthy }) {
   );
 }
 
-function NotificationDot({ numOfNotifications = 10 }) {
+function NotificationDot({ numOfNotifications }) {
   const moreThanNine = numOfNotifications > 9;
   numOfNotifications = moreThanNine ? "9+" : numOfNotifications;
+
+  if (!numOfNotifications || numOfNotifications <= 0) return null;
 
   return (
     <span
@@ -70,7 +65,8 @@ function NotificationDot({ numOfNotifications = 10 }) {
       justify-center
       text-[10px] 
       font-bold 
-      top-1"
+      top-1
+      text-white"
     >
       {numOfNotifications}
     </span>
@@ -196,6 +192,7 @@ useEffect(() => {
   BATTERY_THRESHOLD,
 ]);
 
+  const notificationCount = attentionBins.length + lowBatteryBins.length;
   return (
     <div
       className="
@@ -222,8 +219,8 @@ useEffect(() => {
             className="px-4 relative cursor-pointer"
             onClick={() => setIsOpen(!isOpen)}
           >
-            <NotificationDot numOfNotifications={10} />
-            <div className="rounded-full hover:bg-white/10 p-2">
+            <NotificationDot numOfNotifications={notificationCount} />
+            <div className="rounded-full hover:bg-white/10 p-2 text-[var(--button-color)]">
               <Bell size={20} />
             </div>
           </button>
@@ -251,7 +248,7 @@ useEffect(() => {
             >
               {attentionBins.map((bin) => (
                 <p key={bin.id} className="flex items-center gap-2">
-                  <Trash size={16} className="shrink-0 text-red-400" />
+                  <Trash size={16} className="shrink-0 text-[var(--status-critical)]" />
                   Bin {bin.id}: {bin.fill_level}%
                 </p>
               ))}
@@ -261,17 +258,19 @@ useEffect(() => {
                   key={`${bin.id}-battery`}
                   className="flex items-center gap-2"
                 >
-                  <BatteryLow size={16} className="shrink-0 text-amber-400" />
+                  <BatteryLow size={16} className="shrink-0 text-[var(--status-warning)]" />
                   Battery level critical: Bin {bin.id} ({bin.battery_level}%)
                 </p>
               ))}
+
+              {!notificationCount && "No Notifications"}
             </div>
           )}
         </div>
 
-        <Tally1 />
+        <Tally1 className="text-[var(--button-color)]"/>
         <StatusDot serverHealthy={isHealthy} />
-        <h1 className="font-medium hidden md:block">
+        <h1 className="font-medium hidden md:block text-[var(--button-color)]">
           {isHealthy ? "System online" : "System offline"}
         </h1>
       </div>

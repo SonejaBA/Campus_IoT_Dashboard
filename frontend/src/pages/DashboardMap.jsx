@@ -157,7 +157,7 @@ function DashboardMap({ bins }) {
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          className="map-tiles-dark"
+          className="map-tiles"
         />
 
         {filteredBins.map((bin) => (

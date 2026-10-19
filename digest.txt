@@ -1,0 +1,3565 @@
+Directory structure:
+└── sonejaba-campus_iot_dashboard/
+    ├── README.md
+    ├── backend/
+    │   ├── main.py
+    │   └── scripts/
+    │       ├── logical_telemetry.py
+    │       └── simulator.py
+    └── frontend/
+        ├── eslint.config.js
+        ├── index.html
+        ├── package.json
+        ├── vite.config.js
+        └── src/
+            ├── App.jsx
+            ├── index.css
+            ├── main.jsx
+            ├── components/
+            │   ├── BinSearchSelect.jsx
+            │   ├── ExportCsvButton.jsx
+            │   ├── Header.jsx
+            │   ├── MobileNav.jsx
+            │   ├── ProtectedRoute.jsx
+            │   ├── Sidebar.jsx
+            │   ├── cards/
+            │   │   ├── CurrentBinCard.jsx
+            │   │   ├── ForgotPassCard.jsx
+            │   │   ├── HistoricalBinCard.jsx
+            │   │   ├── KPICard.jsx
+            │   │   ├── LogInCard.jsx
+            │   │   ├── SignUpCard.jsx
+            │   │   └── UpdatePasswordCard.jsx
+            │   ├── charts/
+            │   │   ├── AreaChart.jsx
+            │   │   └── CurrentCapacityChart.jsx
+            │   └── context/
+            │       ├── AuthContext.jsx
+            │       └── SettingsContext.jsx
+            ├── hooks/
+            │   ├── useBinAnalytics.js
+            │   ├── useBins.js
+            │   └── useCheckHealth.js
+            ├── pages/
+            │   ├── Analytics.jsx
+            │   ├── AppLayout.jsx
+            │   ├── DashboardMap.jsx
+            │   ├── ForgotPassword.jsx
+            │   ├── Login.jsx
+            │   ├── Maintenance.jsx
+            │   ├── Settings.jsx
+            │   ├── SignUp.jsx
+            │   └── UpdatePassword.jsx
+            ├── services/
+            │   └── supabaseClient.js
+            └── utils/
+                └── exportCsv.js
+
+================================================
+FILE: README.md
+================================================
+# Campus IoT Bin Dashboard Test
+
+A real-time dashboard for monitoring campus trash bin fill levels and battery statuses using a simulated IoT hardware pipeline, Supabase, and a FastAPI backend service.
+
+## Overview \& Architecture
+
+This system processes time-series telemetry data via a two-table database architecture and a Python middleware backend API.
+
+- **Frontend**: React, Vite, React-Leaflet
+- **Backend API**: Python, FastAPI, Uvicorn
+- **IoT Hardware Simulator**: Python (`simulator.py`)
+- **Database**: Supabase (PostgreSQL + Realtime WebSockets)
+
+## Database Schema
+
+The database relies on two tables and an automated trigger to process incoming telemetry pings.
+
+| Table            | Purpose                         | Key Columns                                                |
+| ---------------- | ------------------------------- | ---------------------------------------------------------- |
+| `bins`           | Current state for the React map | `id`, `lat`, `long`, `fill_level`, `battery_level`, `time`,`location`, `compost`, `recycle`, `landfil` |
+| `telemetry_logs` | Time-series historical data     | `id`, `bin_id`, `fill_level`, `battery_level`, `time`, `compost`, `recycle`, `landfil` |
+
+> \*\*Automation Note:\*\* An `AFTER INSERT` trigger on `telemetry_logs` automatically updates `fill_level`, `battery_level`,  `compost`, `recycle`, `landfil` and `time` on the corresponding record in `bins`.
+
+## Prerequisites
+
+- **Node.js** (v18+ recommended)
+- **Python** (v3.10+ recommended)
+
+## Environment Setup
+
+Create two `.env` files locally before running the services (these are ignored by Git for security):
+
+**1. Frontend (`frontend/.env`)**:
+
+```text
+VITE_SUPABASE_CLIENT=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+**2. Backend (`backend/.env`)**:
+
+```text
+SUPABASE_CLIENT=your_supabase_project_url
+SUPABASE_KEY=your_supabase_service_role_key
+```
+
+\---
+
+## Setup \& Running the Project
+
+### 1\. Frontend Setup
+
+Navigate to the `frontend` directory, install Node packages, and start the development server:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### 2\. Backend Setup
+
+Navigate to your `backend` directory:
+
+```bash
+cd backend
+```
+
+#### Step A: Create and Activate Virtual Environment
+
+- **macOS / Linux**:
+
+```bash
+  python3 -m venv venv
+  source venv/bin/activate
+```
+
+- **Windows (Command Prompt / PowerShell)**:
+
+```bash
+  python -m venv venv
+  .\venv\Scripts\activate
+```
+
+> \*\*Note:\*\* Ensure `(venv)` appears at the start of your terminal prompt before installing packages.
+
+#### Step B: Install Python Dependencies
+
+Install all required libraries directly in your active virtual environment:
+
+```bash
+pip install fastapi uvicorn supabase python-dotenv
+```
+
+#### Step C: Run the API Server
+
+Start the FastAPI backend with hot-reloading enabled:
+
+```bash
+uvicorn main:app --reload
+```
+
+The API server will run at `http://127.0.0.1:8000`.
+
+#### Step D: Run the Hardware Simulator
+
+In a separate terminal (with the virtual environment activated), start the telemetry simulator:
+
+> \*\*Note:\*\* Ensure `(venv)` appears at the start of your terminal prompt.
+
+```bash
+python simulator.py
+```
+
+
+
+================================================
+FILE: backend/main.py
+================================================
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from supabase import create_client, Client
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+SUPABASE_CLIENT = os.getenv("SUPABASE_CLIENT")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+
+supabase: Client = create_client(SUPABASE_CLIENT, SUPABASE_KEY)
+
+app = FastAPI()
+
+origins = [
+    "http://localhost:5173",    # Standard Vite React port
+    "http://127.0.0.1:5500",    # VS Code Live Server
+    "http://127.0.0.1:5173",
+    "http://localhost:5174"
+]
+
+#allows frontend to connect to server
+app.add_middleware(
+    CORSMiddleware,
+    #limit frontend to testcases for now
+    allow_origins=origins, 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/")
+def reed_root():
+    return {"message" : "FastAPI is running! (json)"}
+
+@app.get("/api/bins")
+def get_bins():
+    # Go to the 'bins' table, select all columns (*), and execute the query
+    response = supabase.table("bins").select("*").execute()
+    
+    # Return just the data portion of the Supabase response
+    return response.data
+
+
+@app.get("/api/analytics/{bin_id}")
+def get_bin_logs(bin_id):
+    # Get this bin's latest 100 readings from the telemetry_logs table.
+    response = (
+        supabase
+        .table("telemetry_logs")
+        .select("*")
+        .eq("bin_id", bin_id)
+        .order("time", desc=True)
+        .limit(100)
+        .execute()
+    )
+    # Return the readings, or [] if none match; FastAPI sends them as JSON.
+    return response.data[::-1]
+
+@app.get("/api/health")
+def health_check():
+    try:
+        supabase.table("bins").select("id").limit(1).execute()
+        return {
+            "status": "online",
+            "database": "connected"
+        }
+    except Exception:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "status": "offline",
+                "database": "disconnected"
+            }
+        )
+
+
+# Export telemetry data
+@app.get("/api/export/telemetry")
+def export_telemetry(bin_id: int | None = None):
+    # This function will return the full telemetry history for the CSV report.
+    # Giving the function a bin_id will allow us to view history of a specific bin.
+
+    # We have to use bins table instead of the telemetry_logs table to get the location.
+    bins_response = supabase.table("bins").select("id, location").execute()
+    locations = {b["id"]: b["location"] for b in bins_response.data}
+
+    rows = []
+    page_size = 1000 # According to Supabase documention, max number of rows you can return is 1000
+    start = 0
+
+    while True:
+        query = (
+            supabase.table("telemetry_logs")
+            .select("*")
+            .order("time")
+            .order("id")
+            .range(start, start + page_size - 1)
+        )
+        if bin_id is not None:
+            query = query.eq("bin_id", bin_id)
+
+        batch = query.execute().data
+        rows.extend(batch)
+
+        if len(batch) < page_size:
+            break
+        start += page_size
+
+    for row in rows:
+        row["location"] = locations.get(row["bin_id"], "")
+
+    return rows
+    
+
+
+
+================================================
+FILE: backend/scripts/logical_telemetry.py
+================================================
+import os
+import random
+import math
+from datetime import datetime, timezone, timedelta
+from dotenv import load_dotenv
+from supabase import create_client
+
+load_dotenv()
+
+SUPABASE_CLIENT = os.getenv("SUPABASE_CLIENT")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+supabase = create_client(SUPABASE_CLIENT, SUPABASE_KEY)
+
+def find_start_time(steps) -> datetime:
+    #each step is 4 hours since "sensors" ping every 4 hours
+    now = datetime.now(timezone.utc)
+    amount_to_deduct = timedelta(hours=4 * steps)
+
+    
+    starting_point = (now - amount_to_deduct)
+    return starting_point
+
+
+def count_validation() -> int:
+    while (True):
+        try:
+            interval = int(input("How many updates do you want per bin[1-100]: "))
+            if (interval < 1 or interval > 100):
+                print("Must be between [1-100]")
+            else:
+                return interval
+        except ValueError:
+            print("Error. Input must be a whole number. ex: [1, 9, 2]")
+            
+        except KeyboardInterrupt:
+            print("\nCancelled by user via ^C")
+            break
+
+
+def run_simulator():
+    count_per_bin = count_validation()
+
+    response = supabase.table("bins").select("id").execute()
+    bins = response.data
+
+    if not bins:
+        print("Error: No data found in the 'bins' table.")
+        return
+
+    for bin in bins:
+        previous_battery = 100.0
+        prev_compost = random.randint(0, 60)
+        prev_landfill = random.randint(0, 60)
+        prev_recycle = random.randint(0, 60)
+
+        start_time = find_start_time(count_per_bin)
+
+        batch_payload = []
+
+        for _ in range(count_per_bin):
+            #generate a random float
+            battery_degradation = random.random()
+            updated_battery = previous_battery - battery_degradation if previous_battery - battery_degradation > 0 else 0
+            battery_payload = math.floor(updated_battery) 
+
+            previous_battery = updated_battery
+
+            updated_compost = prev_compost + random.randint(0, 8)
+            updated_landfill = prev_landfill + random.randint(0, 15)
+            updated_recycle = prev_recycle + random.randint(0, 12)
+
+            # Determine overall fill level (highest of the three)
+            max_fill = max(updated_compost, updated_landfill, updated_recycle)
+
+            
+            if max_fill >= 90:
+                updated_compost = 0
+                updated_landfill = 0
+                updated_recycle = 0
+                max_fill = 0
+
+            # Store states for the next iteration
+            prev_compost = updated_compost
+            prev_landfill = updated_landfill
+            prev_recycle = updated_recycle
+
+            sensor_payload = {
+                "bin_id": bin["id"],
+                "compost": updated_compost,
+                "landfill": updated_landfill,
+                "recycle": updated_recycle,
+                "fill_level": max_fill, 
+                "battery_level": battery_payload,
+                "time" : start_time.isoformat()
+            }
+
+            #add four hours to time
+            start_time = start_time + timedelta(hours=4)
+            batch_payload.append(sensor_payload)
+
+        supabase.table("telemetry_logs").insert(batch_payload).execute()
+            
+
+    
+        
+if __name__ == "__main__":
+    run_simulator()
+
+
+================================================
+FILE: backend/scripts/simulator.py
+================================================
+import os
+import time
+import random
+from dotenv import load_dotenv
+from supabase import create_client
+
+load_dotenv()
+
+SUPABASE_CLIENT = os.getenv("SUPABASE_CLIENT")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+supabase = create_client(SUPABASE_CLIENT, SUPABASE_KEY)
+
+def gather_data() -> tuple[int, int]:
+    while True:
+        try:
+            new_fill = int(input("New fill[0-100]: "))
+            new_battery = int(input("New battery[0-100]: "))
+
+            if ((new_fill < 0 or new_fill > 100) or (new_battery < 0 or new_battery > 100)):
+                print("Error. Please enter a number in the valid range provided")
+            else:
+                return new_fill, new_battery
+        except ValueError:
+            print("Error. Input must be a whole number. ex: [1, 31, 2]")
+        except KeyboardInterrupt:
+            print("\nCancelled by user via ^C")
+            break 
+
+
+def manual_update():
+    print ("Starting input intake for bin updates.")
+    response = supabase.table("bins").select("id").execute()
+    bins = response.data
+
+    if not bins:
+        print("Error: No data found in the 'bins' table.")
+        return
+    bin_ids = [item["id"] for item in bins]
+
+    while True:
+        try:
+            target_bin = int(input("Enter a bin to be updated: "))
+            if (target_bin in bin_ids):
+                new_fill, new_battery = gather_data()
+
+                sensor_payload = {
+                    "bin_id": target_bin, 
+                    "fill_level": new_fill,
+                    "battery_level": new_battery
+                }
+
+                supabase.table("telemetry_logs").insert(sensor_payload).execute()
+
+                print(f"Updated Bin ID {target_bin} -> Fill: {new_fill}%, Battery: {new_battery}%")
+
+                break
+            else:
+                print ("Invalid bin.")
+        except ValueError:
+            print("Error. Input must be a whole number. ex: [1, 31, 2]")
+
+        except KeyboardInterrupt:
+            print("\nCancelled by user via ^C")
+            break
+
+def automatic_updates(interval : int):   
+    print ("Running fake updates for supabase table.")
+    response = supabase.table("bins").select("id").execute()
+    bins = response.data
+
+    if not bins:
+        print("Error: No data found in the 'bins' table.")
+        return
+
+    try:
+        while True:
+            # Pick a random bin from the list
+            target_bin = random.choice(bins)
+            
+            # Generate simulated sensor data
+            new_fill = random.randint(0, 100)
+            new_battery = random.randint(50, 100) 
+            
+            sensor_payload = {
+                "bin_id": target_bin["id"], 
+                "fill_level": new_fill,
+                "battery_level": new_battery
+            }
+            
+            supabase.table("telemetry_logs").insert(sensor_payload).execute()
+            
+            print(f"Updated Bin ID {target_bin['id']} -> Fill: {new_fill}%, Battery: {new_battery}%")
+            
+            time.sleep(interval)
+            
+    except KeyboardInterrupt:
+        print("\nSimulator stopped by user.")
+
+def interval_validation() -> int:
+    while (True):
+        try:
+            interval = int(input("Enter an interval between [1-10]: "))
+            if (interval < 1 or interval > 10):
+                print("Must be between [1-10]")
+            else:
+                return interval
+        except ValueError:
+            print("Error. Input must be a whole number. ex: [1, 9, 2]")
+            
+        except KeyboardInterrupt:
+            print("\nCancelled by user via ^C")
+            break
+
+def option_picker(option : int):
+    if (option == 1):
+        manual_update()
+    elif (option == 2):
+        print("Enter ctrl + c to stop automatic updates")
+        interval = interval_validation()
+        automatic_updates(interval);
+
+def run_simulator():
+    separator = "------------"
+    print("Welcome to the bin tracker updater.")
+    print("1. Manual updating")
+    print("2. Automatic interval updating")
+    print("3. Quit")
+
+    while (True):
+        try:
+            print(separator)
+            option_selected = int(input("\nPlease select an option: "))
+            if (option_selected < 1 or option_selected > 3):
+                print("Invalid option. Please select one of the options provided.")
+            elif (option_selected == 3):
+                print("Goodbye.")
+                break
+            else:
+                option_picker(option_selected)
+        except ValueError:
+                print("Error. Input must be a whole number. ex: [1, 2]")
+        
+        except KeyboardInterrupt:
+                print("\nCancelled by user via ^C")
+                break
+        
+if __name__ == "__main__":
+    run_simulator()
+
+
+================================================
+FILE: frontend/eslint.config.js
+================================================
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import { defineConfig, globalIgnores } from 'eslint/config'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{js,jsx}'],
+    extends: [
+      js.configs.recommended,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      globals: globals.browser,
+      parserOptions: { ecmaFeatures: { jsx: true } },
+    },
+  },
+])
+
+
+
+================================================
+FILE: frontend/index.html
+================================================
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="src/assets/treeLogo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sustainability Bin Tracking</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+
+
+
+================================================
+FILE: frontend/package.json
+================================================
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.116.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^1.47.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-leaflet": "^5.0.0",
+    "react-router-dom": "^7.18.4",
+    "recharts": "^3.10.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^10.10.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.6",
+    "globals": "^17.12.0",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.3.0"
+  }
+}
+
+
+
+================================================
+FILE: frontend/vite.config.js
+================================================
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from 'vite'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [
+    react(),
+    tailwindcss()
+  ],
+})
+
+
+
+================================================
+FILE: frontend/src/App.jsx
+================================================
+import DashboardMap from "./pages/DashboardMap.jsx";
+import { useBins } from "./hooks/useBins.js";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Analytics from "./pages/Analytics.jsx";
+import Settings from "./pages/Settings.jsx";
+import Maintenance from "./pages/Maintenance.jsx";
+import Login from "./pages/Login.jsx";
+import SignUp from "./pages/SignUp.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import AuthProvider from "./components/context/AuthContext.jsx";
+import SettingsProvider from "./components/context/SettingsContext.jsx";
+import AppLayout from "./pages/AppLayout.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
+import UpdatePassword from "./pages/UpdatePassword.jsx";
+
+function App() {
+  const bins = useBins();
+  return (
+    <AuthProvider>
+      <SettingsProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/forgotpassword" element={<ForgotPassword />} />
+            <Route path="/update-password" element={<UpdatePassword />} />
+            <Route
+              element={
+                <ProtectedRoute>
+                  <AppLayout bins={bins} />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/" element={<DashboardMap bins={bins} />} />
+              <Route path="/analytics" element={<Analytics bins={bins} />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/maintenance" element={<Maintenance />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </SettingsProvider>
+    </AuthProvider>
+  );
+}
+
+export default App;
+
+
+
+================================================
+FILE: frontend/src/index.css
+================================================
+@import "tailwindcss";
+
+:root, .theme-dark {
+  --bg-page: #121212;
+  --bg-sidebar: #18181b;
+  --bg-header: #18181b;
+  --bg-card: #1e1e1e;
+  --bg-card-strong: #27272a;
+  
+  --bg-hover: rgba(255, 255, 255, 0.08);
+  --bg-active: rgba(255, 255, 255, 0.15);
+  
+  --border-hover: 1px solid rgba(255, 255, 255, 0.18);
+  --border-card: 1px solid rgba(255, 255, 255, 0.12);
+  --border-subtle: 1px solid rgba(255, 255, 255, 0.06);
+  
+  --backdrop-blur-light: 0px;
+  --backdrop-blur: 0px;
+  --backdrop-blur-strong: 0px;
+  --shadow-card-subtle: 0 8px 32px 0 rgba(0, 0, 0, 0.10);
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+}
+
+.theme-glass {
+  --bg-page: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)), 
+             url("/generalImageBackground.jpg") center / cover no-repeat #0f172a;
+  
+  --bg-sidebar: rgba(0, 86, 63, 0.10);
+  --bg-header: rgba(0, 86, 63, 0.05);
+  
+  --bg-card: rgba(255, 255, 255, 0.07);
+  --bg-card-strong: rgba(0, 0, 0, 0.85);
+  
+  --bg-hover: rgba(255, 255, 255, 0.12);
+  --bg-active: rgba(255, 255, 255, 0.22);
+  
+  --border-hover: 1px solid rgba(255, 255, 255, 0.18);
+  --border-card: 1px solid rgba(255, 255, 255, 0.18);
+  --border-subtle: 1px solid rgba(255, 255, 255, 0.1);
+  
+  --backdrop-blur-light: 4px;
+  --backdrop-blur: 32px;
+  --backdrop-blur-strong: 64px;
+  --shadow-card: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --shadow-card-subtle: 0 8px 32px 0 rgba(0, 0, 0, 0.10);
+  --text-primary: #ffffff;
+  --text-secondary: #cbd5e1;
+}
+/* Mutes standard OSM colors so bin markers pop, but keeps building names clear */
+.map-tiles-muted .leaflet-tile {
+  filter: grayscale(40%) contrast(92%) brightness(102%) saturate(80%);
+}
+
+.map-tiles-dark .leaflet-tile {
+  filter: brightness(0.6) invert(1) hue-rotate(180deg) saturate(1.2) contrast(0.85);
+}
+
+.dark-popup .leaflet-popup-content-wrapper,
+.dark-popup .leaflet-popup-tip {
+  background-color: #1e1e1e !important;
+  color: #f1f5f9 !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+.dark-popup .leaflet-popup-close-button {
+  color: #94a3b8 !important;
+}
+
+.dark-popup .leaflet-popup-close-button:hover {
+  color: #ffffff !important;
+}
+
+/* basic styling for the battery and threshold sliders */
+.threshold-slider,
+#batteryWarning {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 8px;
+  border-radius: 999px;
+  background: #334155;
+}
+
+.threshold-slider::-webkit-slider-thumb,
+#batteryWarning::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+}
+
+.threshold-slider::-moz-range-thumb,
+#batteryWarning::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 3px solid #0f172a;
+  cursor: pointer;
+}
+
+/* combined fill-level sliders */
+.threshold-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 36px !important;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent !important;
+  cursor: pointer;
+  pointer-events: none;
+}
+
+.threshold-slider::-webkit-slider-runnable-track {
+  height: 12px;
+  background: transparent;
+}
+
+.threshold-slider::-moz-range-track {
+  height: 12px;
+  background: transparent;
+}
+
+.threshold-slider::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 44px;
+  height: 44px;
+  margin-top: -16px;
+  border: none;
+  border-radius: 0;
+  background: url("/three-bin.png") center / contain no-repeat;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.threshold-slider::-moz-range-thumb {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 0;
+  background: url("/three-bin.png") center / contain no-repeat;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.threshold-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border: 3px solid #0f172a;
+  border-radius: 50%;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+/* warning handle is yellow */
+/*.warning-slider {
+  z-index: 2;
+}
+
+.warning-slider::-webkit-slider-thumb {
+  background: linear-gradient(to right, #34d399 0 50%, #fbbf24 50% 100%);
+}
+
+.warning-slider::-moz-range-thumb {
+  background: linear-gradient(to right, #34d399 0 50%, #fbbf24 50% 100%);
+}
+*/
+/* critical handle is red */
+.critical-slider {
+  z-index: 1;
+}
+/*garbage-bin img* fro slider/
+.critical-slider::-webkit-slider-thumb {
+  background: url("/three-bin.png") center / contain no-repeat;
+}
+
+.critical-slider::-moz-range-thumb {
+  background: url("/three-bin.png") center / contain no-repeat;
+}
+
+/*This is green/yellow circle*/
+/*.critical-slider::-webkit-slider-thumb {
+  background: linear-gradient(to right, #fbbf24 0 50%, #f87171 50% 100%);
+}
+
+.critical-slider::-moz-range-thumb {
+  background: linear-gradient(to right, #fbbf24 0 50%, #f87171 50% 100%);
+}
+*/
+/* battery handle is blue */
+#batteryWarning::-webkit-slider-thumb {
+  background: #60a5fa;
+}
+
+#batteryWarning::-moz-range-thumb {
+  background: #60a5fa;
+}
+
+
+
+
+================================================
+FILE: frontend/src/main.jsx
+================================================
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.jsx'
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+
+
+
+================================================
+FILE: frontend/src/components/BinSearchSelect.jsx
+================================================
+import { useState, useEffect } from "react";
+
+function BinSearchSelect({ bins, selectedBin, onSelectBin }) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (selectedBin === "" && bins.length > 0) {
+      onSelectBin(bins[0].id);
+      setSearchQuery("");
+    }
+  }, [bins, selectedBin]);
+
+  const filteredBins = bins
+    .filter((bin) =>
+      bin.id
+        .toString()
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase().replace(/\bb(?:in?)?\b\s*/g, "")),
+    )
+    .sort((a, b) => a.id - b.id);
+
+  const handleSubmit = (e) => {
+
+    
+    e.preventDefault();
+    if (filteredBins.length > 0) {
+      onSelectBin(filteredBins[0].id);
+      setSearchQuery("");
+      setIsOpen(false);
+    }
+  };
+
+  return (
+    <div className="relative w-40 h-10 rounded-xl ml-auto bg-[var(--bg-card)] [border:var(--border-card)] text-[var(--text-primary)] shadow-[var(--shadow-card)] backdrop-blur-[var(--backdrop-blur)] z-[50]">
+      <form onSubmit={handleSubmit}>
+        <input
+          onFocus={() => setIsOpen(true)}
+          onBlur={() =>
+            setTimeout(() => {
+              setIsOpen(false);
+            }, 150)
+          }
+          onChange={(e) => setSearchQuery(e.target.value)}
+          value={searchQuery}
+          type="text"
+          placeholder="Search bin..."
+          className="w-[90%] focus:outline-none absolute left-2 top-1/6"
+        />
+      </form>
+      {/*Drop down selection of bins*/}
+      {isOpen && (
+        <div className="absolute top-full right-0 left-0 mt-2 rounded-lg [border:var(--border-card)] bg-[var(--bg-card)] backdrop-blur-[var(--backdrop-blur)] max-h-30 md:max-h-60 overflow-y-auto shadow-[var(--shadow-card)] flex flex-col z-[100]">
+          {filteredBins.length > 0 ? (
+            filteredBins.map((bin) => (
+              <button
+                key={bin.id}
+                onClick={() => {
+                  setIsOpen(false);
+                  setSearchQuery("");
+                  onSelectBin(bin.id);
+                }}
+                className="hover:bg-white/10 rounded-sm m-1 cursor-pointer text-left px-2 py-1"
+              >
+                BIN-{String(bin.id).padStart(3, '0')}
+              </button>
+            ))
+          ) : (
+            <div className="px-4 py-2 text-gray-400 text-sm">No bins found</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default BinSearchSelect;
+
+
+
+================================================
+FILE: frontend/src/components/ExportCsvButton.jsx
+================================================
+import { useState } from "react";
+import { Download } from "lucide-react";
+import { rowsToCsv, downloadCsv } from "../utils/exportCsv";
+
+function ExportCsvButton({ binId = null, label = "Export CSV" }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleExport = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const baseUrl = `${import.meta.env.VITE_API_URL}/api/export/telemetry`;
+      const url = binId ? `${baseUrl}?bin_id=${binId}` : baseUrl;
+
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Export failed. Is the backend running?");
+
+      const rows = await response.json();
+      downloadCsv(rowsToCsv(rows), "campus_bin_telemetry.csv");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-1">
+      <button
+        onClick={handleExport}
+        disabled={loading}
+        className="flex h-10 items-center gap-2 rounded-xl px-4 text-sm cursor-pointer bg-[var(--bg-card)] [border:var(--border-card)] text-[var(--text-primary)] shadow-[var(--shadow-card)] backdrop-blur-[var(--backdrop-blur)] hover:bg-[var(--bg-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <Download size={16} />
+        {loading ? "Exporting..." : label}
+      </button>
+      {error && <span className="text-xs text-red-400">{error}</span>}
+    </div>
+  );
+}
+
+export default ExportCsvButton;
+
+
+================================================
+FILE: frontend/src/components/Header.jsx
+================================================
+import { useCheckHealth } from "../hooks/useCheckHealth";
+import { useLocation } from "react-router-dom";
+import { Bell, Tally1, BatteryLow, Trash, Filter } from "lucide-react";
+import MobileNav from "../components/MobileNav.jsx";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useSettings } from "../components/context/SettingsContext.jsx";
+const connected = "bg-emerald-500";
+const disconnected = "bg-red-500";
+
+const pageTitles = {
+  "/": "Dashboard",
+  "/analytics": "Analytics",
+  "/settings": "Settings",
+  "/maintenance": "Maintenance",
+};
+
+const filterOptions = [
+  { value: "all", label: "All bins" },
+  { value: "green", label: "Green (0â€“49%)" },
+  { value: "yellow", label: "Yellow (50â€“79%)" },
+  { value: "red", label: "Red (80â€“100%)" },
+];
+
+function StatusDot({ serverHealthy }) {
+  const isDisconnected = serverHealthy === false;
+  return (
+    <span
+      className="
+            relative
+            flex
+            h-3
+            w-3"
+    >
+      <span
+        className={`
+                animate-ping
+                absolute
+                h-full
+                w-full
+                rounded-full
+                opacity-75 
+                ${isDisconnected ? disconnected : connected}`}
+      />
+
+      <span
+        className={`
+                relative
+                h-3
+                w-3
+                rounded-full
+                ${isDisconnected ? disconnected : connected}`}
+      />
+    </span>
+  );
+}
+
+function NotificationDot({ numOfNotifications = 10 }) {
+  const moreThanNine = numOfNotifications > 9;
+  numOfNotifications = moreThanNine ? "9+" : numOfNotifications;
+
+  return (
+    <span
+      className="
+      absolute 
+      bg-red-700
+      rounded-full 
+      h-4
+      w-4
+      items-center 
+      justify-center
+      text-[10px] 
+      font-bold 
+      top-1"
+    >
+      {numOfNotifications}
+    </span>
+  );
+}
+
+function Header({ bins }) {
+  const { settings } = useSettings();
+  const FILL_THRESHOLD = settings.fillCritical;
+  const BATTERY_THRESHOLD = settings.batteryWarning;
+
+  const isHealthy = useCheckHealth();
+  const location = useLocation();
+  const currentPath = location.pathname;
+  const [isOpen, setIsOpen] = useState(false);
+  const attentionBins = useMemo(() => {
+    return [...(bins ?? [])]
+      .filter((bin) => bin.fill_level >= FILL_THRESHOLD)
+      .sort((a, b) => b.fill_level - a.fill_level);
+  }, [bins, FILL_THRESHOLD]);
+  const lowBatteryBins = useMemo(() => {
+    return (bins ?? []).filter(
+      (bin) =>
+        bin.battery_level != null && bin.battery_level < BATTERY_THRESHOLD,
+    );
+  }, [bins, BATTERY_THRESHOLD]);
+const notifiedAlerts = useRef(new Set());
+const notificationQueue = useRef([]);
+const notificationTimer = useRef(null);
+
+useEffect(() => {
+  if (
+    !settings.browserNotifications ||
+    !("Notification" in window) ||
+    Notification.permission !== "granted"
+  ) {
+    notificationQueue.current = [];
+
+    if (notificationTimer.current) {
+      clearTimeout(notificationTimer.current);
+      notificationTimer.current = null;
+    }
+
+    notifiedAlerts.current.clear();
+    return;
+  }
+
+  const activeAlertKeys = new Set();
+  const newAlerts = [];
+
+  (bins ?? []).forEach((bin) => {
+    if (bin.fill_level >= FILL_THRESHOLD) {
+      const alertKey = `fill-${bin.id}`;
+      activeAlertKeys.add(alertKey);
+
+      if (!notifiedAlerts.current.has(alertKey)) {
+        newAlerts.push({
+          key: alertKey,
+          title: `Bin ${bin.id} needs attention`,
+          body: `Fill level is ${bin.fill_level}%.`,
+        });
+
+        notifiedAlerts.current.add(alertKey);
+      }
+    }
+
+    if (
+      bin.battery_level != null &&
+      bin.battery_level < BATTERY_THRESHOLD
+    ) {
+      const alertKey = `battery-${bin.id}`;
+      activeAlertKeys.add(alertKey);
+
+      if (!notifiedAlerts.current.has(alertKey)) {
+        newAlerts.push({
+          key: alertKey,
+          title: `Bin ${bin.id} has low battery`,
+          body: `Battery level is ${bin.battery_level}%.`,
+        });
+
+        notifiedAlerts.current.add(alertKey);
+      }
+    }
+  });
+
+  notifiedAlerts.current.forEach((alertKey) => {
+    if (!activeAlertKeys.has(alertKey)) {
+      notifiedAlerts.current.delete(alertKey);
+    }
+  });
+
+  notificationQueue.current.push(...newAlerts);
+
+  const sendNextNotification = () => {
+    if (notificationQueue.current.length === 0) {
+      notificationTimer.current = null;
+      return;
+    }
+
+    const alert = notificationQueue.current.shift();
+
+    try {
+      new Notification(alert.title, {
+        body: alert.body,
+      });
+    } catch (error) {
+      console.error("Unable to show browser notification:", error);
+    }
+
+    notificationTimer.current = setTimeout(sendNextNotification, 500);
+  };
+
+  if (
+    notificationQueue.current.length > 0 &&
+    notificationTimer.current === null
+  ) {
+    sendNextNotification();
+  }
+}, [
+  bins,
+  settings.browserNotifications,
+  FILL_THRESHOLD,
+  BATTERY_THRESHOLD,
+]);
+
+  return (
+    <div
+      className="
+    bg-[var(--bg-header)] 
+    text-[var(--text-primary)]
+    p-4 
+    h-14 
+    items-center 
+    justify-between 
+    flex 
+    flex-row 
+    [border:var(--border-subtle)]
+    backdrop-blur-[var(--backdrop-blur-strong)]
+    z-[2000]
+    "
+    >
+      <div className="gap-2 items-center flex ">
+        <MobileNav />
+        <h1 className="font-medium md:hidden"> {pageTitles[currentPath]} </h1>
+      </div>
+      <div className="gap-2 items-center flex ">
+        <div className="relative top-1">
+          <button
+            className="px-4 relative cursor-pointer"
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            <NotificationDot numOfNotifications={10} />
+            <div className="rounded-full hover:bg-white/10 p-2">
+              <Bell size={20} />
+            </div>
+          </button>
+
+          {isOpen && (
+            <div
+              className="absolute 
+            right-0 
+            top-12 
+            z-[2000] 
+            w-72 
+            max-h-64 
+            overflow-y-auto 
+            overscroll-contain 
+            flex 
+            flex-col 
+            gap-1 
+            p-2 
+            text-sm 
+            text-[var(--text-secondary)]
+            rounded-lg 
+            bg-[var(--bg-card-strong)]
+            [border:var(--border-card)]
+            shadow-[var(--shadow-card-subtle)]"
+            >
+              {attentionBins.map((bin) => (
+                <p key={bin.id} className="flex items-center gap-2">
+                  <Trash size={16} className="shrink-0 text-red-400" />
+                  Bin {bin.id}: {bin.fill_level}%
+                </p>
+              ))}
+
+              {lowBatteryBins.map((bin) => (
+                <p
+                  key={`${bin.id}-battery`}
+                  className="flex items-center gap-2"
+                >
+                  <BatteryLow size={16} className="shrink-0 text-amber-400" />
+                  Battery level critical: Bin {bin.id} ({bin.battery_level}%)
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <Tally1 />
+        <StatusDot serverHealthy={isHealthy} />
+        <h1 className="font-medium hidden md:block">
+          {isHealthy ? "System online" : "System offline"}
+        </h1>
+      </div>
+    </div>
+  );
+}
+
+export default Header;
+
+
+
+================================================
+FILE: frontend/src/components/MobileNav.jsx
+================================================
+import { useState } from "react";
+import { Menu, X } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPortal } from "react-dom";
+
+function MobileNav() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="md:hidden">
+      <button
+        onClick={() => setIsOpen(true)}
+        className={`
+            md:hidden 
+            z-[2000] 
+            p-2
+            bg-[#1E1E1E]/40 
+            text-white 
+            rounded-lg 
+            cursor-pointer
+            ${isOpen ? "hidden" : "flex"}`}
+      >
+        <Menu />
+      </button>
+
+      {isOpen && createPortal(
+        <div
+          className="
+        fixed 
+        inset-0 
+        z-[3000] 
+        flex
+        bg-black/70
+        items-start 
+        justify-left 
+        p-2"
+        >
+          <div
+            className="
+          relative 
+          bg-[var(--bg-card)] 
+          backdrop-blur-md 
+          border-[var(--border-subtle)]
+          p-6 
+          rounded-2xl 
+          flex 
+          flex-col 
+          gap-6 
+          w-3/4 
+          max-w-xs 
+          shadow-2xl"
+          >
+            <button
+              onClick={() => setIsOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 cursor-pointer"
+            >
+              <X />
+            </button>
+
+            <nav className="flex-1 flex-col gap-2 px-1">
+              <Link
+                onClick={() => setIsOpen(false)}
+                to="/"
+                className={`  flex 
+                        items-center 
+                        py-2 
+                        rounded-lg 
+                        hover:bg-gradient-to-r
+                        hover:from-emerald-900/80
+                        hover:to-emerald-900/20
+                        transition-colors 
+                        text-white 
+`}
+              >
+                <span
+                  className={`font-medium whitespace-nowrap text-gray-300 pl-2`}
+                >
+                  Dashboard
+                </span>
+              </Link>
+
+              <Link
+                onClick={() => setIsOpen(false)}
+                to="/analytics"
+                className={`  flex 
+                        items-center 
+                        py-2 
+                        rounded-lg 
+                        hover:bg-gradient-to-r
+                        hover:from-emerald-900/80
+                        hover:to-emerald-900/20
+                        transition-colors 
+                        text-white 
+`}
+              >
+                <span
+                  className={`font-medium whitespace-nowrap text-gray-300 pl-2`}
+                >
+                  Analytics
+                </span>
+              </Link>
+
+              <Link
+                onClick={() => setIsOpen(false)}
+                to="/maintenance"
+                className={`  flex 
+                        items-center 
+                        py-2 
+                        rounded-lg 
+                        hover:bg-gradient-to-r
+                        hover:from-emerald-900/80
+                        hover:to-emerald-900/20
+                        transition-colors 
+                        text-white 
+`}
+              >
+                <span
+                  className={`font-medium whitespace-nowrap text-gray-300 pl-2`}
+                >
+                  Maintenance
+                </span>
+              </Link>
+
+              <Link
+                onClick={() => setIsOpen(false)}
+                to="/settings"
+                className={`  flex 
+                        items-center 
+                        py-2 
+                        rounded-lg 
+                        hover:bg-gradient-to-r
+                        hover:from-emerald-900/80
+                        hover:to-emerald-900/20
+                        transition-colors 
+                        text-white 
+`}
+              >
+                <span
+                  className={`font-medium whitespace-nowrap text-gray-300 pl-2`}
+                >
+                  Settings
+                </span>
+              </Link>
+            </nav>
+          </div>
+        </div>, document.body
+      )}
+    </div>
+  );
+}
+
+export default MobileNav;
+
+
+
+================================================
+FILE: frontend/src/components/ProtectedRoute.jsx
+================================================
+import { useAuth } from "./context/AuthContext";
+import { Navigate } from "react-router-dom";
+
+export default function ProtectedRoute ({children}) {
+    const { user, loading } = useAuth();
+
+    if (loading){
+        return null;
+    }
+    if (!user){
+        return(
+        <Navigate to="/login" replace/>
+    )
+    }
+    return(children)
+}
+
+
+================================================
+FILE: frontend/src/components/Sidebar.jsx
+================================================
+import { useState } from "react";
+import treeLogo from "../assets/treeLogo.png";
+import wordLogo from "../assets/wordLogo.png";
+import { Link } from "react-router-dom";
+import {
+  PanelLeftClose,
+  MapPin,
+  BarChart3,
+  Settings,
+  Wrench,
+} from "lucide-react";
+
+function Sidebar() {
+  const [isOpen, setIsOpen] = useState(true);
+  const handleLogoClick = () => {
+    if (isOpen) return;
+    setIsOpen(!isOpen);
+  };
+
+  return (
+    <div
+      className={`
+        hidden 
+        md:flex
+        flex-col
+        h-full
+        bg-[var(--bg-sidebar)]
+        text[var(--text-primary)]
+        p-4
+        gap-4
+        ${isOpen ? "w-60" : "w-20"}
+        transition-all
+        duration-200
+        [border:var(--border-card)]
+        backdrop-blur-[var(--backdrop-blur-strong)]
+        `}
+    >
+      {/*Logo and sidebar colapase button */}
+      <div
+        className={`flex flex-row mb-6 ${isOpen ? "justify-between" : "justify-center px-0"} items-center -mt-1`}
+      >
+        <img
+          onClick={handleLogoClick}
+          src={isOpen ? wordLogo : treeLogo}
+          alt="Sacramento State Sustainability"
+          title="Open sidebar"
+          className={`
+                        w-auto
+                        object-contain
+                        cursor-pointer
+                        hover:bg-white/10
+                        ${isOpen ? "h-20 cursor-default pointer-events-none" : "h-10 justify-center rounded-full"}`}
+        />
+
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          title="Close sidebar"
+          className={`${isOpen ? "block" : "hidden"} 
+                        flex
+                        items-center
+                        justify-center
+                        w-10 
+                        h-10 
+                        cursor-pointer
+                        text-[var(--text-primary)] 
+                        aria-label="Collapse Sidebar" 
+                        rounded-full 
+                        hover:bg-white/10
+                        `}
+        >
+          <PanelLeftClose className="w-5 h-5 text-gray-300" />
+        </button>
+      </div>
+
+      <nav className="flex-1 flex-col gap-2 px-1">
+        <Link
+          to="/"
+          title={isOpen ? "" : "Dashboard"}
+          className={`  flex 
+                        items-center 
+                        py-2 
+                        rounded-lg 
+                        hover:bg-[var(--bg-hover)]
+                        transition-colors 
+                        text-white
+                        ${
+                          isOpen
+                            ? "justify-start gap-4 "
+                            : "justify-center px-0"
+                        }`}
+        >
+          <MapPin className="shrink-0 text-gray-300" />
+          <span
+            className={`${isOpen ? "block" : "hidden"} font-medium whitespace-nowrap text-gray-300`}
+          >
+            Dashboard
+          </span>
+        </Link>
+
+        <Link
+          to="/analytics"
+          title={isOpen ? "" : "Analytics"}
+          className={`  flex 
+                        items-center 
+                        py-2 
+                        rounded-lg 
+                        hover:bg-[var(--bg-hover)]
+                        transition-colors 
+                        text-white 
+                        ${
+                          isOpen
+                            ? "justify-start gap-4 "
+                            : "justify-center px-0"
+                        }`}
+        >
+          <BarChart3 className="shrink-0 text-gray-300" />
+          <span
+            className={`${isOpen ? "block" : "hidden"} font-medium whitespace-nowrap text-gray-300`}
+          >
+            Analytics
+          </span>
+        </Link>
+
+        <Link
+          to="/maintenance"
+          title={isOpen ? "" : "Maintenance"}
+          className={`  flex 
+                        items-center 
+                        py-2 
+                        rounded-lg 
+                        hover:bg-[var(--bg-hover)]
+                        transition-colors 
+                        text-white 
+                        ${
+                          isOpen
+                            ? "justify-start gap-4 "
+                            : "justify-center px-0"
+                        }`}
+        >
+          <Wrench className="shrink-0 text-gray-300" />
+          <span
+            className={`${isOpen ? "block" : "hidden"} font-medium whitespace-nowrap text-gray-300`}
+          >
+            Maintenance
+          </span>
+        </Link>
+
+        <Link
+          to="/settings"
+          title={isOpen ? "" : "Settings"}
+          className={`  flex 
+                        items-center 
+                        py-2 
+                        rounded-lg 
+                        hover:bg-[var(--bg-hover)]
+                        transition-colors 
+                        text-white 
+                        ${
+                          isOpen
+                            ? "justify-start gap-4 "
+                            : "justify-center px-0"
+                        }`}
+        >
+          <Settings className="shrink-0 text-gray-300" />
+          <span
+            className={`${isOpen ? "block" : "hidden"} font-medium whitespace-nowrap text-gray-300`}
+          >
+            Settings
+          </span>
+        </Link>
+      </nav>
+    </div>
+  );
+}
+
+export default Sidebar;
+
+
+
+================================================
+FILE: frontend/src/components/cards/CurrentBinCard.jsx
+================================================
+import CurrentCapacityChart from "../charts/CurrentCapacityChart";
+
+function CurrentBinCard({ bin }) {
+  if (!bin) return null;
+  return (
+    <div className=" p-4 rounded-xl flex flex-1 flex-col bg-[var(--bg-card)] [border:var(--border-card)]  shadow-[var(--shadow-card)] backdrop-blur-[var(--backdrop-blur)]">
+      <span className="font-medium text-xl flex-1 mb-2">
+        BIN-{String(bin["id"]).padStart(3, "0")}
+      </span>
+      <CurrentCapacityChart bin={bin} />
+    </div>
+  );
+}
+
+export default CurrentBinCard;
+
+
+
+================================================
+FILE: frontend/src/components/cards/ForgotPassCard.jsx
+================================================
+import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate, Link } from "react-router-dom";
+import wordLogo from "../../assets/wordLogo.png";
+
+function ErrorBanner({ errorMessage }) {
+  let formattedErrorMessage = "";
+  if (errorMessage === "missing email or phone") {
+    formattedErrorMessage = "Missing email or phone.";
+  } else if (errorMessage === "Invalid login credentials") {
+    formattedErrorMessage = "Invalid login credentials";
+  } else {
+    formattedErrorMessage = errorMessage;
+  }
+  return <div className="text-red-400">{formattedErrorMessage}</div>;
+}
+
+function ForgotPassCard () {
+  const { forgotPassword } = useAuth();
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const buttonText = loading ? "Sending" : "Send email";
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      await forgotPassword(email);
+    } catch (err) {
+      setError(err.message);
+      setEmail("");
+      setPassword("");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="relative z-10 w-full max-w-sm p-8 bg-emerald-500/10 backdrop-blur-xl border border-emerald-500/30 rounded-2xl shadow-2xl text-white m-5">
+      <div className="flex flex-col">
+        <img src={wordLogo} className="h-20 object-contain" />
+        <h2 className="text-3xl font-bold mb-6 text-center">Bin Tracker</h2>
+        {error && <ErrorBanner errorMessage={error} />}
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label className="block text-sm font-medium mb-1 text-white/90">
+            Email
+          </label>
+          <input
+            type="email"
+            placeholder="you@example.com"
+            className="w-full px-4 py-3  bg-emerald-200/10 border border-emerald-500/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-white placeholder-white/40 transition"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+
+        <button
+          disabled={loading}
+          type="submit"
+          className={`w-full py-3 px-4 bg-emerald-200/10 hover:bg-emerald-400/25 border border-emerald-500/30 rounded-xl font-semibold transition duration-200 shadow-lg text-white cursor-pointer ${loading && "pointer-events-none bg-emerald-200/30"}`}
+        >
+          {buttonText}
+        </button>
+                  <Link
+            to="/login"
+            className="text-center text-sm text-white/80 hover:text-emerald-400 underline transition duration-200 mt-2"
+          >
+            Log in
+          </Link>
+      </form>
+    </div>
+  );
+}
+
+export default ForgotPassCard;
+
+
+
+================================================
+FILE: frontend/src/components/cards/HistoricalBinCard.jsx
+================================================
+import AreaChartComponent from "../charts/AreaChart";
+
+function HistoricalBinCard({binID}){
+    if (!binID) return null;
+    return(
+        <div className="p-4 rounded-xl flex flex-1 flex-col bg-[var(--bg-card)] [border:var(--border-card)] text-[var(--text-primary)] shadow-[var(--shadow-card)] backdrop-blur-[var(--backdrop-blur)]">
+            <span className="font-medium text-xl flex-1 mb-2">    
+                BIN-{String(binID).padStart(3, '0')}
+            </span>
+            <AreaChartComponent binID={binID}/>
+        </div>
+    )
+}
+
+export default HistoricalBinCard;
+
+
+
+================================================
+FILE: frontend/src/components/cards/KPICard.jsx
+================================================
+function StatusDot({ color }) {
+  return (
+    <span
+      className="
+            relative
+            flex
+            h-3
+            w-3"
+    >
+      <span
+        className={`
+                relative
+                h-3
+                w-3
+                rounded-full
+                opacity-80
+                ${color}
+                `}
+      />
+    </span>
+  );
+}
+
+function KPICard({
+  title,
+  count,
+  color,
+  sum_card = false,
+  bin_count = 1,
+  percent_card = false,
+}) {
+  return (
+    <div className="p-4 rounded-xl flex flex-col gap-5 min-h-40 bg-[var(--bg-card)] md:h-50 [border:var(--border-card)] text-[var(--text-primary)] shadow-[var(--shadow-card)] backdrop-blur-[var(--backdrop-blur)]">
+      <div className="flex items-center mb-2">
+        <span className="font-medium text-normal md:text-xl flex-1 ">
+          {title}
+        </span>
+        <StatusDot color={color} />
+      </div>
+      <p className="text-xl md:text-6xl font-bold flex-1">
+        {count}
+        {percent_card && "%"}
+      </p>
+      {sum_card && (
+        <p className="text-sm font-thin flex-1">
+          {((count / bin_count) * 100).toFixed(2)}%
+        </p>
+      )}
+    </div>
+  );
+}
+
+export default KPICard;
+
+
+
+================================================
+FILE: frontend/src/components/cards/LogInCard.jsx
+================================================
+import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate, Link } from "react-router-dom";
+import wordLogo from "../../assets/wordLogo.png";
+
+function ErrorBanner({ errorMessage }) {
+  let formattedErrorMessage = "";
+  if (errorMessage === "missing email or phone") {
+    formattedErrorMessage = "Missing email or phone.";
+  } else if (errorMessage === "Invalid login credentials") {
+    formattedErrorMessage = "Invalid login credentials";
+  } else {
+    formattedErrorMessage = errorMessage;
+  }
+  return <div className="text-red-400">{formattedErrorMessage}</div>;
+}
+
+function LogInCard() {
+  const { logIn } = useAuth();
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const buttonText = loading ? "Signing in" : "Sign in";
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      await logIn(email, password);
+      navigate("/");
+    } catch (err) {
+      setError(err.message);
+      setEmail("");
+      setPassword("");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="relative z-10 w-full max-w-sm p-8 bg-emerald-500/10 backdrop-blur-xl border border-emerald-500/30 rounded-2xl shadow-2xl text-white m-5">
+      <div className="flex flex-col">
+        <img src={wordLogo} className="h-20 object-contain" />
+        <h2 className="text-3xl font-bold mb-6 text-center">Bin Tracker</h2>
+        {error && <ErrorBanner errorMessage={error} />}
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label className="block text-sm font-medium mb-1 text-white/90">
+            Email
+          </label>
+          <input
+            type="email"
+            placeholder="you@example.com"
+            className="w-full px-4 py-3  bg-emerald-200/10 border border-emerald-500/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-white placeholder-white/40 transition"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1 text-white/90">
+            Password
+          </label>
+          <input
+            type="password"
+            placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+            className="w-full px-4 py-3 bg-emerald-200/10 border border-emerald-500/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-white placeholder-white/40 transition"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+
+        <button
+          disabled={loading}
+          type="submit"
+          className={`w-full py-3 px-4 bg-emerald-200/10 hover:bg-emerald-400/25 border border-emerald-500/30 rounded-xl font-semibold transition duration-200 shadow-lg text-white cursor-pointer ${loading && "pointer-events-none bg-emerald-200/30"}`}
+        >
+          {buttonText}
+        </button>
+        <div className="flex justify-between">
+          <Link
+            to="/signup"
+            className="text-center text-sm text-white/80 hover:text-emerald-400 underline transition duration-200 mt-2"
+          >
+            Sign up
+          </Link>
+          <Link
+            to="/forgotpassword" 
+            className="text-center text-sm text-white/80 hover:text-emerald-400 underline transition duration-200 mt-2">
+            Forgot Password
+          </Link>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+export default LogInCard;
+
+
+
+================================================
+FILE: frontend/src/components/cards/SignUpCard.jsx
+================================================
+import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate, Link } from "react-router-dom";
+import wordLogo from "../../assets/wordLogo.png";
+
+function ErrorBanner({ errorMessage }) {
+  let formattedErrorMessage = "";
+  if (errorMessage === "Failed to fetch") {
+    formattedErrorMessage = "Check your internet connection.";
+  } else {
+    formattedErrorMessage = errorMessage;
+  }
+  return <div className="text-red-400">{formattedErrorMessage}</div>;
+}
+
+function SignUpCard() {
+  const { signUp } = useAuth();
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [confirmedPassword, setConfirmedPassword] = useState("");
+
+  const buttonText = loading ? "Signing up" : "Sign up";
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+
+    if (password !== confirmedPassword) {
+      setError("Passwords do not match.");
+      setPassword("");
+      setConfirmedPassword("");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await signUp(email, password);
+      navigate("/");
+    } catch (err) {
+      setError(err.message);
+      setEmail("");
+      setPassword("");
+      setConfirmedPassword("");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="relative z-10 w-full max-w-sm p-8 bg-[#D3B577]/10 backdrop-blur-xl border border-[#D3B577]/60 rounded-2xl shadow-2xl text-white m-5">
+      <div className="flex flex-col">
+        <img src={wordLogo} className="h-20 object-contain" />
+        <h2 className="text-3xl font-bold mb-6 text-center">Bin Tracker</h2>
+        {error && <ErrorBanner errorMessage={error} />}
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label className="block text-sm font-medium mb-1 text-white/90">
+            Email
+          </label>
+          <input
+            type="email"
+            placeholder="you@example.com"
+            className="w-full px-4 py-3 bg-[#D3B577]/10 border border-[#D3B577]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D3B577]/50 text-white placeholder-white/40 transition"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1 text-white/90">
+            Password
+          </label>
+          <input
+            type="password"
+            placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+            className="w-full px-4 py-3 bg-[#D3B577]/10 border border-[#D3B577]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D3B577]/50 text-white placeholder-white/40 transition"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          <label className="block text-sm font-medium mb-1 text-white/90">
+            Confirm Password
+          </label>
+          <input
+            type="password"
+            placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+            className="w-full px-4 py-3 bg-[#D3B577]/10 border border-[#D3B577]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D3B577]/50 text-white placeholder-white/40 transition"
+            value={confirmedPassword}
+            onChange={(e) => setConfirmedPassword(e.target.value)}
+          />
+        </div>
+
+        <button
+          disabled={loading}
+          type="submit"
+          className={`w-full py-3 px-4 bg-[#D3B577]/10 hover:bg-[#D3B577]/25 border border-[#D3B577]/30 rounded-xl font-semibold transition duration-200 shadow-lg text-white cursor-pointer ${loading && "pointer-events-none bg-[#D3B577]/30"}`}
+        >
+          {buttonText}
+        </button>
+        <div className="flex justify-between">
+          <Link
+            to="/login"
+            className="text-center text-sm text-white/80 hover:text-emerald-400 underline transition duration-200 mt-2"
+          >
+            Log in
+          </Link>
+          <Link
+            to="/forgotpassword" 
+            className="text-center text-sm text-white/80 hover:text-emerald-400 underline transition duration-200 mt-2">
+            Forgot Password
+          </Link>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+export default SignUpCard;
+
+
+
+================================================
+FILE: frontend/src/components/cards/UpdatePasswordCard.jsx
+================================================
+import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import wordLogo from "../../assets/wordLogo.png";
+
+function ErrorBanner({ errorMessage }) {
+  let formattedErrorMessage = "";
+  if (errorMessage === "New password should be different from the old password.") {
+    formattedErrorMessage = "Please enter a new password different from your old one.";
+  } else {
+    formattedErrorMessage = errorMessage;
+  }
+  return <div className="text-red-400 text-sm mb-2">{formattedErrorMessage}</div>;
+}
+
+function UpdatePasswordCard() {
+  const { updatePassword } = useAuth();
+  const navigate = useNavigate();
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const buttonText = loading ? "Updating..." : "Update password";
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await updatePassword(password);
+      navigate("/login");
+    } catch (err) {
+      setError(err.message);
+      setPassword("");
+      setConfirmPassword("");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="relative z-10 w-full max-w-sm p-8 bg-emerald-500/10 backdrop-blur-xl border border-emerald-500/30 rounded-2xl shadow-2xl text-white m-5">
+      <div className="flex flex-col">
+        <img src={wordLogo} className="h-20 object-contain" />
+        <h2 className="text-3xl font-bold mb-6 text-center">Set New Password</h2>
+        {error && <ErrorBanner errorMessage={error} />}
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label className="block text-sm font-medium mb-1 text-white/90">
+            New Password
+          </label>
+          <input
+            type="password"
+            placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+            className="w-full px-4 py-3 bg-emerald-200/10 border border-emerald-500/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-white placeholder-white/40 transition"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1 text-white/90">
+            Confirm Password
+          </label>
+          <input
+            type="password"
+            placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+            className="w-full px-4 py-3 bg-emerald-200/10 border border-emerald-500/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-white placeholder-white/40 transition"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+          />
+        </div>
+
+        <button
+          disabled={loading}
+          type="submit"
+          className={`w-full py-3 px-4 bg-emerald-200/10 hover:bg-emerald-400/25 border border-emerald-500/30 rounded-xl font-semibold transition duration-200 shadow-lg text-white cursor-pointer ${
+            loading && "pointer-events-none bg-emerald-200/30"
+          }`}
+        >
+          {buttonText}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+export default UpdatePasswordCard;
+
+
+================================================
+FILE: frontend/src/components/charts/AreaChart.jsx
+================================================
+import {
+  AreaChart,
+  Area,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Legend,
+  Tooltip
+} from "recharts";
+import { useBinAnalytics } from "../../hooks/useBinAnalytics";
+
+function capitalizeFirstLetter(str) {
+  if (!str) return ""; // Check for empty strings
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function formatDateTime(utcString) {
+  if (!utcString) return "N/A";
+  return new Date(utcString).toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function formatDateNoTime(utcString) {
+  if (!utcString) return "N/A";
+  return new Date(utcString).toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function CustomTooltip({ active, payload, label }) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="p-4 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-card)] text-[var(--text-primary)] shadow-[var(--shadow-card)] backdrop-blur-[var(--backdrop-blur-strong)]">
+        <p className="font-medium text-lg mb-2">{formatDateTime(label)}</p>
+        
+        {payload.map((item, index) => (
+          <p key={index} className="text-sm font-medium" style={{ color: item.color }}>
+            <span>{capitalizeFirstLetter(item.dataKey)}: {item.value}%</span>
+          </p>
+        ))}
+      </div>
+    );
+  }
+  
+  return null;
+}
+
+function AreaChartComponent({binID}) {
+
+  const binData = useBinAnalytics(binID);
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <AreaChart data={binData} margin={{right: 50}}>
+        <YAxis/>
+        <XAxis 
+      dataKey="time" 
+      tickFormatter={(rawTime) => formatDateNoTime(rawTime)
+      }
+      minTickGap={40}
+      interval="preserveEnd"
+    />  
+        <Legend itemSorter={null}/>
+        <Tooltip content={<CustomTooltip/>}/>
+        <CartesianGrid strokeDasharray="7 7" opacity={0.5}/>
+        <Area
+            type="monotone"
+            stroke="#7ae26c"
+            fill="#55BA47"
+            fillOpacity={0.2}
+            dataKey="compost"/>
+        <Area
+            type="monotone"
+            stroke="#5a9fab"
+            fill="#116573"
+            fillOpacity={0.2}
+            dataKey="recycle"/>
+        <Area 
+            type="monotone"
+            stroke="#a58a6f"
+            fill="#5E4E3F"
+            fillOpacity={0.2}
+            dataKey="landfill"/>
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
+export default AreaChartComponent;
+
+
+
+================================================
+FILE: frontend/src/components/charts/CurrentCapacityChart.jsx
+================================================
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
+
+function CustomTooltip({ active, payload, label }) {
+  if (active && payload && payload.length) {
+    const barData = payload[0].payload;
+
+    return (
+      <div className="p-4 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-card)] text-[var(--text-primary)] shadow-[var(--shadow-card)] backdrop-blur-[var(--backdrop-blur)]">
+        <p className="font-bold text-lg mb-1">{label}</p>
+        <p className="text-sm font-semibold" style={{ color: barData.color }}>
+          Fill Level: {payload[0].value}%
+        </p>
+      </div>
+    );
+  }
+  return null;
+}
+
+function CustomTooltipDashboard({ active, payload, label }) {
+  if (active && payload && payload.length) {
+    const barData = payload[0].payload;
+
+    return (
+      <div className="p-2 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-card)] text-[var(--text-primary)] shadow-[var(--shadow-card)] backdrop-blur-[var(--backdrop-blur)]">
+        <p className="font-semibold text-md">{label}</p>
+        <p className="text-sm font-medium" style={{ color: barData.color }}>
+          Fill Level: {payload[0].value}%
+        </p>
+      </div>
+    );
+  }
+  return null;
+}
+
+function CurrentCapacityChart({ bin, isPopup = false }) {
+  if (!bin) return null;
+
+  const data = [
+    { name: "Compost", value: bin.compost, color: "#55BA47" },
+    { name: "Recycle", value: bin.recycle, color: "#116573" },
+    { name: "Landfill", value: bin.landfill, color: "#5E4E3F" },
+  ];
+
+  const chartMargin = isPopup
+    ? { top: 5, right: 20, left: 0, bottom: 5 } // Tighter margins for the map popup
+    : { top: 5, right: 70, left: 15, bottom: 5 };
+
+  const whichToolTip = isPopup ? <CustomTooltipDashboard /> : <CustomTooltip />;
+
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart layout="vertical" data={data} margin={chartMargin}>
+        <CartesianGrid strokeDasharray="7 7" opacity={0.5} horizontal={false} />
+
+        <XAxis type="number" domain={[0, 100]} stroke="#adadad" />
+        <YAxis dataKey="name" type="category" stroke="#F2F2F3" opacity={0.6} />
+        <Tooltip content={whichToolTip} cursor={false} />
+
+        <Bar
+          dataKey="value"
+          fill="#55BA47"
+          radius={[0, 15, 15, 0]}
+          opacity={0.4}
+          stroke="#97e88c"
+          fillOpacity={0.5}
+        />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+export default CurrentCapacityChart;
+
+
+
+================================================
+FILE: frontend/src/components/context/AuthContext.jsx
+================================================
+import { createContext, useContext, useEffect, useState } from "react";
+import { supabase } from "../../services/supabaseClient";
+
+const AuthContext = createContext();
+
+export default function AuthProvider({children}){
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        supabase.auth.getSession().
+        then(({data: {session}, error}) => {
+            //set user if data exists already. if not set it to null
+            setUser(session?.user ?? null);
+            setLoading(false);
+        });
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+
+        setUser(session?.user ?? null);
+        setLoading(false);
+        });
+
+        return () => {
+        subscription.unsubscribe();
+        };
+    }, []);
+
+    const signUp = async(email, password) => {
+        const {data, error} = await supabase.auth.signUp({email, password});
+        
+        if (error) throw error; 
+        return data;
+    }
+
+    const logIn = async(email, password) =>{
+        const {data, error} = await supabase.auth.signInWithPassword({email, password});
+
+        if (error) throw error; 
+        return data;
+    }
+
+    const forgotPassword = async (email) => {
+        const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: "http://localhost:5173/update-password",
+        });
+
+        if (error) throw error;
+        return data;
+    };
+
+    const updatePassword = async (newPassword) => {
+        const { data, error } = await supabase.auth.updateUser({
+            password: newPassword
+        });
+
+        if (error) throw error;
+        return data;
+    };
+
+
+    const logOut = async() =>{
+        await supabase.auth.signOut();
+    }
+
+    const value = {
+        user,
+        loading,
+        signUp,
+        logIn,
+        forgotPassword,
+        updatePassword,
+        logOut
+    };
+
+    return(
+        <AuthContext.Provider value={value}>
+            {children}
+        </AuthContext.Provider>
+    )
+}
+
+export const useAuth = () => {
+    return useContext(AuthContext);
+}
+
+
+================================================
+FILE: frontend/src/components/context/SettingsContext.jsx
+================================================
+import { createContext, useContext, useEffect, useState } from "react";
+
+const SettingsContext = createContext();
+
+const defaultSettings = {
+  fillWarning: 50,
+  fillCritical: 80,
+  batteryWarning: 20,
+  emailNotifications: false,
+  browserNotifications: false,
+};
+
+const getSavedSettings = () => {
+  const saved = localStorage.getItem("garbageBinSettings");
+  if (!saved) return defaultSettings;
+  try {
+    return { ...defaultSettings, ...JSON.parse(saved) };
+  } catch {
+    return defaultSettings;
+  }
+};
+
+export default function SettingsProvider({ children }) {
+  const [settings, setSettings] = useState(getSavedSettings);
+
+  useEffect(() => {
+    localStorage.setItem("garbageBinSettings", JSON.stringify(settings));
+  }, [settings]);
+
+  const updateSetting = (name, value) => {
+    setSettings((prevSettings) => ({
+      ...prevSettings,
+      [name]: value,
+    }));
+  };
+
+  const resetSettings = () => {
+    setSettings(defaultSettings);
+  };
+
+  const value = {
+    settings,
+    updateSetting,
+    resetSettings,
+  };
+
+  return (
+    <SettingsContext.Provider value={value}>
+      {children}
+    </SettingsContext.Provider>
+  );
+}
+
+export const useSettings = () => {
+  return useContext(SettingsContext);
+};
+
+
+
+================================================
+FILE: frontend/src/hooks/useBinAnalytics.js
+================================================
+import { useState, useEffect } from 'react';
+
+function useBinAnalytics(bin_id){
+    const [binHistory, setBinHistory] = useState([]);
+
+    useEffect(() =>{
+        fetch(`${import.meta.env.VITE_API_URL}/api/analytics/${bin_id}`)
+        .then(response => response.json())
+        .then(data => setBinHistory(data))
+
+    }, [bin_id]);
+
+    return binHistory;
+}
+
+export { useBinAnalytics };
+
+
+
+================================================
+FILE: frontend/src/hooks/useBins.js
+================================================
+import { useState, useEffect } from 'react';
+//services
+import { supabase } from '../services/supabaseClient.js'
+
+function useBins(){
+    const [bins, setBins] = useState([]);
+
+    useEffect(() =>{
+        fetch(`${import.meta.env.VITE_API_URL}/api/bins`)
+        .then(response => response.json())
+        .then(data => setBins(data))
+
+        const channel = supabase
+        .channel('realtime_bins')
+        .on(
+            'postgres_changes',
+            { event: 'UPDATE', schema: 'public', table: 'bins' },
+            (payload) => {
+            setBins((prevBins) =>
+                prevBins.map((bin) =>
+                bin.id === payload.new.id ? { ...bin, ...payload.new } : bin
+                )
+            );
+            }
+        )
+        .subscribe();
+
+        return () => {
+        supabase.removeChannel(channel);
+        };
+    }, []);
+
+    return bins;
+}
+
+export { useBins };
+
+
+
+================================================
+FILE: frontend/src/hooks/useCheckHealth.js
+================================================
+import { useState, useEffect } from 'react';
+
+function useCheckHealth(){
+    const [isHealthy,setIsHealthy] = useState(false)
+
+    useEffect(() =>{
+        fetch(`${import.meta.env.VITE_API_URL}/api/health`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "online"){
+                setIsHealthy(true)
+            }
+            else{
+                setIsHealthy(false)
+            }
+        })
+        .catch(error => {
+                console.error("Server is completely unreachable:", error);
+                setIsHealthy(false);
+        });
+    }, [])
+    return isHealthy;
+}
+
+export {useCheckHealth}
+
+
+
+================================================
+FILE: frontend/src/pages/Analytics.jsx
+================================================
+import { useState } from "react";
+import HistoricalBinCard from "../components/cards/HistoricalBinCard";
+import CurrentBinCard from "../components/cards/CurrentBinCard";
+import BinSearchSelect from "../components/BinSearchSelect";
+import KPICard from "../components/cards/KPICard";
+import ExportCsvButton from "../components/ExportCsvButton";
+
+function Analytics({ bins }) {
+  const fullColor = "bg-red-500";
+  const mediumColor = "bg-amber-500";
+  const lowColor = "bg-emerald-500";
+
+  const [selectedBin, setSelectedBin] = useState("");
+  const binsCount = bins.length;
+  const activeBin = bins.find((bin) => bin.id === selectedBin);
+
+  const averageFill =
+    binsCount > 0
+      ? bins.reduce((acc, curr) => acc + curr.fill_level, 0) / binsCount
+      : 0;
+
+  let critical = 0;
+  let warning = 0;
+  let ok = 0;
+
+  for (let i = 0; i < binsCount; i++) {
+    if (bins[i].fill_level >= 80) {
+      critical++;
+    } else if (bins[i].fill_level < 80 && bins[i].fill_level >= 50) {
+      warning++;
+    } else {
+      ok++;
+    }
+  }
+
+  return (
+    //flex 1 since its going to be under a flex parent
+    <div
+      className="flex-1 text-white p-10 flex flex-col gap-4"
+      style={{ background: "var(--bg-page)" }}
+    >
+      <h1 className="text-4xl font-bold text-[#F2F2F3] mb-3 hidden md:block">
+        Analytics
+      </h1>
+      <div className="grid grid-cols-2 grid-rows-2 lg:grid-cols-4 md:grid-rows-1 gap-8 items-center mb-3">
+        <div className="shadow-md">
+          <KPICard
+            title={"Average Fill"}
+            count={averageFill.toFixed(2)}
+            percent_card={true}
+          />
+        </div>
+        <div className="shadow-md">
+          <KPICard
+            title={"Critical"}
+            count={critical}
+            color={fullColor}
+            sum_card={true}
+            bin_count={binsCount}
+          />
+        </div>
+        <div className="shadow-md">
+          <KPICard
+            title={"Warning"}
+            count={warning}
+            color={mediumColor}
+            sum_card={true}
+            bin_count={binsCount}
+          />
+        </div>
+        <div className="shadow-md">
+          <KPICard
+            title={"OK"}
+            count={ok}
+            color={lowColor}
+            sum_card={true}
+            bin_count={binsCount}
+          />
+        </div>
+      </div>
+
+      <div>
+        {/*Universal Search Bar + exports*/}
+        <div className="flex flex-wrap items-start justify-end gap-3">
+          <ExportCsvButton label="Export all bins" />
+          {selectedBin !== "" && (
+            <ExportCsvButton binId={selectedBin} label="Export this bin" />
+          )}
+          <BinSearchSelect
+            bins={bins}
+            selectedBin={selectedBin}
+            onSelectBin={setSelectedBin}
+          />
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          {/* Historical Bin Data */}
+          <div className="shadow-md">
+            <h2 className="font-semibold text-lg mb-2 ml-1">
+              Historical Bin Data
+            </h2>
+            <div className="h-50 md:h-100 flex w-full">
+              <HistoricalBinCard binID={selectedBin} />
+            </div>
+          </div>
+
+          {/* Current Bin Data */}
+          <div className="shadow-md">
+            <h2 className="font-semibold text-lg mb-2 ml-1">
+              Current Bin Data
+            </h2>
+            <div className="h-50 md:h-100 flex w-full">
+              <CurrentBinCard bin={activeBin} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Analytics;
+
+
+
+================================================
+FILE: frontend/src/pages/AppLayout.jsx
+================================================
+import Sidebar from "../components/Sidebar";
+import Header from "../components/Header";
+import { Outlet } from "react-router-dom";
+
+function AppLayout({ bins }) {
+  return (
+    <div 
+      className="theme-glass h-screen w-screen flex flex-row font-sans overflow-clip text-[var(--text-primary)]"
+      style={{ background: "var(--bg-page)" }}
+    >
+      <Sidebar />
+      <div className="flex-1 flex flex-col h-full w-full overflow-hidden">
+        <Header bins={bins} />
+        <main className="flex-1 flex flex-col overflow-y-auto">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+}
+
+export default AppLayout;
+
+
+================================================
+FILE: frontend/src/pages/DashboardMap.jsx
+================================================
+import { useState } from "react";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { Filter, ChevronDown } from "lucide-react";
+import CurrentCapacityChart from "../components/charts/CurrentCapacityChart";
+
+const fullColor = "bg-red-500";
+const mediumColor = "bg-amber-500";
+const lowColor = "bg-emerald-500";
+
+const defaultCenter = [38.5597502210662, -121.42347776852866];
+const mapBounds = [
+  [38.54655942770578, -121.43688277888091], //south west
+  [38.56960798353561, -121.40695667626277], //north east
+];
+
+const createBinIcon = (fillLevel) => {
+  const colorClass =
+    fillLevel >= 80 ? fullColor : fillLevel >= 50 ? mediumColor : lowColor;
+
+  return L.divIcon({
+    className: "bg-transparent",
+    html: `<div
+                class= "h-4 w-4 ${colorClass} rounded-full border-2 border-slate-700 shadow-md transition-transform  hover:scale-250"
+                >
+               </div>`,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8],
+  });
+};
+
+const getRelativeTime = (timeString) => {
+  if (!timeString) return "No data";
+
+  const then = new Date(timeString);
+  const now = new Date();
+  const secondsAgo = Math.floor((now - then) / 1000);
+
+  if (secondsAgo < 60) return `${secondsAgo}s ago`;
+
+  const minutesAgo = Math.floor(secondsAgo / 60);
+  if (minutesAgo < 60) return `${minutesAgo}m ago`;
+
+  const hoursAgo = Math.floor(minutesAgo / 60);
+  if (hoursAgo < 24) return `${hoursAgo}h ago`;
+
+  const daysAgo = Math.floor(hoursAgo / 24);
+  return `${daysAgo}d ago`;
+};
+
+const filterOptions = [
+  { value: "all", label: "All bins" },
+  { value: "green", label: "Green (0â€“49%)" },
+  { value: "yellow", label: "Yellow (50â€“79%)" },
+  { value: "red", label: "Red (80â€“100%)" },
+];
+
+function FilterButton({ activeFilter, onSelect }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const activeLabel = filterOptions.find((o) => o.value === activeFilter).label;
+
+  return (
+    <div className="absolute top-4 right-4 z-[1000]">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        title="Filters"
+        className="flex 
+        items-center 
+        gap-2 
+        bg-[var(--bg-card)]
+        text-[var(--text-primary)]
+        px-4 
+        py-2 
+        rounded-lg 
+        cursor-pointer 
+        shadow-[var(--shadow-card)]
+        backdrop-blur-[var(--backdrop-blur-light)]
+        justify-end"
+      >
+        <Filter size={16} />
+        {activeLabel}
+        <ChevronDown
+          size={14}
+          className={
+            isOpen ? "rotate-180 transition-transform" : "transition-transform"
+          }
+        />
+      </button>
+
+      {isOpen && (
+        <div className="absolute 
+        right-0 
+        top-full 
+        mt-2 
+        min-w-full 
+        bg-[var(--bg-card)]
+        text-[var(--text-primary)] 
+        rounded-lg 
+        shadow-[var(--shadow-card)] 
+        backdrop-blur-[var(--backdrop-blur-light)]
+        overflow-hidden 
+        p-2 
+        whitespace-nowrap">
+          {filterOptions.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => {
+                onSelect(option.value);
+                setIsOpen(false);
+              }}
+              className="
+                block 
+                w-full 
+                text-left 
+                px-4 
+                py-2
+                rounded-lg
+                hover:bg-[var(--bg-hover)]
+                hover:[border:var(--border-hover)]
+              "
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DashboardMap({ bins }) {
+  const [activeFilter, setActiveFilter] = useState("all");
+
+  const filteredBins = bins.filter((bin) => {
+    if (activeFilter === "all") return true;
+    if (activeFilter === "green") return bin.fill_level <= 49;
+    if (activeFilter === "yellow")
+      return bin.fill_level >= 50 && bin.fill_level <= 79;
+    if (activeFilter === "red") return bin.fill_level >= 80;
+    return true;
+  });
+
+  return (
+    <div className="flex-1 relative">
+      <FilterButton activeFilter={activeFilter} onSelect={setActiveFilter} />
+      <MapContainer
+        center={defaultCenter}
+        zoom={17}
+        minZoom={16}
+        maxBounds={mapBounds}
+        maxBoundsViscosity={0.6}
+        className="h-full w-full"
+        zoomControl={false}
+        attributionControl={false}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          className="map-tiles-dark"
+        />
+
+        {filteredBins.map((bin) => (
+          <Marker
+            key={bin.id}
+            position={[bin.lat, bin.long]}
+            icon={createBinIcon(bin.fill_level)}
+          >
+            <Popup className="dark-popup">
+              <div className="h-50 w-70 flex flex-col">
+                <div className="flex items-center justify-between mb-2 mt-2">
+                  <span className="font-medium text-l">
+                    BIN-{String(bin["id"]).padStart(3, "0")}
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    {getRelativeTime(bin.time)}
+                  </span>
+                </div>
+                <CurrentCapacityChart bin={bin} isPopup={true} />
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+      </MapContainer>
+    </div>
+  );
+}
+export default DashboardMap;
+
+
+
+================================================
+FILE: frontend/src/pages/ForgotPassword.jsx
+================================================
+import ForgotPassCard from "../components/cards/ForgotPassCard.jsx";
+
+function ForgotPassword() {
+
+  return (
+    <div
+      className="w-screen h-dvh bg-cover bg-center flex items-center justify-center"
+      style={{ backgroundImage: "url('/src/assets/forgotPasswordBackground.jpg')" }}
+    >
+        <div className="absolute inset-0 bg-black/30"></div>
+        <ForgotPassCard/>
+    </div>
+  );
+}
+
+export default ForgotPassword;
+
+
+
+================================================
+FILE: frontend/src/pages/Login.jsx
+================================================
+import LogInCard from "../components/cards/LogInCard";
+
+function Login() {
+
+  return (
+    <div
+      className="w-screen h-dvh bg-cover bg-center flex items-center justify-center"
+      style={{ backgroundImage: "url('/src/assets/loginBackground.jpg')" }}
+    >
+        <div className="absolute inset-0 bg-black/30"></div>
+        <LogInCard />
+    </div>
+  );
+}
+
+export default Login;
+
+
+
+================================================
+FILE: frontend/src/pages/Maintenance.jsx
+================================================
+function Maintenance(){
+    return (
+        //flex 1 since its going to be under a flex parent
+        <div className="flex-1 bg-slate-800 text-white p-10 h-full">
+            <h1 className="text-4xl font-bold text-emerald-400 mb-6">
+                Maintenance
+            </h1>
+            <p className="text-xl">
+                Assigned to: <br/>
+                To be worked on.
+            </p>
+        </div>
+    )    
+}
+
+export default Maintenance;
+
+
+================================================
+FILE: frontend/src/pages/Settings.jsx
+================================================
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  BatteryMedium,
+  Bell,
+  Lock,
+  LogOut,
+  RotateCcw,
+  SlidersHorizontal,
+  Unlock,
+} from "lucide-react";
+import { useAuth } from "../components/context/AuthContext.jsx";
+import { useSettings } from "../components/context/SettingsContext.jsx";
+
+// this gives each settings section the same card layout
+function SettingsCard({ icon: Icon, title, description, children }) {
+  return (
+    <section className="rounded-2xl border border-white/10 bg-slate-900/75 p-5 shadow-xl shadow-black/20 backdrop-blur-xl sm:p-6">
+      <div className="mb-6 flex items-start gap-4">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-400/10 text-emerald-300">
+          <Icon size={21} />
+        </div>
+
+        <div>
+          <h2 className="text-lg font-semibold text-white">{title}</h2>
+          <p className="mt-1 text-sm leading-6 text-slate-400">{description}</p>
+        </div>
+      </div>
+
+      {children}
+    </section>
+  );
+}
+
+// this stores alert preferences and provides the account actions
+function Settings() {
+  const { settings, updateSetting, resetSettings } = useSettings();
+
+  const { logOut } = useAuth();
+  const navigate = useNavigate();
+  // start with the fill controls locked until the user unlocks them
+  const [thresholdsLocked, setThresholdsLocked] = useState(true);
+  
+
+  // keep warningat least one percentage point below critical
+  const handleWarningChange = (event) => {
+    const value = Number(event.target.value);
+    const convertedValue = Math.min(value, settings.fillCritical - 1);
+    updateSetting("fillWarning", convertedValue);
+  };
+
+  // keep critical at least one percentage point above warning
+  const handleCriticalChange = (event) => {
+    const value = Number(event.target.value);
+    const convertedValue = Math.max(value, settings.fillWarning + 1);
+    updateSetting("fillCritical", convertedValue);
+  };
+
+  // put all three preferences back to their starting values
+const handleReset = () => {
+  resetSettings();
+};
+
+const handleBrowserNotificationsChange = async (event) => {
+  const enabled = event.target.checked;
+
+  if (!enabled) {
+    updateSetting("browserNotifications", false);
+    return;
+  }
+
+  if (!("Notification" in window)) {
+    alert("Browser notifications are not supported on this device.");
+    return;
+  }
+
+  const permission = await Notification.requestPermission();
+
+  if (permission === "granted") {
+    updateSetting("browserNotifications", true);
+  } else {
+    updateSetting("browserNotifications", false);
+  }
+};
+
+  // log out before sending the user back to the login page
+  const handleLogOut = async () => {
+    try {
+      await logOut();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed:", error.message);
+    }
+  };
+
+  return (
+    <main className="min-h-full flex-1 overflow-auto bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 px-5 py-8 text-white sm:px-8 lg:px-10">
+      <div className="mx-auto max-w-5xl">
+        {/* page title and logout action */}
+        <header className="mb-7 flex flex-col gap-5 border-b border-white/10 pb-7 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">
+              Operations control center
+            </p>
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              Settings
+            </h1>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleLogOut}
+            className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-4 py-2.5 text-sm font-medium transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-emerald-400/60"
+          >
+            <LogOut size={17} />
+            Log out
+          </button>
+        </header>
+
+        {/* quick summary of the three fill alert states */}
+
+        <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {/* make it better for ipad */}
+
+          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-300">
+              Standard Operations
+            </p>
+            <p className="mt-2 text-lg font-semibold">Normal</p>
+            <p className="mt-1 text-xs text-slate-400">
+              Below Warning Threshold
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-amber-300">
+              Warning Threshold
+            </p>
+            <p className="mt-2 text-2xl font-bold">{settings.fillWarning}%</p>
+            <p className="mt-1 text-xs text-slate-400">
+              Warning begins at this level
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-red-400/20 bg-red-400/10 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-red-300">
+              Critical threshold
+            </p>
+            <p className="mt-2 text-2xl font-bold">{settings.fillCritical}%</p>
+            <p className="mt-1 text-xs text-slate-400">
+              Requires immediate attention
+            </p>
+          </div>
+        </div>
+        <div className="space-y-5">
+          {/* adjust the two fill thresholds together */}
+          <SettingsCard
+            icon={SlidersHorizontal}
+            title="Fill-level alerts"
+            description="Set the capacity levels that control normal, warning, and critical bin status."
+          >
+            <div className="rounded-xl border border-white/10 bg-slate-950/30 p-4 sm:p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="font-semibold">Capacity thresholds</h3>
+                  <p className="mt-1 text-sm text-slate-400">
+                    Warning must remain below critical.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex gap-4 text-sm font-semibold">
+                    <span className="text-amber-300">
+                      Warning {settings.fillWarning}%
+                    </span>
+
+                    <span className="text-red-300">
+                      Critical {settings.fillCritical}%
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setThresholdsLocked(!thresholdsLocked)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/10 px-2.5 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-white/20"
+                  >
+                    {thresholdsLocked ? (
+                      <Lock size={14} />
+                    ) : (
+                      <Unlock size={14} />
+                    )}
+
+                    {thresholdsLocked ? "Unlock" : "Lock"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="relative mt-8 h-10">
+                <div className="absolute left-3 right-3 top-3 flex h-3 overflow-hidden rounded-full">
+                  <div
+                    className="bg-emerald-400"
+                    style={{
+                      width: `${settings.fillWarning}%`,
+                    }}
+                  />
+                  <div
+                    className="bg-amber-400"
+                    style={{
+                      width: `${settings.fillCritical - settings.fillWarning}%`,
+                    }}
+                  />
+                  <div className="flex-1 bg-red-400" />
+                </div>
+
+                <input
+                  id="fillWarning"
+                  type="range"
+                  min="0"
+                  max="99"
+                  value={settings.fillWarning}
+                  onChange={handleWarningChange}
+                  disabled={thresholdsLocked}
+                  aria-label="Fill warning threshold"
+                  className="threshold-slider warning-slider"
+                />
+
+                <input
+                  id="fillCritical"
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={settings.fillCritical}
+                  onChange={handleCriticalChange}
+                  disabled={thresholdsLocked}
+                  aria-label="Fill critical threshold"
+                  className="threshold-slider critical-slider"
+                />
+              </div>
+
+              <div className="mt-3 flex justify-between text-xs font-medium">
+                <span className="text-emerald-300">Normal</span>
+                <span className="text-amber-300">Warning</span>
+                <span className="text-red-300">Critical</span>
+              </div>
+            </div>
+          </SettingsCard>
+
+
+          <div className="rounded-xl border border-white/5 bg-slate-900/40 px-4 py-3">
+            <div className="flex items-center gap-3">
+              <BatteryMedium size={17} className="shrink-0 text-blue-300" />
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="text-sm font-semibold text-slate-200">
+                    Battery warning
+                  </h2>
+
+                  <span className="text-sm font-bold text-blue-300">
+                    {settings.batteryWarning}%
+                  </span>
+                </div>
+
+                <p className="mt-1 text-xs text-slate-500">
+                  Alert when sensor battery needs attention.
+                </p>
+
+                <input
+                  id="batteryWarning"
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={settings.batteryWarning}
+                  onChange={(event) =>
+                    updateSetting("batteryWarning", Number(event.target.value))
+                  }
+                  aria-label="Battery warning threshold"
+                  className="mt-2 h-1.5 w-full cursor-pointer accent-blue-400"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+<SettingsCard
+  icon={Bell}
+  title="Notification preferences"
+  description="Choose how you want to receive bin alerts on this device."
+>
+  <div className="space-y-4">
+    <label className="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-slate-950/30 p-4">
+      <div>
+        <p className="font-semibold">Email Notifications</p>
+        <p className="mt-1 text-sm text-slate-400">
+          Enable email notification preferences.
+        </p>
+      </div>
+
+      <input
+        type="checkbox"
+        checked={settings.emailNotifications}
+        onChange={(event) =>
+          updateSetting("emailNotifications", event.target.checked)
+        }
+        className="h-5 w-5 cursor-pointer accent-emerald-400"
+      />
+    </label>
+
+    <label className="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-slate-950/30 p-4">
+      <div>
+        <p className="font-semibold">Browser Notifications</p>
+        <p className="mt-1 text-sm text-slate-400">
+          Receive desktop alerts when browser notifications are enabled.
+        </p>
+      </div>
+
+      <input
+        type="checkbox"
+        checked={settings.browserNotifications}
+        onChange={handleBrowserNotificationsChange}
+        className="h-5 w-5 cursor-pointer accent-emerald-400"
+      />
+    </label>
+  </div>
+</SettingsCard>
+
+        <footer className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-slate-500">
+            Preferences are saved locally on this device.
+          </p>
+
+          <button
+            type="button"
+            onClick={handleReset}
+            className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-4 py-2.5 text-sm font-medium transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-emerald-400/60"
+          >
+            <RotateCcw size={15} />
+            Reset all defaults
+          </button>
+        </footer>
+      </div>
+    </main>
+  );
+}
+
+export default Settings;
+
+
+
+================================================
+FILE: frontend/src/pages/SignUp.jsx
+================================================
+import SignUpCard from "../components/cards/SignUpCard.jsx";
+
+function Login() {
+
+  return (
+    <div
+      className="w-screen h-dvh bg-cover bg-center flex items-center justify-center"
+      style={{ backgroundImage: "url('/src/assets/signUpBackground.jpg')" }}
+    >
+        <div className="absolute inset-0 bg-black/30"></div>
+        <SignUpCard />
+    </div>
+  );
+}
+
+export default Login;
+
+
+
+================================================
+FILE: frontend/src/pages/UpdatePassword.jsx
+================================================
+import UpdatePasswordCard from "../components/cards/UpdatePasswordCard.jsx";
+
+function UpdatePassword() {
+  return (
+    <div
+      className="w-screen h-dvh bg-cover bg-center flex items-center justify-center"
+      style={{ backgroundImage: "url('/src/assets/forgotPasswordBackground.jpg')" }}
+    >
+      <div className="absolute inset-0 bg-black/30"></div>
+      <UpdatePasswordCard />
+    </div>
+  );
+}
+
+export default UpdatePassword;
+
+
+================================================
+FILE: frontend/src/services/supabaseClient.js
+================================================
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseClient = import.meta.env.VITE_SUPABASE_CLIENT;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+const supabase = createClient(supabaseClient,supabaseKey);
+
+export {supabase}
+
+
+================================================
+FILE: frontend/src/utils/exportCsv.js
+================================================
+// This file contains utility functions for exporting data to CSV format.
+
+// Define the columns for the CSV export
+const COLUMNS = [
+  { header: "timestamp", key: "time" },
+  { header: "bin_id", key: "bin_id" },
+  { header: "location", key: "location" },
+  { header: "compost", key: "compost" },
+  { header: "recycle", key: "recycle" },
+  { header: "landfill", key: "landfill" },
+  { header: "fill_level", key: "fill_level" },
+  { header: "battery_level", key: "battery_level" },
+];
+
+// Wraps a value in quotes if it contains a comma, quote, or newline
+function escapeCell(value) {
+  if (value === null || value === undefined) return "";
+  const text = String(value);
+  if (/[",\n]/.test(text)) {
+    return `"${text.replace(/"/g, '""')}"`;
+  }
+  return text;
+}
+
+// Converts an array of row objects into a CSV string
+export function rowsToCsv(rows) {
+  const headerLine = COLUMNS.map((c) => c.header).join(",");
+  const lines = rows.map((row) =>
+    COLUMNS.map((c) => escapeCell(row[c.key])).join(",")
+  );
+  return [headerLine, ...lines].join("\n");
+}
+
+export function downloadCsv(csvText, filename) {
+  // The \uFEFF at the start helps Excel read special characters correctly
+  const blob = new Blob(["\uFEFF" + csvText], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+

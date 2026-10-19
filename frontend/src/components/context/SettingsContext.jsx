@@ -8,6 +8,7 @@ const defaultSettings = {
   batteryWarning: 20,
   emailNotifications: false,
   browserNotifications: false,
+  theme: "dark",
 };
 
 const getSavedSettings = () => {
