@@ -37,12 +37,12 @@ function KPICard({
         </span>
         <StatusDot color={color} />
       </div>
-      <p className="text-xl md:text-6xl font-bold flex-1">
+      <p className="text-xl md:text-6xl font-bold flex-1 overflow-x-hidden">
         {count}
         {percent_card && "%"}
       </p>
       {sum_card && (
-        <p className="text-sm font-thin flex-1">
+        <p className="text-sm font-thin">
           {((count / bin_count) * 100).toFixed(2)}%
         </p>
       )}
