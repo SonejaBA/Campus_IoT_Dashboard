@@ -6,6 +6,7 @@ const defaultSettings = {
   fillWarning: 50,
   fillCritical: 80,
   batteryWarning: 20,
+  theme: "dark",
 };
 
 const getSavedSettings = () => {

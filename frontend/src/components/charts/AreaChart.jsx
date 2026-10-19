@@ -59,14 +59,18 @@ function AreaChartComponent({binID}) {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <AreaChart data={binData} margin={{right: 50}}>
-        <YAxis/>
-        <XAxis 
-      dataKey="time" 
-      tickFormatter={(rawTime) => formatDateNoTime(rawTime)
-      }
-      minTickGap={40}
-      interval="preserveEnd"
-    />  
+        <YAxis
+          stroke="var(--text-primary)"
+          tick={{ fill: "var(--text-primary)", fontSize: 12 }}
+        />
+        <XAxis
+          dataKey="time"
+          stroke="var(--text-primary)"
+          tick={{ fill: "var(--text-primary)", fontSize: 12 }}
+          tickFormatter={(rawTime) => formatDateNoTime(rawTime)}
+          minTickGap={40}
+          interval="preserveEnd"
+        />
         <Legend itemSorter={null}/>
         <Tooltip content={<CustomTooltip/>}/>
         <CartesianGrid strokeDasharray="7 7" opacity={0.5}/>
