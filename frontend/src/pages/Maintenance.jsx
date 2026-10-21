@@ -550,7 +550,7 @@ const handleRemoveBin = async (binId) => {
                     value={newBin.zone}
                      onChange={handleNewBinChange}
                     className="w-full rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] px-3 py-2.5 text-sm text-[var(--control-text)] outline-none"
-                  >
+                  > 
                     <option value="">Unassigned</option>
                     <option value="A">Zone A</option>
                     <option value="B">Zone B</option>

@@ -145,7 +145,7 @@ def delete_bin(bin_id: int):
 @app.get("/api/bins")
 def get_bins():
     # Go to the 'bins' table, select all columns (*), and execute the query
-    response = supabase.table("bins").select("*").execute()
+    response = supabase.table("bins").select("*").order("id").execute()
     
     # Return just the data portion of the Supabase response
     return response.data
