@@ -28,6 +28,7 @@
   --text-secondary: #a1a1aa;
 
   --button-color: #D1D5DC;
+  --dropdown-text: #E2E8F0;
 
   /* Bin status colors */
   --status-normal: #006b50;
@@ -100,6 +101,7 @@
   --text-secondary: #475569;
 
   --button-color: #034113;
+  --dropdown-text: #00030e;
 
   --status-normal: #006b50;
   --status-warning: #fcd34d;
@@ -171,6 +173,7 @@
   --text-secondary: #756D5B;
 
   --button-color: #866604;
+  --dropdown-text: #00030e;
 
   --status-normal: #006b50;
   --status-warning: #fcd34d;
@@ -242,6 +245,7 @@
   --text-secondary: #cbd5e1;
 
   --button-color: #c7ffd9;
+  --dropdown-text: #00030e;
 
   /* Bin status colors */
   --status-normal: #006b50;
@@ -317,9 +321,10 @@
   --shadow-card-subtle: 0 8px 32px rgba(0, 0, 0, 0.10);
 
   --text-primary: #ffffff;
-  --text-secondary: #cbd5e1;
+  --text-secondary: #dde6f0;
 
   --button-color: #dae7fe;
+  --dropdown-text: #00030e;
 
   /* Bin status colors */
   --status-normal: #006b50;
@@ -398,6 +403,7 @@
   --text-secondary: #cbd5e1;
 
   --button-color: rgb(198, 253, 255);
+  --dropdown-text: #E2E8F0;
 
   --status-normal: #006b50;
   --status-warning: #fcd34d;
