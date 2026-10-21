@@ -253,7 +253,7 @@ const handleRemoveBin = async (binId) => {
           <button
             type="button"
             onClick={() => setShowAddModal(true)}
-            className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-[color:var(--control-border)] bg-[var(--control-bg)] px-4 py-2.5 text-sm font-medium text-[var(--control-text)] transition hover:bg-[var(--control-hover)]"
+            className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-[color:var(--control-border)] backdrop-blur-[var(--backdrop-blur)] bg-[var(--control-bg)] px-4 py-2.5 text-sm font-medium text-[var(--control-text)] transition hover:bg-[var(--control-hover)]"
           >
             <Plus size={17} />
             Add bin
