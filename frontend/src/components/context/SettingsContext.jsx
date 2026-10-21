@@ -9,6 +9,7 @@ const defaultSettings = {
   emailNotifications: false,
   browserNotifications: false,
   theme: "dark",
+  selectedZone: "all",
 };
 
 const getSavedSettings = () => {

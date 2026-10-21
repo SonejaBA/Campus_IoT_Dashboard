@@ -13,6 +13,7 @@ import {
 import { useAuth } from "../components/context/AuthContext.jsx";
 import { useSettings } from "../components/context/SettingsContext.jsx";
 import ThemeSelector from "../components/ThemeSelector.jsx";
+import ZoneSelector from "../components/ZoneSelector.jsx";
 
 // Reusable status summary for the fill-level thresholds.
 function StatusSummaryRow({ label, value, color }) {
@@ -247,6 +248,10 @@ function Settings() {
           />
         </section>
 
+        {/*Zone viewing selection*/}
+        <ZoneSelector/>
+        
+        <ThemeSelector/>
         <section className="mt-4 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] p-5 shadow-[var(--shadow-card-subtle)]">
           <div className="flex items-center gap-3 mb-4">
             <Bell size={21} className="shrink-0" />
@@ -297,9 +302,6 @@ function Settings() {
           </div>
         </section>
 
-        <div className="mt-4">
-          <ThemeSelector />
-        </div>
         <footer className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-[var(--text-secondary)]">
             Preferences are saved locally on this device.

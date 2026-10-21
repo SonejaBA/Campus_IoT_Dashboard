@@ -4,7 +4,7 @@ function ThemeSelector() {
   const { settings, updateSetting } = useSettings();
 
   return (
-    <div className="flex items-center justify-between rounded-xl [border:var(--border-card)] bg-[var(--bg-card-strong)] p-4">
+    <div className="mt-4 flex items-center justify-between rounded-xl [border:var(--border-card)] bg-[var(--bg-card-strong)] p-4">
       <div>
         <h3 className="font-semibold text-[var(--text-primary)]">Visual Theme</h3>
         <p className="text-sm text-[var(--text-secondary)]">
