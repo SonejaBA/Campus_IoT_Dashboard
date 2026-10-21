@@ -345,11 +345,11 @@ const handleRemoveBin = async (binId) => {
               <select
                 value={zoneFilter}
                 onChange={(event) => setZoneFilter(event.target.value)}
-                className="rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] px-3 py-2.5 text-sm text-[var(--control-text)] outline-none"
+                className="rounded-lg border border-[color:var(--control-border)] bg-[var(--bg-card-strong)] px-3 py-2.5 text-sm text-[var(--control-text)] outline-none"
               >
                 <option value="all">All zones</option>
-                <option value="Zone A">Zone A</option>
-                <option value="Zone B">Zone B</option>
+                <option value="A">Zone A</option>
+                <option value="B">Zone B</option>
                 <option value="Unassigned">Unassigned</option>
               </select>
             </div>
