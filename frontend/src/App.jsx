@@ -34,7 +34,7 @@ function App() {
               <Route path="/" element={<DashboardMap bins={bins} />} />
               <Route path="/analytics" element={<Analytics bins={bins} />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/maintenance" element={<Maintenance />} />
+              <Route path="/maintenance" element={<Maintenance bins={bins} />} />
             </Route>
           </Routes>
         </BrowserRouter>

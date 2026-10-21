@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from supabase import create_client, Client
 from dotenv import load_dotenv
@@ -36,10 +37,115 @@ app.add_middleware(
 def reed_root():
     return {"message" : "FastAPI is running! (json)"}
 
+class BinCreate(BaseModel):
+    id: int
+    lat: float
+    long: float
+    location: str
+    zone: str | None = None
+
+class BinUpdate(BaseModel):
+    lat: float
+    long: float
+    location: str
+    zone: str | None = None
+
+@app.post("/api/bins")
+def create_bin(bin_data: BinCreate):
+    try:
+        response = (
+            supabase
+            .table("bins")
+            .insert({
+                "id": bin_data.id,
+                "lat": bin_data.lat,
+                "long": bin_data.long,
+                "location": bin_data.location,
+                "zone": bin_data.zone,
+                "fill_level": 0,
+                "battery_level": 100,
+                "compost": 0,
+                "recycle": 0,
+                "landfill": 0,
+            })
+            .execute()
+        )
+        return response.data[0]
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=400,
+            detail=str(error),
+        )
+@app.patch("/api/bins/{bin_id}")
+def update_bin(bin_id: int, bin_data: BinUpdate):
+    try:
+        response = (
+            supabase
+            .table("bins")
+            .update({
+                "lat": bin_data.lat,
+                "long": bin_data.long,
+                "location": bin_data.location,
+                "zone": bin_data.zone,
+            })
+            .eq("id", bin_id)
+            .execute()
+        )
+
+        if not response.data:
+            raise HTTPException(
+                status_code=404,
+                detail="Bin not found.",
+            )
+
+        return response.data[0]
+
+    except HTTPException:
+        raise
+    except Exception as error:
+        raise HTTPException(
+            status_code=400,
+            detail=str(error),
+        )
+
+@app.delete("/api/bins/{bin_id}")
+def delete_bin(bin_id: int):
+    try:
+        response = (
+            supabase
+            .table("bins")
+            .delete()
+            .eq("id", bin_id)
+            .execute()
+        )
+
+        if not response.data:
+            raise HTTPException(
+                status_code=404,
+                detail="Bin not found.",
+            )
+
+        return {
+            "message": "Bin deleted successfully.",
+            "id": bin_id,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as error:
+        raise HTTPException(
+            status_code=400,
+            detail=str(error),
+        )
+
+
+
+
 @app.get("/api/bins")
 def get_bins():
     # Go to the 'bins' table, select all columns (*), and execute the query
-    response = supabase.table("bins").select("*").execute()
+    response = supabase.table("bins").select("*").order("id").execute()
     
     # Return just the data portion of the Supabase response
     return response.data
