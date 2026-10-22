@@ -269,26 +269,6 @@ export default function Maintenance() {
     });
   }, [bins, searchTerm, zoneFilter]);
 
-  // Handler for Issue #44: Mark as Emptied Quick Action
-  const handleMarkAsEmptied = async (binId) => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/bins/${binId}/reset`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Failed to reset bin.");
-      }
-
-      // Refresh bins list to show fill level at 0%
-      fetchBins();
-    } catch (error) {
-      console.error("Error marking bin as emptied:", error);
-      alert(error.message || "Failed to mark bin as emptied.");
-    }
-  };
 
   return (
     <main className="min-h-full flex-1 overflow-auto px-5 py-8 text-[var(--text-primary)] sm:px-8 lg:px-10 bg-slate-50">
@@ -466,15 +446,6 @@ export default function Maintenance() {
                                 Deactivate
                               </button>
                             )}
-                            
-                            <button
-                              type="button"
-                              title="Mark as Emptied"
-                              onClick={() => handleMarkAsEmptied(bin.id)}
-                              className="px-2.5 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition shadow-sm"
-                            >
-                              Mark Emptied
-                            </button>
 
                             <button
                               type="button"

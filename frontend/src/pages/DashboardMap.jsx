@@ -134,6 +134,22 @@ function DashboardMap({ bins }) {
   const [activeFilter, setActiveFilter] = useState("all");
   const { settings } = useSettings();
 
+  // Function to reset a bin from the map view
+  const handleResetFromMap = async (binId) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/bins/${binId}/reset`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) throw new Error("Failed to reset bin.");
+      window.location.reload(); // Refreshes to show green color update
+    } catch (error) {
+      console.error("Error resetting bin from map:", error);
+      alert("Failed to reset bin.");
+    }
+  };
+
   const zoneFilteredBins = (bins ?? []).filter((bin) => {
     if (!settings.selectedZone || settings.selectedZone === "all") return true;
     
@@ -186,6 +202,17 @@ function DashboardMap({ bins }) {
                 </div>
                 <CurrentCapacityChart bin={bin} isPopup={true} />
               </div>
+              
+                <div className="pt-2 flex justify-start">
+                  <button
+                    type="button"
+                    onClick={() => handleResetFromMap(bin.id)}
+                    className="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition shadow-sm cursor-pointer"
+                  >
+                    Mark Emptied
+                  </button>
+                </div>
+
             </Popup>
           </Marker>
         ))}
