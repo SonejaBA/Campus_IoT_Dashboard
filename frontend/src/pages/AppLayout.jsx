@@ -2,11 +2,9 @@ import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import { Outlet } from "react-router-dom";
 import { useSettings } from "../components/context/SettingsContext";
-import { useAuth } from "../components/context/AuthContext";
 
 function AppLayout({ bins }) {
   const { settings } = useSettings();
-  const {role} = useAuth();
 
   return (
     <div 

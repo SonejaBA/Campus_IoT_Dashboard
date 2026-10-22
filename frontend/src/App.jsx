@@ -24,6 +24,8 @@ function App() {
             <Route path="/signup" element={<SignUp />} />
             <Route path="/forgotpassword" element={<ForgotPassword />} />
             <Route path="/update-password" element={<UpdatePassword />} />
+
+            {/* Base wrapper requiring login */}
             <Route
               element={
                 <ProtectedRoute>
@@ -31,10 +33,27 @@ function App() {
                 </ProtectedRoute>
               }
             >
+              {/* Accessible to all logged in users */}
               <Route path="/" element={<DashboardMap bins={bins} />} />
-              <Route path="/analytics" element={<Analytics bins={bins} />} />
+
+              {/* Restricted routes */}
+              <Route
+                path="/analytics"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <Analytics bins={bins} />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/maintenance" element={<Maintenance bins={bins} />} />
+              <Route
+                path="/maintenance"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <Maintenance />
+                  </ProtectedRoute>
+                }
+              />
             </Route>
           </Routes>
         </BrowserRouter>

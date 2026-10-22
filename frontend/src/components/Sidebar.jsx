@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "./context/AuthContext";
 import treeLogo from "../assets/treeLogo.png";
 import wordLogo from "../assets/wordLogo.png";
 import { Link } from "react-router-dom";
@@ -12,6 +13,7 @@ import {
 
 function Sidebar() {
   const [isOpen, setIsOpen] = useState(true);
+  const { isAdmin } = useAuth();
   const handleLogoClick = () => {
     if (isOpen) return;
     setIsOpen(!isOpen);
@@ -102,7 +104,8 @@ function Sidebar() {
           title={isOpen ? "" : "Analytics"}
           className={`  flex 
                         items-center 
-                        py-2 
+                        py-2
+                        ${!isAdmin && "hidden"}
                         rounded-lg 
                         hover:bg-[var(--bg-hover)]
                         transition-colors 
@@ -126,7 +129,8 @@ function Sidebar() {
           title={isOpen ? "" : "Maintenance"}
           className={`  flex 
                         items-center 
-                        py-2 
+                        py-2
+                        ${!isAdmin && "hidden"}
                         rounded-lg 
                         hover:bg-[var(--bg-hover)]
                         transition-colors 
