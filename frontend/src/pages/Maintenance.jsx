@@ -1,55 +1,109 @@
-<<<<<<< HEAD
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { 
+  AlertTriangle, 
+  MapPin, 
+  Pencil, 
+  Plus, 
+  Search, 
+  Trash2, 
+  Wrench, 
+  X 
+} from "lucide-react";
 
-// Supabase client import (not too sure if this is right uncomment if it complies with this)
-//import { supabase } from "../components/context/AuthContext";
+// Supabase client import (uncomment if configured in your project)
+// import { supabase } from "../components/context/AuthContext";
 
-// Components imports
-import HistoricalBinCard from "../components/cards/HistoricalBinCard";
-import CurrentBinCard from "../components/cards/CurrentBinCard";
-import BinSearchSelect from "../components/BinSearchSelect";
-import KPICard from "../components/cards/KPICard";
+function getBinStatus(fillLevel) {
+  const fill = Number(fillLevel ?? 0);
+
+  if (fill >= 80) {
+    return {
+      label: "Critical",
+      className: "text-[var(--status-critical)] bg-rose-50 text-rose-700",
+    };
+  }
+
+  if (fill >= 50) {
+    return {
+      label: "Warning",
+      className: "text-[var(--status-warning)] bg-amber-50 text-amber-700",
+    };
+  }
+
+  return {
+    label: "Normal",
+    className: "text-[var(--status-normal)] bg-emerald-50 text-emerald-700",
+  };
+}
 
 export default function Maintenance() {
   const [bins, setBins] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [zoneFilter, setZoneFilter] = useState("all");
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingBin, setEditingBin] = useState(null);
+  
+  const [newBin, setNewBin] = useState({
+    id: "",
+    location: "",
+    lat: "",
+    long: "",
+    zone: "",
+  });
 
-  // 1. Fetch bins directly from Supabase
+  // 1. Fetch bins directly from Supabase (or mock fallback if supabase is commented out)
   const fetchBins = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("bins")
-      .select("*")
-      .order("id", { ascending: true });
+    try {
+      // If using supabase:
+      /*
+      const { data, error } = await supabase
+        .from("bins")
+        .select("*")
+        .order("id", { ascending: true });
 
-    if (error) {
-      console.error("Error fetching bins:", error.message);
-    } else {
+      if (error) throw error;
       setBins(data || []);
+      */
+
+      // API fallback if using backend endpoints
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/bins`);
+      if (response.ok) {
+        const data = await response.json();
+        setBins(data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching bins:", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
     fetchBins();
   }, []);
 
-  // 2. Deactivate a bin (updates status in Supabase and local state)
+  // 2. Deactivate / Mark as Emptied handler
   const handleDeactivate = async (binId) => {
-    const { error } = await supabase
-      .from("bins")
-      .update({ status: "Inactive" })
-      .eq("id", binId);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/bins/${binId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "Inactive" }),
+      });
 
-    if (error) {
-      console.error("Error deactivating bin:", error.message);
-      alert("Failed to deactivate bin.");
-    } else {
+      if (!response.ok) throw new Error("Failed to update bin status.");
+
       setBins((prevBins) =>
         prevBins.map((bin) =>
           bin.id === binId ? { ...bin, status: "Inactive" } : bin
         )
       );
+    } catch (error) {
+      console.error("Error deactivating bin:", error);
+      alert("Failed to deactivate bin.");
     }
   };
 
@@ -62,24 +116,21 @@ export default function Maintenance() {
       return;
     }
 
-    // CSV Headers
-    const headers = ["Bin ID", "Location", "Battery (%)", "Fill Frequency (Times Full)", "Status"];
+    const headers = ["Bin ID", "Location", "Zone", "Fill Level (%)", "Battery (%)", "Status"];
     
-    // Map rows
     const rows = activeBins.map((bin) => [
       bin.id,
       `"${bin.location_name || bin.location || "Unassigned"}"`,
-      bin.battery ?? 100,
-      bin.fill_count ?? bin.times_full ?? 0,
+      bin.zone || "Unassigned",
+      bin.fill_level ?? 0,
+      bin.battery_level ?? bin.battery ?? 100,
       bin.status || "Active",
     ]);
 
-    // Build CSV content
     const csvContent =
       "data:text/csv;charset=utf-8," +
       [headers.join(","), ...rows.map((row) => row.join(","))].join("\n");
 
-    // Create download link and trigger download
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -89,224 +140,21 @@ export default function Maintenance() {
     document.body.removeChild(link);
   };
 
-  return (
-    <div className="p-6 space-y-6 bg-slate-50 min-h-screen">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">
-            Bin Maintenance & Diagnostics
-          </h1>
-          <p className="text-sm text-slate-500">
-            Manage bin statuses, track fill frequencies, and export telemetry data.
-          </p>
-        </div>
-
-        {/* Get Spreadsheet Button */}
-        <button
-          onClick={handleGetSpreadsheet}
-          className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-medium text-sm transition-colors shadow-sm flex items-center gap-2"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          Get Spreadsheet
-        </button>
-      </div>
-
-      {/* Hardware Status Table */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-slate-800">
-            Active Bins & Fill History
-          </h2>
-          <span className="text-xs text-slate-500 font-medium">
-            Total Bins: {bins.length}
-          </span>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-sm">
-            <thead>
-              <tr className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
-                <th className="py-3 px-4 text-center">Action</th>
-                <th className="py-3 px-4">Bin ID</th>
-                <th className="py-3 px-4">Location</th>
-                <th className="py-3 px-4">Times Full</th>
-                <th className="py-3 px-4">Battery Level</th>
-                <th className="py-3 px-4">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {loading ? (
-                <tr>
-                  <td colSpan="6" className="py-8 text-center text-slate-400">
-                    Loading bins from Supabase...
-                  </td>
-                </tr>
-              ) : bins.length > 0 ? (
-                bins.map((bin) => (
-                  <tr
-                    key={bin.id}
-                    className={`hover:bg-slate-50/80 transition ${
-                      bin.status === "Inactive" ? "opacity-50 bg-slate-50" : ""
-                    }`}
-                  >
-                    {/* Deactivate Button on Left */}
-                    <td className="py-3 px-4 text-center">
-                      {bin.status !== "Inactive" ? (
-                        <button
-                          onClick={() => handleDeactivate(bin.id)}
-                          className="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded hover:bg-rose-100 transition"
-                        >
-                          Deactivate
-                        </button>
-                      ) : (
-                        <span className="text-xs text-slate-400 italic">
-                          Deactivated
-                        </span>
-                      )}
-                    </td>
-
-                    <td className="py-3 px-4 font-mono font-medium text-slate-900">
-                      #{bin.id}
-                    </td>
-                    <td className="py-3 px-4 text-slate-700">
-                      {bin.location_name || bin.location || "Unassigned"}
-                    </td>
-
-                    {/* Fill Frequency Column */}
-                    <td className="py-3 px-4 font-semibold text-slate-800">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-xs font-medium">
-                        {bin.fill_count ?? bin.times_full ?? 0} times
-                      </span>
-                    </td>
-
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 bg-slate-200 rounded-full h-2 overflow-hidden">
-                          <div
-                            className={`h-full ${
-                              (bin.battery ?? 100) < 20
-                                ? "bg-rose-500"
-                                : (bin.battery ?? 100) < 50
-                                ? "bg-amber-500"
-                                : "bg-emerald-500"
-                            }`}
-                            style={{ width: `${bin.battery ?? 100}%` }}
-                          />
-                        </div>
-                        <span className="text-xs text-slate-600 font-medium">
-                          {bin.battery ?? 100}%
-                        </span>
-                      </div>
-                    </td>
-
-                    <td className="py-3 px-4">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          bin.status === "Inactive"
-                            ? "bg-slate-200 text-slate-600"
-                            : bin.status === "Needs Service"
-                            ? "bg-amber-100 text-amber-800"
-                            : "bg-emerald-100 text-emerald-800"
-                        }`}
-                      >
-                        {bin.status || "Active"}
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="6" className="py-8 text-center text-slate-400">
-                    No bins found in database.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-import { useMemo, useState } from "react";
-import {
-  AlertTriangle,
-  MapPin,
-  Pencil,
-  Plus,
-  Search,
-  Trash2,
-  Wrench,
-  X,
-} from "lucide-react";
-
-function getBinStatus(fillLevel) {
-  const fill = Number(fillLevel ?? 0);
-
-  if (fill >= 80) {
-    return {
-      label: "Critical",
-      className: "text-[var(--status-critical)]",
-    };
-  }
-
-  if (fill >= 50) {
-    return {
-      label: "Warning",
-      className: "text-[var(--status-warning)]",
-    };
-  }
-
-  return {
-    label: "Normal",
-    className: "text-[var(--status-normal)]",
-  };
-}
-
-function Maintenance({ bins = [] }) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [zoneFilter, setZoneFilter] = useState("all");
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingBin, setEditingBin] = useState(null);
-  const [newBin, setNewBin] = useState({
-  id: "",
-  location: "",
-  lat: "",
-  long: "",
-  zone: "",
-});
   const handleNewBinChange = (event) => {
-  const { name, value } = event.target;
+    const { name, value } = event.target;
+    setNewBin((prev) => ({ ...prev, [name]: value }));
+  };
 
-  setNewBin((prev) => ({
-    ...prev,
-    [name]: value,
-  }));
-};
-const handleAddBin = async () => {
-  if (
-    !newBin.id ||
-    !newBin.location.trim() ||
-    !newBin.lat ||
-    !newBin.long
-  ) {
-    alert("Please complete all required fields.");
-    return;
-  }
+  const handleAddBin = async () => {
+    if (!newBin.id || !newBin.location.trim() || !newBin.lat || !newBin.long) {
+      alert("Please complete all required fields.");
+      return;
+    }
 
-  try {
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/bins`,
-      {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/bins`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: Number(newBin.id),
           lat: Number(newBin.lat),
@@ -314,140 +162,96 @@ const handleAddBin = async () => {
           location: newBin.location.trim(),
           zone: newBin.zone || null,
         }),
-      }
-    );
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Failed to add bin.");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to add bin.");
+      }
+
+      setNewBin({ id: "", location: "", lat: "", long: "", zone: "" });
+      setShowAddModal(false);
+      fetchBins();
+      alert("Bin added successfully.");
+    } catch (error) {
+      console.error("Error adding bin:", error);
+      alert(error.message || "Failed to add bin.");
+    }
+  };
+
+  const handleEditBin = (bin) => {
+    setEditingBin({
+      id: bin.id,
+      location: bin.location ?? "",
+      lat: bin.lat ?? "",
+      long: bin.long ?? "",
+      zone: bin.zone ?? "",
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditBinChange = (event) => {
+    const { name, value } = event.target;
+    setEditingBin((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingBin || !editingBin.location.trim() || !editingBin.lat || !editingBin.long) {
+      alert("Please complete all required fields.");
+      return;
     }
 
-    setNewBin({
-      id: "",
-      location: "",
-      lat: "",
-      long: "",
-      zone: "",
-    });
-
-    setShowAddModal(false);
-    alert("Bin added successfully.");
-  } catch (error) {
-    console.error("Error adding bin:", error);
-    alert(error.message || "Failed to add bin.");
-  }
-};
-
-
-const handleEditBin = (bin) => {
-  setEditingBin({
-    id: bin.id,
-    location: bin.location ?? "",
-    lat: bin.lat ?? "",
-    long: bin.long ?? "",
-    zone: bin.zone ?? "",
-  });
-
-  setShowEditModal(true);
-};
-
-const handleEditBinChange = (event) => {
-  const { name, value } = event.target;
-
-  setEditingBin((prev) => ({
-    ...prev,
-    [name]: value,
-  }));
-};
-
-const handleSaveEdit = async () => {
-  if (
-    !editingBin ||
-    !editingBin.location.trim() ||
-    !editingBin.lat ||
-    !editingBin.long
-  ) {
-    alert("Please complete all required fields.");
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/bins/${editingBin.id}`,
-      {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/bins/${editingBin.id}`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           lat: Number(editingBin.lat),
           long: Number(editingBin.long),
           location: editingBin.location.trim(),
           zone: editingBin.zone || null,
         }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to update bin.");
       }
-    );
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Failed to update bin.");
+      setShowEditModal(false);
+      setEditingBin(null);
+      fetchBins();
+    } catch (error) {
+      console.error("Error updating bin:", error);
+      alert(error.message || "Failed to update bin.");
     }
+  };
 
-    setShowEditModal(false);
-    setEditingBin(null);
-  } catch (error) {
-    console.error("Error updating bin:", error);
-    alert(error.message || "Failed to update bin.");
-  }
-};
+  const handleRemoveBin = async (binId) => {
+    const confirmed = window.confirm(`Are you sure you want to remove Bin ${binId}?`);
+    if (!confirmed) return;
 
-
-const handleRemoveBin = async (binId) => {
-  const confirmed = window.confirm(
-    `Are you sure you want to remove Bin ${binId}?`
-  );
-
-  if (!confirmed) {
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/bins/${binId}`,
-      {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/bins/${binId}`, {
         method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to remove bin.");
       }
-    );
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Failed to remove bin.");
+      alert(`Bin ${binId} was removed successfully.`);
+      fetchBins();
+    } catch (error) {
+      console.error("Error removing bin:", error);
+      alert(error.message || "Failed to remove bin.");
     }
+  };
 
-    alert(`Bin ${binId} was removed successfully.`);
-    window.location.reload();
-  } catch (error) {
-    console.error("Error removing bin:", error);
-    alert(error.message || "Failed to remove bin.");
-  }
-};
-
-
-
-
-  const criticalCount = bins.filter(
-    (bin) => Number(bin.fill_level ?? 0) >= 80
-  ).length;
-
-  const warningCount = bins.filter(
-    (bin) =>
-      Number(bin.fill_level ?? 0) >= 50 &&
-      Number(bin.fill_level ?? 0) < 80
-  ).length;
-
-  const assignedCount = bins.filter(
-    (bin) => bin.zone === "Zone A" || bin.zone === "Zone B"
-  ).length;
+  const criticalCount = bins.filter((bin) => Number(bin.fill_level ?? 0) >= 80).length;
+  const warningCount = bins.filter((bin) => Number(bin.fill_level ?? 0) >= 50 && Number(bin.fill_level ?? 0) < 80).length;
+  const assignedCount = bins.filter((bin) => bin.zone === "A" || bin.zone === "B" || bin.zone === "Zone A" || bin.zone === "Zone B").length;
 
   const filteredBins = useMemo(() => {
     const search = searchTerm.trim().toLowerCase();
@@ -465,113 +269,120 @@ const handleRemoveBin = async (binId) => {
     });
   }, [bins, searchTerm, zoneFilter]);
 
+  // Handler for Issue #44: Mark as Emptied Quick Action
+  const handleMarkAsEmptied = async (binId) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/bins/${binId}/reset`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Failed to reset bin.");
+      }
+
+      // Refresh bins list to show fill level at 0%
+      fetchBins();
+    } catch (error) {
+      console.error("Error marking bin as emptied:", error);
+      alert(error.message || "Failed to mark bin as emptied.");
+    }
+  };
+
   return (
-    <main className="min-h-full flex-1 overflow-auto px-5 py-8 text-[var(--text-primary)] sm:px-8 lg:px-10">
+    <main className="min-h-full flex-1 overflow-auto px-5 py-8 text-[var(--text-primary)] sm:px-8 lg:px-10 bg-slate-50">
       <div className="mx-auto max-w-7xl">
         {/* Page heading */}
         <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-secondary)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
               Operations Control Center
             </p>
-
-            <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
-              Maintenance
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+              Maintenance & Diagnostics
             </h1>
-
-            <p className="mt-2 max-w-2xl text-sm text-[var(--text-secondary)]">
+            <p className="mt-2 max-w-2xl text-sm text-slate-600">
               Manage campus bins, locations, zones, and maintenance activity.
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setShowAddModal(true)}
-            className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-[color:var(--control-border)] backdrop-blur-[var(--backdrop-blur)] bg-[var(--control-bg)] px-4 py-2.5 text-sm font-medium text-[var(--control-text)] transition hover:bg-[var(--control-hover)]"
-          >
-            <Plus size={17} />
-            Add bin
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleGetSpreadsheet}
+              className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-medium text-sm transition-colors shadow-sm flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Get Spreadsheet
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowAddModal(true)}
+              className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 shadow-sm"
+            >
+              <Plus size={17} />
+              Add bin
+            </button>
+          </div>
         </header>
 
         {/* Summary cards */}
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] p-5 shadow-[var(--shadow-card-subtle)]">
+          <div className="rounded-xl bg-white border border-slate-200 p-5 shadow-sm">
             <div className="flex items-center gap-3">
-              <Wrench size={20} />
-              <span className="text-sm text-[var(--text-secondary)]">
-                Total bins
-              </span>
+              <Wrench size={20} className="text-slate-600" />
+              <span className="text-sm text-slate-500">Total bins</span>
             </div>
-
-            <p className="mt-4 text-3xl font-bold">{bins.length}</p>
+            <p className="mt-4 text-3xl font-bold text-slate-900">{bins.length}</p>
           </div>
 
-          <div className="rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] p-5 shadow-[var(--shadow-card-subtle)]">
+          <div className="rounded-xl bg-white border border-slate-200 p-5 shadow-sm">
             <div className="flex items-center gap-3">
-              <AlertTriangle
-                size={20}
-                className="text-[var(--status-critical)]"
-              />
-              <span className="text-sm text-[var(--text-secondary)]">
-                Critical
-              </span>
+              <AlertTriangle size={20} className="text-rose-600" />
+              <span className="text-sm text-slate-500">Critical</span>
             </div>
-
-            <p className="mt-4 text-3xl font-bold">{criticalCount}</p>
+            <p className="mt-4 text-3xl font-bold text-slate-900">{criticalCount}</p>
           </div>
 
-          <div className="rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] p-5 shadow-[var(--shadow-card-subtle)]">
+          <div className="rounded-xl bg-white border border-slate-200 p-5 shadow-sm">
             <div className="flex items-center gap-3">
-              <AlertTriangle
-                size={20}
-                className="text-[var(--status-warning)]"
-              />
-              <span className="text-sm text-[var(--text-secondary)]">
-                Warning
-              </span>
+              <AlertTriangle size={20} className="text-amber-600" />
+              <span className="text-sm text-slate-500">Warning</span>
             </div>
-
-            <p className="mt-4 text-3xl font-bold">{warningCount}</p>
+            <p className="mt-4 text-3xl font-bold text-slate-900">{warningCount}</p>
           </div>
 
-          <div className="rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] p-5 shadow-[var(--shadow-card-subtle)]">
+          <div className="rounded-xl bg-white border border-slate-200 p-5 shadow-sm">
             <div className="flex items-center gap-3">
-              <MapPin size={20} />
-              <span className="text-sm text-[var(--text-secondary)]">
-                Assigned to zone
-              </span>
+              <MapPin size={20} className="text-blue-600" />
+              <span className="text-sm text-slate-500">Assigned to zone</span>
             </div>
-
-            <p className="mt-4 text-3xl font-bold">{assignedCount}</p>
+            <p className="mt-4 text-3xl font-bold text-slate-900">{assignedCount}</p>
           </div>
         </section>
 
         {/* Bin directory */}
-        <section className="mt-4 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] p-5 shadow-[var(--shadow-card-subtle)] sm:p-6">
+        <section className="mt-6 rounded-xl bg-white border border-slate-200 p-5 shadow-sm sm:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h2 className="text-xl font-semibold">Bin directory</h2>
-
-              <p className="mt-1 text-sm text-[var(--text-secondary)]">
-                View and manage campus hardware.
-              </p>
+              <h2 className="text-xl font-semibold text-slate-900">Bin directory</h2>
+              <p className="mt-1 text-sm text-slate-500">View and manage campus hardware.</p>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">
               {/* Search */}
               <div className="relative">
-                <Search
-                  size={17}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]"
-                />
-
+                <Search size={17} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="search"
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
                   placeholder="Search bins..."
-                  className="w-full rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] py-2.5 pl-9 pr-3 text-sm text-[var(--control-text)] outline-none transition focus:border-[color:var(--border-hover)] sm:w-56"
+                  className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-900 outline-none transition focus:border-slate-500 sm:w-56"
                 />
               </div>
 
@@ -579,7 +390,7 @@ const handleRemoveBin = async (binId) => {
               <select
                 value={zoneFilter}
                 onChange={(event) => setZoneFilter(event.target.value)}
-                className="rounded-lg border border-[color:var(--control-border)] bg-[var(--bg-card-strong)] px-3 py-2.5 text-sm text-[var(--control-text)] outline-none"
+                className="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none"
               >
                 <option value="all">All zones</option>
                 <option value="A">Zone A</option>
@@ -593,83 +404,103 @@ const handleRemoveBin = async (binId) => {
           <div className="mt-6 overflow-x-auto">
             <table className="w-full min-w-[850px] text-left text-sm">
               <thead>
-                <tr className="border-b border-[color:var(--border-subtle)] text-[var(--text-secondary)]">
-                  <th className="px-4 py-3 font-medium">Bin</th>
-                  <th className="px-4 py-3 font-medium">Location</th>
-                  <th className="px-4 py-3 font-medium">Zone</th>
-                  <th className="px-4 py-3 font-medium">Fill level</th>
-                  <th className="px-4 py-3 font-medium">Battery</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 text-right font-medium">
-                    Actions
-                  </th>
+                <tr className="border-b border-slate-200 text-slate-500 font-medium">
+                  <th className="px-4 py-3">Bin</th>
+                  <th className="px-4 py-3">Location</th>
+                  <th className="px-4 py-3">Zone</th>
+                  <th className="px-4 py-3">Fill level</th>
+                  <th className="px-4 py-3">Battery</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 text-right font-medium">Actions</th>
                 </tr>
               </thead>
 
-              <tbody>
-                {filteredBins.map((bin) => {
-                  const status = getBinStatus(bin.fill_level);
-
-                  return (
-                    <tr
-                      key={bin.id}
-                      className="border-b border-[color:var(--border-subtle)] transition hover:bg-[var(--bg-hover)]"
-                    >
-                      <td className="px-4 py-4 font-semibold">
-                        BIN-{String(bin.id).padStart(3, "0")}
-                      </td>
-
-                      <td className="px-4 py-4 text-[var(--text-secondary)]">
-                        {bin.location || "Unassigned"}
-                      </td>
-
-                      <td className="px-4 py-4">
-                        {bin.zone || "Unassigned"}
-                      </td>
-
-                      <td className="px-4 py-4 font-medium">
-                        {bin.fill_level ?? 0}%
-                      </td>
-
-                      <td className="px-4 py-4">
-                        {bin.battery_level ?? 0}%
-                      </td>
-
-                      <td className={`px-4 py-4 font-semibold ${status.className}`}>
-                        {status.label}
-                      </td>
-
-                      <td className="px-4 py-4">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            type="button"
-                            title="Edit bin"
-                            onClick={() => handleEditBin(bin)}
-                            className="rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] p-2 text-[var(--control-text)] transition hover:bg-[var(--control-hover)]"
-                          >
-                            <Pencil size={16} />
-                          </button>
-
-                          <button
-                            type="button"
-                            title="Remove bin"
-                            onClick={() => handleRemoveBin(bin.id)}
-                            className="rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] p-2 text-[var(--control-text)] transition hover:bg-[var(--control-hover)]"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-
-                {filteredBins.length === 0 && (
+              <tbody className="divide-y divide-slate-100">
+                {loading ? (
                   <tr>
-                    <td
-                      colSpan="7"
-                      className="px-4 py-10 text-center text-sm text-[var(--text-secondary)]"
-                    >
+                    <td colSpan="7" className="px-4 py-10 text-center text-sm text-slate-400">
+                      Loading bins...
+                    </td>
+                  </tr>
+                ) : filteredBins.length > 0 ? (
+                  filteredBins.map((bin) => {
+                    const status = getBinStatus(bin.fill_level);
+
+                    return (
+                      <tr key={bin.id} className="transition hover:bg-slate-50">
+                        <td className="px-4 py-4 font-semibold font-mono text-slate-900">
+                          BIN-{String(bin.id).padStart(3, "0")}
+                        </td>
+
+                        <td className="px-4 py-4 text-slate-700">
+                          {bin.location_name || bin.location || "Unassigned"}
+                        </td>
+
+                        <td className="px-4 py-4 text-slate-700">
+                          {bin.zone || "Unassigned"}
+                        </td>
+
+                        <td className="px-4 py-4 font-medium text-slate-900">
+                          {bin.fill_level ?? 0}%
+                        </td>
+
+                        <td className="px-4 py-4 text-slate-700">
+                          {bin.battery_level ?? bin.battery ?? 100}%
+                        </td>
+
+                        <td className="px-4 py-4">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${status.className}`}>
+                            {bin.status || status.label}
+                          </span>
+                        </td>
+
+                        <td className="px-4 py-4">
+                          <div className="flex justify-end gap-2">
+                            {bin.status !== "Inactive" && (
+                              <button
+                                type="button"
+                                title="Deactivate / Mark as Emptied"
+                                onClick={() => handleDeactivate(bin.id)}
+                                className="px-2.5 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-lg hover:bg-rose-100 transition"
+                              >
+                                Deactivate
+                              </button>
+                            )}
+                            
+                            <button
+                              type="button"
+                              title="Mark as Emptied"
+                              onClick={() => handleMarkAsEmptied(bin.id)}
+                              className="px-2.5 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition shadow-sm"
+                            >
+                              Mark Emptied
+                            </button>
+
+                            <button
+                              type="button"
+                              title="Edit bin"
+                              onClick={() => handleEditBin(bin)}
+                              className="rounded-lg border border-slate-300 bg-white p-2 text-slate-700 transition hover:bg-slate-50"
+                            >
+                              <Pencil size={16} />
+                            </button>
+
+                            <button
+                              type="button"
+                              title="Remove bin"
+                              onClick={() => handleRemoveBin(bin.id)}
+                              className="rounded-lg border border-slate-300 bg-white p-2 text-rose-600 transition hover:bg-rose-50"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="px-4 py-10 text-center text-sm text-slate-400">
                       No bins match your search.
                     </td>
                   </tr>
@@ -678,32 +509,25 @@ const handleRemoveBin = async (binId) => {
             </table>
           </div>
 
-          <div className="mt-4 flex items-center justify-between text-xs text-[var(--text-secondary)]">
-            <span>
-              Showing {filteredBins.length} of {bins.length} bins
-            </span>
-
+          <div className="mt-4 flex items-center justify-between text-xs text-slate-500">
+            <span>Showing {filteredBins.length} of {bins.length} bins</span>
             <span>Maintenance directory</span>
           </div>
         </section>
 
+        {/* Add Modal */}
         {showAddModal && (
           <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
-            <div className="w-full max-w-lg rounded-2xl bg-[var(--bg-card-strong)] [border:var(--border-card)] p-6 shadow-[var(--shadow-card)]">
+            <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl border border-slate-200">
               <div className="mb-6 flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold">Add bin</h2>
-
-                  <p className="mt-1 text-sm text-[var(--text-secondary)]">
-                    Add a new bin to the campus directory.
-                  </p>
+                  <h2 className="text-xl font-semibold text-slate-900">Add bin</h2>
+                  <p className="mt-1 text-sm text-slate-500">Add a new bin to the campus directory.</p>
                 </div>
-
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="rounded-lg p-2 text-[var(--text-secondary)] transition hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
-                  title="Close"
+                  className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
                 >
                   <X size={18} />
                 </button>
@@ -711,41 +535,32 @@ const handleRemoveBin = async (binId) => {
 
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium">
-                    Bin ID
-                  </label>
-
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Bin ID</label>
                   <input
-                  type="number"
-                  name="id"
-                  value={newBin.id}
-                  onChange={handleNewBinChange}
-                  placeholder="Example: 204"
-                    className="w-full rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] px-3 py-2.5 text-sm text-[var(--control-text)] outline-none"
+                    type="number"
+                    name="id"
+                    value={newBin.id}
+                    onChange={handleNewBinChange}
+                    placeholder="Example: 204"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium">
-                    Location / Description
-                  </label>
-
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Location / Description</label>
                   <input
                     type="text"
                     name="location"
                     value={newBin.location}
                     onChange={handleNewBinChange}
                     placeholder="Example: Library entrance"
-                    className="w-full rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] px-3 py-2.5 text-sm text-[var(--control-text)] outline-none"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium">
-                      Latitude
-                    </label>
-
+                    <label className="mb-1.5 block text-sm font-medium text-slate-700">Latitude</label>
                     <input
                       type="number"
                       name="lat"
@@ -753,15 +568,12 @@ const handleRemoveBin = async (binId) => {
                       onChange={handleNewBinChange}
                       step="any"
                       placeholder="38.55..."
-                      className="w-full rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] px-3 py-2.5 text-sm text-[var(--control-text)] outline-none"
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium">
-                      Longitude
-                    </label>
-
+                    <label className="mb-1.5 block text-sm font-medium text-slate-700">Longitude</label>
                     <input
                       type="number"
                       name="long"
@@ -769,22 +581,19 @@ const handleRemoveBin = async (binId) => {
                       onChange={handleNewBinChange}
                       step="any"
                       placeholder="-121.42..."
-                      className="w-full rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] px-3 py-2.5 text-sm text-[var(--control-text)] outline-none"
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium">
-                    Zone
-                  </label>
-
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Zone</label>
                   <select
                     name="zone"
                     value={newBin.zone}
-                     onChange={handleNewBinChange}
-                    className="w-full rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] px-3 py-2.5 text-sm text-[var(--control-text)] outline-none"
-                  > 
+                    onChange={handleNewBinChange}
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none"
+                  >
                     <option value="">Unassigned</option>
                     <option value="A">Zone A</option>
                     <option value="B">Zone B</option>
@@ -796,15 +605,14 @@ const handleRemoveBin = async (binId) => {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] px-4 py-2.5 text-sm font-medium text-[var(--control-text)] transition hover:bg-[var(--control-hover)]"
+                  className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                 >
                   Cancel
                 </button>
-
                 <button
                   type="button"
                   onClick={handleAddBin}
-                  className="rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] px-4 py-2.5 text-sm font-medium text-[var(--control-text)] transition hover:bg-[var(--control-hover)]"
+                  className="rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2.5 text-sm font-medium transition"
                 >
                   Add bin
                 </button>
@@ -812,28 +620,23 @@ const handleRemoveBin = async (binId) => {
             </div>
           </div>
         )}
-                {showEditModal && editingBin && (
+
+        {/* Edit Modal */}
+        {showEditModal && editingBin && (
           <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
-            <div className="w-full max-w-lg rounded-2xl bg-[var(--bg-card-strong)] [border:var(--border-card)] p-6 shadow-[var(--shadow-card)]">
+            <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl border border-slate-200">
               <div className="mb-6 flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold">
-                    Edit Bin {editingBin.id}
-                  </h2>
-
-                  <p className="mt-1 text-sm text-[var(--text-secondary)]">
-                    Update the bin location, coordinates, or zone.
-                  </p>
+                  <h2 className="text-xl font-semibold text-slate-900">Edit Bin {editingBin.id}</h2>
+                  <p className="mt-1 text-sm text-slate-500">Update the bin location, coordinates, or zone.</p>
                 </div>
-
                 <button
                   type="button"
                   onClick={() => {
                     setShowEditModal(false);
                     setEditingBin(null);
                   }}
-                  className="rounded-lg p-2 text-[var(--text-secondary)] transition hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
-                  title="Close"
+                  className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
                 >
                   <X size={18} />
                 </button>
@@ -841,65 +644,53 @@ const handleRemoveBin = async (binId) => {
 
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium">
-                    Location / Description
-                  </label>
-
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Location / Description</label>
                   <input
                     type="text"
                     name="location"
                     value={editingBin.location}
                     onChange={handleEditBinChange}
-                    className="w-full rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] px-3 py-2.5 text-sm text-[var(--control-text)] outline-none"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium">
-                      Latitude
-                    </label>
-
+                    <label className="mb-1.5 block text-sm font-medium text-slate-700">Latitude</label>
                     <input
                       type="number"
                       name="lat"
                       value={editingBin.lat}
                       onChange={handleEditBinChange}
                       step="any"
-                      className="w-full rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] px-3 py-2.5 text-sm text-[var(--control-text)] outline-none"
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium">
-                      Longitude
-                    </label>
-
+                    <label className="mb-1.5 block text-sm font-medium text-slate-700">Longitude</label>
                     <input
                       type="number"
                       name="long"
                       value={editingBin.long}
                       onChange={handleEditBinChange}
                       step="any"
-                      className="w-full rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] px-3 py-2.5 text-sm text-[var(--control-text)] outline-none"
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium">
-                    Zone
-                  </label>
-
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Zone</label>
                   <select
                     name="zone"
                     value={editingBin.zone}
                     onChange={handleEditBinChange}
-                    className="w-full rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] px-3 py-2.5 text-sm text-[var(--control-text)] outline-none"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none"
                   >
                     <option value="">Unassigned</option>
-                    <option value="Zone A">Zone A</option>
-                    <option value="Zone B">Zone B</option>
+                    <option value="A">Zone A</option>
+                    <option value="B">Zone B</option>
                   </select>
                 </div>
               </div>
@@ -911,15 +702,14 @@ const handleRemoveBin = async (binId) => {
                     setShowEditModal(false);
                     setEditingBin(null);
                   }}
-                  className="rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] px-4 py-2.5 text-sm font-medium text-[var(--control-text)] transition hover:bg-[var(--control-hover)]"
+                  className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                 >
                   Cancel
                 </button>
-
                 <button
                   type="button"
                   onClick={handleSaveEdit}
-                  className="rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] px-4 py-2.5 text-sm font-medium text-[var(--control-text)] transition hover:bg-[var(--control-hover)]"
+                  className="rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2.5 text-sm font-medium transition"
                 >
                   Save changes
                 </button>
@@ -931,6 +721,3 @@ const handleRemoveBin = async (binId) => {
     </main>
   );
 }
-
-export default Maintenance;
->>>>>>> 301f3d6f68988571d882e43e9c19be653399d987
