@@ -251,6 +251,7 @@ async def reset_bin_status(bin_id: int):
 
         log_response = supabase.table("telemetry_logs").insert({
             "bin_id": bin_id,
+            "fill_level": 0,
             "compost": 0,
             "landfill": 0,
             "recycle": 0,
