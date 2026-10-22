@@ -68,7 +68,7 @@ function Sidebar() {
                         hover:bg-white/10
                         `}
         >
-          <PanelLeftClose className="w-5 h-5 text-gray-300" />
+          <PanelLeftClose className="w-5 h-5 text-[var(--button-color)]" />
         </button>
       </div>
 
@@ -82,16 +82,16 @@ function Sidebar() {
                         rounded-lg 
                         hover:bg-[var(--bg-hover)]
                         transition-colors 
-                        text-white
+                        text-[var(--button-color)]
                         ${
                           isOpen
                             ? "justify-start gap-4 "
                             : "justify-center px-0"
                         }`}
         >
-          <MapPin className="shrink-0 text-gray-300" />
+          <MapPin className="shrink-0 text-[var(--button-color)]" />
           <span
-            className={`${isOpen ? "block" : "hidden"} font-medium whitespace-nowrap text-gray-300`}
+            className={`${isOpen ? "block" : "hidden"} font-medium whitespace-nowrap text-[var(--button-color)]`}
           >
             Dashboard
           </span>
@@ -106,16 +106,16 @@ function Sidebar() {
                         rounded-lg 
                         hover:bg-[var(--bg-hover)]
                         transition-colors 
-                        text-white 
+                        text-[var(--button-color)] 
                         ${
                           isOpen
                             ? "justify-start gap-4 "
                             : "justify-center px-0"
                         }`}
         >
-          <BarChart3 className="shrink-0 text-gray-300" />
+          <BarChart3 className="shrink-0 text-[var(--button-color)]" />
           <span
-            className={`${isOpen ? "block" : "hidden"} font-medium whitespace-nowrap text-gray-300`}
+            className={`${isOpen ? "block" : "hidden"} font-medium whitespace-nowrap text-[var(--button-color)]`}
           >
             Analytics
           </span>
@@ -130,16 +130,16 @@ function Sidebar() {
                         rounded-lg 
                         hover:bg-[var(--bg-hover)]
                         transition-colors 
-                        text-white 
+                        text-[var(--button-color)]
                         ${
                           isOpen
                             ? "justify-start gap-4 "
                             : "justify-center px-0"
                         }`}
         >
-          <Wrench className="shrink-0 text-gray-300" />
+          <Wrench className="shrink-0 text-[var(--button-color)]" />
           <span
-            className={`${isOpen ? "block" : "hidden"} font-medium whitespace-nowrap text-gray-300`}
+            className={`${isOpen ? "block" : "hidden"} font-medium whitespace-nowrap text-[var(--button-color)]`}
           >
             Maintenance
           </span>
@@ -154,16 +154,16 @@ function Sidebar() {
                         rounded-lg 
                         hover:bg-[var(--bg-hover)]
                         transition-colors 
-                        text-white 
+                        text-[var(--button-color)]
                         ${
                           isOpen
                             ? "justify-start gap-4 "
                             : "justify-center px-0"
                         }`}
         >
-          <Settings className="shrink-0 text-gray-300" />
+          <Settings className="shrink-0 text-[var(--button-color)]" />
           <span
-            className={`${isOpen ? "block" : "hidden"} font-medium whitespace-nowrap text-gray-300`}
+            className={`${isOpen ? "block" : "hidden"} font-medium whitespace-nowrap text-[var(--button-color)]`}
           >
             Settings
           </span>

@@ -4,6 +4,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Filter, ChevronDown } from "lucide-react";
 import CurrentCapacityChart from "../components/charts/CurrentCapacityChart";
+import { useSettings } from "../components/context/SettingsContext";
 
 const fullColor = "bg-red-500";
 const mediumColor = "bg-amber-500";
@@ -131,8 +132,15 @@ function FilterButton({ activeFilter, onSelect }) {
 
 function DashboardMap({ bins }) {
   const [activeFilter, setActiveFilter] = useState("all");
+  const { settings } = useSettings();
 
-  const filteredBins = bins.filter((bin) => {
+  const zoneFilteredBins = (bins ?? []).filter((bin) => {
+    if (!settings.selectedZone || settings.selectedZone === "all") return true;
+    
+    return bin.zone === settings.selectedZone;
+});
+
+  const filteredBins = zoneFilteredBins.filter((bin) => {
     if (activeFilter === "all") return true;
     if (activeFilter === "green") return bin.fill_level <= 49;
     if (activeFilter === "yellow")
@@ -157,7 +165,7 @@ function DashboardMap({ bins }) {
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          className="map-tiles-dark"
+          className="map-tiles"
         />
 
         {filteredBins.map((bin) => (

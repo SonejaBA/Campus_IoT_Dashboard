@@ -3,6 +3,7 @@ import HistoricalBinCard from "../components/cards/HistoricalBinCard";
 import CurrentBinCard from "../components/cards/CurrentBinCard";
 import BinSearchSelect from "../components/BinSearchSelect";
 import KPICard from "../components/cards/KPICard";
+import ExportCsvButton from "../components/ExportCsvButton";
 
 function Analytics({ bins }) {
   const fullColor = "bg-red-500";
@@ -35,21 +36,20 @@ function Analytics({ bins }) {
   return (
     //flex 1 since its going to be under a flex parent
     <div
-      className="flex-1 text-white p-10 flex flex-col gap-4"
-      style={{ background: "var(--bg-page)" }}
+      className="flex-1 text-[var(--text-primary)] p-10 flex flex-col gap-4"
     >
-      <h1 className="text-4xl font-bold text-[#F2F2F3] mb-3 hidden md:block">
+      <h1 className="text-4xl font-bold text-[var(--text-primary)] mb-3 hidden md:block">
         Analytics
       </h1>
       <div className="grid grid-cols-2 grid-rows-2 lg:grid-cols-4 md:grid-rows-1 gap-8 items-center mb-3">
-        <div className="shadow-md">
+        <div>
           <KPICard
             title={"Average Fill"}
             count={averageFill.toFixed(2)}
             percent_card={true}
           />
         </div>
-        <div className="shadow-md">
+        <div>
           <KPICard
             title={"Critical"}
             count={critical}
@@ -58,7 +58,7 @@ function Analytics({ bins }) {
             bin_count={binsCount}
           />
         </div>
-        <div className="shadow-md">
+        <div>
           <KPICard
             title={"Warning"}
             count={warning}
@@ -67,7 +67,7 @@ function Analytics({ bins }) {
             bin_count={binsCount}
           />
         </div>
-        <div className="shadow-md">
+        <div>
           <KPICard
             title={"OK"}
             count={ok}
@@ -79,16 +79,22 @@ function Analytics({ bins }) {
       </div>
 
       <div>
-        {/*Universal Search Bar*/}
-        <BinSearchSelect
-          bins={bins}
-          selectedBin={selectedBin}
-          onSelectBin={setSelectedBin}
-        />
+        {/*Universal Search Bar + exports*/}
+        <div className="flex flex-wrap items-start justify-end gap-3">
+          <ExportCsvButton label="Export all bins" />
+          {selectedBin !== "" && (
+            <ExportCsvButton binId={selectedBin} label="Export this bin" />
+          )}
+          <BinSearchSelect
+            bins={bins}
+            selectedBin={selectedBin}
+            onSelectBin={setSelectedBin}
+          />
+        </div>
 
         <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           {/* Historical Bin Data */}
-          <div className="shadow-md">
+          <div>
             <h2 className="font-semibold text-lg mb-2 ml-1">
               Historical Bin Data
             </h2>
@@ -98,7 +104,7 @@ function Analytics({ bins }) {
           </div>
 
           {/* Current Bin Data */}
-          <div className="shadow-md">
+          <div>
             <h2 className="font-semibold text-lg mb-2 ml-1">
               Current Bin Data
             </h2>
