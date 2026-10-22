@@ -50,7 +50,7 @@ function App() {
                 path="/maintenance"
                 element={
                   <ProtectedRoute allowedRoles={["admin"]}>
-                    <Maintenance />
+                    <Maintenance bins={bins} />
                   </ProtectedRoute>
                 }
               />
