@@ -221,3 +221,19 @@ def export_telemetry(bin_id: int | None = None):
 
     return rows
     
+# ticket 44 Reset Endpoint
+@app.post("/api/bins/{bin_id}/reset")
+async def reset_bin_status(bin_id: int):
+    # 1. Update the bin in Supabase: reset fill level to 0, status to Active
+    response = supabase.table("bins").update({
+        "fill_level": 0,
+        "status": "Active"
+    }).eq("id", bin_id).execute()
+
+    if not response.data:
+        raise HTTPException(status_code=404, detail="Bin not found")
+
+    return {
+        "message": f"Bin {bin_id} successfully marked as emptied",
+        "bin": response.data[0]
+    }
