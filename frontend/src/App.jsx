@@ -36,7 +36,7 @@ function App() {
               <Route path="/dashboard" element={<DashboardMap bins={bins} />} /> // Set the DashboardMap component as the default route for authenticated users
               <Route path="/analytics" element={<Analytics bins={bins} />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/maintenance" element={<Maintenance />} />
+              <Route path="/maintenance" element={<Maintenance bins={bins} />} />
             </Route>
           </Routes>
         </BrowserRouter>

@@ -4,6 +4,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Filter, ChevronDown } from "lucide-react";
 import CurrentCapacityChart from "../components/charts/CurrentCapacityChart";
+import { useSettings } from "../components/context/SettingsContext";
 
 const fullColor = "bg-red-500";
 const mediumColor = "bg-amber-500";
@@ -65,7 +66,18 @@ function FilterButton({ activeFilter, onSelect }) {
       <button
         onClick={() => setIsOpen(!isOpen)}
         title="Filters"
-        className="flex items-center gap-2 bg-[#1E1E1E]/90 text-white px-4 py-2 rounded-lg cursor-pointer shadow-md justify-end"
+        className="flex 
+        items-center 
+        gap-2 
+        bg-[var(--bg-card)]
+        text-[var(--text-primary)]
+        px-4 
+        py-2 
+        rounded-lg 
+        cursor-pointer 
+        shadow-[var(--shadow-card)]
+        backdrop-blur-[var(--backdrop-blur-light)]
+        justify-end"
       >
         <Filter size={16} />
         {activeLabel}
@@ -78,7 +90,19 @@ function FilterButton({ activeFilter, onSelect }) {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 min-w-full bg-[#1E1E1E]/90 text-white rounded-lg shadow-md overflow-hidden p-2 whitespace-nowrap">
+        <div className="absolute 
+        right-0 
+        top-full 
+        mt-2 
+        min-w-full 
+        bg-[var(--bg-card)]
+        text-[var(--text-primary)] 
+        rounded-lg 
+        shadow-[var(--shadow-card)] 
+        backdrop-blur-[var(--backdrop-blur-light)]
+        overflow-hidden 
+        p-2 
+        whitespace-nowrap">
           {filterOptions.map((option) => (
             <button
               key={option.value}
@@ -93,9 +117,8 @@ function FilterButton({ activeFilter, onSelect }) {
                 px-4 
                 py-2
                 rounded-lg
-                hover:bg-gradient-to-l
-                hover:from-emerald-900/80
-                hover:to-emerald-900/20 cursor-pointer
+                hover:bg-[var(--bg-hover)]
+                hover:[border:var(--border-hover)]
               "
             >
               {option.label}
@@ -109,8 +132,15 @@ function FilterButton({ activeFilter, onSelect }) {
 
 function DashboardMap({ bins }) {
   const [activeFilter, setActiveFilter] = useState("all");
+  const { settings } = useSettings();
 
-  const filteredBins = bins.filter((bin) => {
+  const zoneFilteredBins = (bins ?? []).filter((bin) => {
+    if (!settings.selectedZone || settings.selectedZone === "all") return true;
+    
+    return bin.zone === settings.selectedZone;
+});
+
+  const filteredBins = zoneFilteredBins.filter((bin) => {
     if (activeFilter === "all") return true;
     if (activeFilter === "green") return bin.fill_level <= 49;
     if (activeFilter === "yellow")
@@ -135,7 +165,7 @@ function DashboardMap({ bins }) {
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          className="map-tiles-dark"
+          className="map-tiles"
         />
 
         {filteredBins.map((bin) => (
@@ -144,12 +174,11 @@ function DashboardMap({ bins }) {
             position={[bin.lat, bin.long]}
             icon={createBinIcon(bin.fill_level)}
           >
-
             <Popup className="dark-popup">
               <div className="h-50 w-70 flex flex-col">
                 <div className="flex items-center justify-between mb-2 mt-2">
                   <span className="font-medium text-l">
-                    BIN-{String(bin["id"]).padStart(3, '0')}
+                    BIN-{String(bin["id"]).padStart(3, "0")}
                   </span>
                   <span className="text-xs text-gray-400">
                     {getRelativeTime(bin.time)}
@@ -158,7 +187,6 @@ function DashboardMap({ bins }) {
                 <CurrentCapacityChart bin={bin} isPopup={true} />
               </div>
             </Popup>
-
           </Marker>
         ))}
       </MapContainer>

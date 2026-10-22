@@ -17,7 +17,7 @@ The database relies on two tables and an automated trigger to process incoming t
 
 | Table            | Purpose                         | Key Columns                                                |
 | ---------------- | ------------------------------- | ---------------------------------------------------------- |
-| `bins`           | Current state for the React map | `id`, `lat`, `long`, `fill_level`, `battery_level`, `time`,`location`, `compost`, `recycle`, `landfil` |
+| `bins`           | Current state for the React map | `id`, `lat`, `long`, `fill_level`, `battery_level`, `time`,`location`, `compost`, `recycle`, `landfil`, `zone` |
 | `telemetry_logs` | Time-series historical data     | `id`, `bin_id`, `fill_level`, `battery_level`, `time`, `compost`, `recycle`, `landfil` |
 
 > \*\*Automation Note:\*\* An `AFTER INSERT` trigger on `telemetry_logs` automatically updates `fill_level`, `battery_level`,  `compost`, `recycle`, `landfil` and `time` on the corresponding record in `bins`.

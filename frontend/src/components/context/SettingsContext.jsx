@@ -6,6 +6,10 @@ const defaultSettings = {
   fillWarning: 50,
   fillCritical: 80,
   batteryWarning: 20,
+  emailNotifications: false,
+  browserNotifications: false,
+  theme: "dark",
+  selectedZone: "all",
 };
 
 const getSavedSettings = () => {

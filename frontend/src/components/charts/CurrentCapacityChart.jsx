@@ -13,8 +13,8 @@ function CustomTooltip({ active, payload, label }) {
     const barData = payload[0].payload;
 
     return (
-      <div className="p-4 bg-[#1E1E1E] rounded-xl shadow-lg">
-        <p className="font-bold text-lg text-white mb-1">{label}</p>
+      <div className="p-4 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-card)] text-[var(--text-primary)] shadow-[var(--shadow-card)] backdrop-blur-[var(--backdrop-blur)]">
+        <p className="font-bold text-lg mb-1">{label}</p>
         <p className="text-sm font-semibold" style={{ color: barData.color }}>
           Fill Level: {payload[0].value}%
         </p>
@@ -29,8 +29,8 @@ function CustomTooltipDashboard({ active, payload, label }) {
     const barData = payload[0].payload;
 
     return (
-      <div className="p-2 bg-[#1E1E1E] rounded-xl shadow-lg">
-        <p className="font-semibold text-md text-white">{label}</p>
+      <div className="p-2 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-card)] text-[var(--text-primary)] shadow-[var(--shadow-card)] backdrop-blur-[var(--backdrop-blur)]">
+        <p className="font-semibold text-md">{label}</p>
         <p className="text-sm font-medium" style={{ color: barData.color }}>
           Fill Level: {payload[0].value}%
         </p>
@@ -60,8 +60,18 @@ function CurrentCapacityChart({ bin, isPopup = false }) {
       <BarChart layout="vertical" data={data} margin={chartMargin}>
         <CartesianGrid strokeDasharray="7 7" opacity={0.5} horizontal={false} />
 
-        <XAxis type="number" domain={[0, 100]} stroke="#adadad" />
-        <YAxis dataKey="name" type="category" stroke="#F2F2F3" opacity={0.6} />
+        <XAxis
+          type="number"
+          domain={[0, 100]}
+          stroke="var(--text-primary)"
+          tick={{ fill: "var(--text-primary)", fontSize: 12 }}
+        />
+        <YAxis
+          dataKey="name"
+          type="category"
+          stroke="var(--text-primary)"
+          tick={{ fill: "var(--text-primary)", fontSize: 13, fontWeight: 500 }}
+        />
         <Tooltip content={whichToolTip} cursor={false} />
 
         <Bar

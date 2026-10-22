@@ -32,7 +32,7 @@ function BinSearchSelect({ bins, selectedBin, onSelectBin }) {
   };
 
   return (
-    <div className="relative w-40 h-10 bg-[#1E1E1E] rounded-xl border-2 border-[#adadad] ml-auto">
+    <div className="relative w-40 h-10 rounded-xl ml-auto bg-[var(--bg-card)] [border:var(--border-card)] text-[var(--text-primary)] shadow-[var(--shadow-card)] backdrop-blur-[var(--backdrop-blur)] z-[50]">
       <form onSubmit={handleSubmit}>
         <input
           onFocus={() => setIsOpen(true)}
@@ -50,7 +50,7 @@ function BinSearchSelect({ bins, selectedBin, onSelectBin }) {
       </form>
       {/*Drop down selection of bins*/}
       {isOpen && (
-        <div className="absolute top-full right-0 left-0 mt-2 rounded-lg border-2 border-[#adadad] bg-[#1E1E1E] max-h-30 md:max-h-60 overflow-y-auto shadow-xl flex flex-col z-[100]">
+        <div className="absolute top-full right-0 left-0 mt-2 rounded-lg [border:var(--border-card)] bg-[var(--bg-card)] backdrop-blur-[var(--backdrop-blur)] max-h-30 md:max-h-60 overflow-y-auto shadow-[var(--shadow-card)] flex flex-col z-[100]">
           {filteredBins.length > 0 ? (
             filteredBins.map((bin) => (
               <button
@@ -60,7 +60,7 @@ function BinSearchSelect({ bins, selectedBin, onSelectBin }) {
                   setSearchQuery("");
                   onSelectBin(bin.id);
                 }}
-                className="hover:bg-[#333232] rounded-sm m-1 cursor-pointer"
+                className="hover:bg-white/10 rounded-sm m-1 cursor-pointer text-left px-2 py-1"
               >
                 BIN-{String(bin.id).padStart(3, '0')}
               </button>
