@@ -3,83 +3,113 @@ import { supabase } from "../../services/supabaseClient";
 
 const AuthContext = createContext();
 
-export default function AuthProvider({children}){
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+export default function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [role, setRole] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        supabase.auth.getSession().
-        then(({data: {session}, error}) => {
-            //set user if data exists already. if not set it to null
-            setUser(session?.user ?? null);
-            setLoading(false);
-        });
+  const fetchProfileRole = async (userId) => {
+    if (!userId) {
+      setRole(null);
+      return;
+    }
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .single();
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    if (error || !data) {
+      console.error("Error fetching profile role:", error?.message);
+      setRole("viewer");
+    } else {
+      setRole(data.role);
+    }
+  };
 
-        setUser(session?.user ?? null);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) {
+        fetchProfileRole(currentUser.id).finally(() => setLoading(false));
+      } else {
         setLoading(false);
-        });
+      }
+    });
 
-        return () => {
-        subscription.unsubscribe();
-        };
-    }, []);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) {
+        await fetchProfileRole(currentUser.id);
+      } else {
+        setRole(null);
+      }
+      setLoading(false);
+    });
 
-    const signUp = async(email, password) => {
-        const {data, error} = await supabase.auth.signUp({email, password});
-        
-        if (error) throw error; 
-        return data;
-    }
-
-    const logIn = async(email, password) =>{
-        const {data, error} = await supabase.auth.signInWithPassword({email, password});
-
-        if (error) throw error; 
-        return data;
-    }
-
-    const forgotPassword = async (email) => {
-        const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: "http://localhost:5173/update-password",
-        });
-
-        if (error) throw error;
-        return data;
+    return () => {
+      subscription.unsubscribe();
     };
+  }, []);
 
-    const updatePassword = async (newPassword) => {
-        const { data, error } = await supabase.auth.updateUser({
-            password: newPassword
-        });
+  const signUp = async (email, password) => {
+    const { data, error } = await supabase.auth.signUp({ email, password });
 
-        if (error) throw error;
-        return data;
-    };
+    if (error) throw error;
+    return data;
+  };
 
+  const logIn = async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-    const logOut = async() =>{
-        await supabase.auth.signOut();
-    }
+    if (error) throw error;
+    return data;
+  };
 
-    const value = {
-        user,
-        loading,
-        signUp,
-        logIn,
-        forgotPassword,
-        updatePassword,
-        logOut
-    };
+  const forgotPassword = async (email) => {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: "http://localhost:5173/update-password",
+    });
 
-    return(
-        <AuthContext.Provider value={value}>
-            {children}
-        </AuthContext.Provider>
-    )
+    if (error) throw error;
+    return data;
+  };
+
+  const updatePassword = async (newPassword) => {
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (error) throw error;
+    return data;
+  };
+
+  const logOut = async () => {
+    await supabase.auth.signOut();
+  };
+
+  const value = {
+    user,
+    loading,
+    role,
+    isAdmin: role === "admin",
+    signUp,
+    logIn,
+    forgotPassword,
+    updatePassword,
+    logOut,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => {
-    return useContext(AuthContext);
-}
+  return useContext(AuthContext);
+};
