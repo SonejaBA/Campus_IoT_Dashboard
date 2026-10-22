@@ -4,6 +4,7 @@ import CurrentBinCard from "../components/cards/CurrentBinCard";
 import BinSearchSelect from "../components/BinSearchSelect";
 import KPICard from "../components/cards/KPICard";
 import ExportCsvButton from "../components/ExportCsvButton";
+import TimeRangeSelect from "../components/TimeRangeSelect";
 
 function Analytics({ bins }) {
   const fullColor = "bg-red-500";
@@ -13,6 +14,8 @@ function Analytics({ bins }) {
   const [selectedBin, setSelectedBin] = useState("");
   const binsCount = bins.length;
   const activeBin = bins.find((bin) => bin.id === selectedBin);
+  const [timeRange, setTimeRange] = useState("7d");
+
 
   const averageFill =
     binsCount > 0
@@ -85,6 +88,10 @@ function Analytics({ bins }) {
           {selectedBin !== "" && (
             <ExportCsvButton binId={selectedBin} label="Export this bin" />
           )}
+          <TimeRangeSelect 
+          timeRange={timeRange} 
+          onChange={setTimeRange} 
+          />
           <BinSearchSelect
             bins={bins}
             selectedBin={selectedBin}
@@ -99,7 +106,7 @@ function Analytics({ bins }) {
               Historical Bin Data
             </h2>
             <div className="h-50 md:h-100 flex w-full">
-              <HistoricalBinCard binID={selectedBin} />
+              <HistoricalBinCard binID={selectedBin}  timeRange ={timeRange}/>
             </div>
           </div>
 
