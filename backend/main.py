@@ -236,10 +236,12 @@ def export_telemetry(bin_id: int | None = None):
 @app.post("/api/bins/{bin_id}/reset")
 async def reset_bin_status(bin_id: int):
     try:
-        # Insert a telemetry log row to record the reset event
+        # Insert a telemetry log row setting individual streams to 0
         log_response = supabase.table("telemetry_logs").insert({
             "bin_id": bin_id,
-            "fill_level": 0,
+            "compost": 0,
+            "landfill": 0,
+            "recycle": 0,
             "status": "Active"
         }).execute()
 

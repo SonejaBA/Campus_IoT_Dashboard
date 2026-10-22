@@ -198,19 +198,17 @@ function DashboardMap({ bins }) {
             icon={createBinIcon(bin.fill_level)}
           >
             <Popup className="dark-popup">
-              <div className="h-50 w-70 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2 mt-2">
-                    <span className="font-medium text-l">
-                      BIN-{String(bin["id"]).padStart(3, "0")}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {getRelativeTime(bin.time)}
-                    </span>
-                  </div>
-                  <CurrentCapacityChart bin={bin} isPopup={true} />
+              <div className="h-50 w-70 flex flex-col">
+                <div className="flex items-center justify-between mb-2 mt-2">
+                  <span className="font-medium text-l">
+                    BIN-{String(bin["id"]).padStart(3, "0")}
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    {getRelativeTime(bin.time)}
+                  </span>
                 </div>
-
+                <CurrentCapacityChart bin={bin} isPopup={true} />
+              </div>
                 <div className="pt-2 flex justify-start">
                   <button
                     type="button"
@@ -220,7 +218,6 @@ function DashboardMap({ bins }) {
                     Mark Emptied
                   </button>
                 </div>
-              </div>
             </Popup>
           </Marker>
         ))}
