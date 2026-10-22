@@ -8,7 +8,6 @@ function AppLayout({ bins }) {
   const { settings } = useSettings();
   const {role} = useAuth();
 
-  console.log(role);
   return (
     <div 
       className={`theme-${settings.theme} h-screen w-screen flex flex-row font-sans overflow-clip text-[var(--text-primary)]`}

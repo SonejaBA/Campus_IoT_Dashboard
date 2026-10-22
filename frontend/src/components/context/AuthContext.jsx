@@ -17,10 +17,9 @@ export default function AuthProvider({ children }) {
       .from("profiles")
       .select("role")
       .eq("id", userId)
-      .single();
+      .maybeSingle();
 
     if (error || !data) {
-      console.error("Error fetching profile role:", error?.message);
       setRole("viewer");
     } else {
       setRole(data.role);
@@ -37,7 +36,7 @@ export default function AuthProvider({ children }) {
         setLoading(false);
       }
     });
-
+    
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
