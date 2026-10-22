@@ -1,6 +1,17 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 from supabase import create_client, Client
 from dotenv import load_dotenv
 import os
@@ -224,16 +235,18 @@ def export_telemetry(bin_id: int | None = None):
 # ticket 44 Reset Endpoint
 @app.post("/api/bins/{bin_id}/reset")
 async def reset_bin_status(bin_id: int):
-    # 1. Update the bin in Supabase: reset fill level to 0, status to Active
-    response = supabase.table("bins").update({
-        "fill_level": 0,
-        "status": "Active"
-    }).eq("id", bin_id).execute()
+    try:
+        # Insert a telemetry log row to record the reset event
+        log_response = supabase.table("telemetry_logs").insert({
+            "bin_id": bin_id,
+            "fill_level": 0,
+            "status": "Active"
+        }).execute()
 
-    if not response.data:
-        raise HTTPException(status_code=404, detail="Bin not found")
-
-    return {
-        "message": f"Bin {bin_id} successfully marked as emptied",
-        "bin": response.data[0]
-    }
+        return {
+            "message": f"Bin {bin_id} successfully reset via telemetry log",
+            "data": log_response.data
+        }
+    except Exception as e:
+        print(f"Error resetting bin: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

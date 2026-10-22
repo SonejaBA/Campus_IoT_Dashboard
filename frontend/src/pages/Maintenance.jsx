@@ -269,7 +269,6 @@ export default function Maintenance() {
     });
   }, [bins, searchTerm, zoneFilter]);
 
-
   return (
     <main className="min-h-full flex-1 overflow-auto px-5 py-8 text-[var(--text-primary)] sm:px-8 lg:px-10 bg-slate-50">
       <div className="mx-auto max-w-7xl">

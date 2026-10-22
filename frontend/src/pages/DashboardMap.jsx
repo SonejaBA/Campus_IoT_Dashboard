@@ -136,25 +136,32 @@ function DashboardMap({ bins }) {
 
   // Function to reset a bin from the map view
   const handleResetFromMap = async (binId) => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/bins/${binId}/reset`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
+      try {
+        // Change http://localhost:8000 to match your actual backend port if it's different
+        const backendUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+        
+        const response = await fetch(`${backendUrl}/api/bins/${binId}/reset`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
 
-      if (!response.ok) throw new Error("Failed to reset bin.");
-      window.location.reload(); // Refreshes to show green color update
-    } catch (error) {
-      console.error("Error resetting bin from map:", error);
-      alert("Failed to reset bin.");
-    }
-  };
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.detail || "Failed to reset bin.");
+        }
 
-  const zoneFilteredBins = (bins ?? []).filter((bin) => {
-    if (!settings.selectedZone || settings.selectedZone === "all") return true;
-    
-    return bin.zone === settings.selectedZone;
-});
+        window.location.reload(); // Refreshes to show green color update
+      } catch (error) {
+        console.error("Error resetting bin from map:", error);
+        alert(error.message || "Failed to reset bin.");
+      }
+    };
+
+    const zoneFilteredBins = (bins ?? []).filter((bin) => {
+      if (!settings.selectedZone || settings.selectedZone === "all") return true;
+      
+      return bin.zone === settings.selectedZone;
+  });
 
   const filteredBins = zoneFilteredBins.filter((bin) => {
     if (activeFilter === "all") return true;
@@ -191,18 +198,19 @@ function DashboardMap({ bins }) {
             icon={createBinIcon(bin.fill_level)}
           >
             <Popup className="dark-popup">
-              <div className="h-50 w-70 flex flex-col">
-                <div className="flex items-center justify-between mb-2 mt-2">
-                  <span className="font-medium text-l">
-                    BIN-{String(bin["id"]).padStart(3, "0")}
-                  </span>
-                  <span className="text-xs text-gray-400">
-                    {getRelativeTime(bin.time)}
-                  </span>
+              <div className="h-50 w-70 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2 mt-2">
+                    <span className="font-medium text-l">
+                      BIN-{String(bin["id"]).padStart(3, "0")}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {getRelativeTime(bin.time)}
+                    </span>
+                  </div>
+                  <CurrentCapacityChart bin={bin} isPopup={true} />
                 </div>
-                <CurrentCapacityChart bin={bin} isPopup={true} />
-              </div>
-              
+
                 <div className="pt-2 flex justify-start">
                   <button
                     type="button"
@@ -212,7 +220,7 @@ function DashboardMap({ bins }) {
                     Mark Emptied
                   </button>
                 </div>
-
+              </div>
             </Popup>
           </Marker>
         ))}
