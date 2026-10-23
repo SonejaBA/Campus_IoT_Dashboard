@@ -221,3 +221,36 @@ def export_telemetry(bin_id: int | None = None):
 
     return rows
     
+# ticket 44 Reset Endpoint
+@app.post("/api/bins/{bin_id}/reset")
+async def reset_bin_status(bin_id: int):
+    try:
+        last_log = (
+            supabase.table("telemetry_logs")
+            .select("battery_level")
+            .eq("bin_id", bin_id)
+            .order("time", desc=True)
+            .limit(1)
+            .execute()
+        )
+
+        previous_battery = 0
+        if last_log.data and len(last_log.data) > 0:
+            previous_battery = last_log.data[0].get("battery_level", 0)
+
+        log_response = supabase.table("telemetry_logs").insert({
+            "bin_id": bin_id,
+            "compost": 0,
+            "landfill": 0,
+            "recycle": 0,
+            "fill_level": 0,
+            "battery_level": previous_battery
+        }).execute()
+
+        return {
+            "message": f"Bin {bin_id} successfully reset via telemetry log",
+            "data": log_response.data
+        }
+    except Exception as e:
+        print(f"Error resetting bin: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

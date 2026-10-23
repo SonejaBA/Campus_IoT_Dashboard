@@ -134,11 +134,34 @@ function DashboardMap({ bins }) {
   const [activeFilter, setActiveFilter] = useState("all");
   const { settings } = useSettings();
 
-  const zoneFilteredBins = (bins ?? []).filter((bin) => {
-    if (!settings.selectedZone || settings.selectedZone === "all") return true;
-    
-    return bin.zone === settings.selectedZone;
-});
+  // Function to reset a bin from the map view
+  const handleResetFromMap = async (binId) => {
+      try {
+        // Change http://localhost:8000 to match your actual backend port if it's different
+        const backendUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+        
+        const response = await fetch(`${backendUrl}/api/bins/${binId}/reset`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.detail || "Failed to reset bin.");
+        }
+
+        window.location.reload(); // Refreshes to show green color update
+      } catch (error) {
+        console.error("Error resetting bin from map:", error);
+        alert(error.message || "Failed to reset bin.");
+      }
+    };
+
+    const zoneFilteredBins = (bins ?? []).filter((bin) => {
+      if (!settings.selectedZone || settings.selectedZone === "all") return true;
+      
+      return bin.zone === settings.selectedZone;
+  });
 
   const filteredBins = zoneFilteredBins.filter((bin) => {
     if (activeFilter === "all") return true;
@@ -177,7 +200,7 @@ function DashboardMap({ bins }) {
             <Popup className="dark-popup">
               <div className="h-50 w-70 flex flex-col">
                 <div className="flex items-center justify-between mb-2 mt-2">
-                  <span className="font-medium text-l">
+                  <span className="font-bold text-xl">
                     BIN-{String(bin["id"]).padStart(3, "0")}
                   </span>
                   <span className="text-xs text-gray-400">
@@ -186,6 +209,28 @@ function DashboardMap({ bins }) {
                 </div>
                 <CurrentCapacityChart bin={bin} isPopup={true} />
               </div>
+                <div className="pt-2 flex justify-start">
+                  <button
+                    type="button"
+                    onClick={() => handleResetFromMap(bin.id)}
+                    className="
+                          px-2.5 
+                          py-1 
+                          text-xs 
+                          -mt-2
+                          font-[550]
+                          text-[var(--text-secondary)]
+                          bg-[var(--bg-card)]
+                          [border:var(--border-card)]
+                          rounded-md
+                          hover:bg-[var(--bg-card-strong)]
+                          transition 
+                          shadow-sm 
+                          cursor-pointer"
+                  >
+                    Mark Emptied
+                  </button>
+                </div>
             </Popup>
           </Marker>
         ))}
