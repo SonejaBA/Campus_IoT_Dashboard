@@ -38,12 +38,25 @@ function Analytics({ bins }) {
 
   return (
     //flex 1 since its going to be under a flex parent
-    <div
-      className="flex-1 text-[var(--text-primary)] p-10 flex flex-col gap-4"
-    >
-      <h1 className="text-4xl font-bold text-[var(--text-primary)] mb-3 hidden md:block">
-        Analytics
+    <div className="flex-1 text-[var(--text-primary)] p-10 flex flex-col gap-4">
+      
+      <h1 className="mb-3 hidden md:block">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-secondary)]">
+            Operations Control Center
+          </p>
+
+          <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+            Analytics
+          </h1>
+
+          <p className="mt-2 max-w-2xl text-sm text-[var(--text-secondary)]">
+            View bin history, campus-wide metrics, and export bin data.
+          </p>
+        </div>
       </h1>
+
+
       <div className="grid grid-cols-2 grid-rows-2 lg:grid-cols-4 md:grid-rows-1 gap-8 items-center mb-3">
         <div>
           <KPICard

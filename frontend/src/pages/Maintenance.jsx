@@ -262,7 +262,7 @@ const handleRemoveBin = async (binId) => {
 
         {/* Summary cards */}
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] p-5 shadow-[var(--shadow-card-subtle)]">
+          <div className="rounded-xl bg-[var(--bg-card)] backdrop-blur-[var(--backdrop-blur)] [border:var(--border-subtle)] p-5 shadow-[var(--shadow-card-subtle)]">
             <div className="flex items-center gap-3">
               <Wrench size={20} />
               <span className="text-sm text-[var(--text-secondary)]">
@@ -273,7 +273,7 @@ const handleRemoveBin = async (binId) => {
             <p className="mt-4 text-3xl font-bold">{bins.length}</p>
           </div>
 
-          <div className="rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] p-5 shadow-[var(--shadow-card-subtle)]">
+          <div className="rounded-xl bg-[var(--bg-card)] backdrop-blur-[var(--backdrop-blur)] [border:var(--border-subtle)] p-5 shadow-[var(--shadow-card-subtle)]">
             <div className="flex items-center gap-3">
               <AlertTriangle
                 size={20}
@@ -287,7 +287,7 @@ const handleRemoveBin = async (binId) => {
             <p className="mt-4 text-3xl font-bold">{criticalCount}</p>
           </div>
 
-          <div className="rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] p-5 shadow-[var(--shadow-card-subtle)]">
+          <div className="rounded-xl bg-[var(--bg-card)] backdrop-blur-[var(--backdrop-blur)] [border:var(--border-subtle)] p-5 shadow-[var(--shadow-card-subtle)]">
             <div className="flex items-center gap-3">
               <AlertTriangle
                 size={20}
@@ -301,7 +301,7 @@ const handleRemoveBin = async (binId) => {
             <p className="mt-4 text-3xl font-bold">{warningCount}</p>
           </div>
 
-          <div className="rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] p-5 shadow-[var(--shadow-card-subtle)]">
+          <div className="rounded-xl bg-[var(--bg-card)] backdrop-blur-[var(--backdrop-blur)] [border:var(--border-subtle)] p-5 shadow-[var(--shadow-card-subtle)]">
             <div className="flex items-center gap-3">
               <MapPin size={20} />
               <span className="text-sm text-[var(--text-secondary)]">
@@ -314,7 +314,7 @@ const handleRemoveBin = async (binId) => {
         </section>
 
         {/* Bin directory */}
-        <section className="mt-4 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] p-5 shadow-[var(--shadow-card-subtle)] sm:p-6">
+        <section className="mt-4 rounded-xl bg-[var(--bg-card)] backdrop-blur-[var(--backdrop-blur-strong)] [border:var(--border-subtle)] p-5 shadow-[var(--shadow-card-subtle)] sm:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h2 className="text-xl font-semibold">Bin directory</h2>
@@ -345,7 +345,7 @@ const handleRemoveBin = async (binId) => {
               <select
                 value={zoneFilter}
                 onChange={(event) => setZoneFilter(event.target.value)}
-                className="rounded-lg border border-[color:var(--control-border)] bg-[var(--bg-card-strong)] px-3 py-2.5 text-sm text-[var(--control-text)] outline-none"
+                className="rounded-lg border border-[color:var(--control-border)] bg-[var(--bg-card)] px-3 py-2.5 text-sm text-[var(--dropdown-text))] outline-none"
               >
                 <option value="all">All zones</option>
                 <option value="A">Zone A</option>

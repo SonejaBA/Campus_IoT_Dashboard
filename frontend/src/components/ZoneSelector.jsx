@@ -2,7 +2,6 @@ import { useSettings } from "./context/SettingsContext";
 
 function ThemeSelector() {
   const { settings, updateSetting } = useSettings();
-    console.log(settings.selectedZone);
   return (
     <section className="mt-4 flex items-center justify-between rounded-xl [border:var(--border-card)] bg-[var(--bg-card-strong)] p-4">
       <div>

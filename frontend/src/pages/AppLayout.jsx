@@ -5,6 +5,7 @@ import { useSettings } from "../components/context/SettingsContext";
 
 function AppLayout({ bins }) {
   const { settings } = useSettings();
+
   return (
     <div 
       className={`theme-${settings.theme} h-screen w-screen flex flex-row font-sans overflow-clip text-[var(--text-primary)]`}
