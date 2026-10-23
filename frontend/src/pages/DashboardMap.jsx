@@ -213,7 +213,19 @@ function DashboardMap({ bins }) {
                   <button
                     type="button"
                     onClick={() => handleResetFromMap(bin.id)}
-                    className="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition shadow-sm cursor-pointer"
+                    className="
+                          px-2.5 
+                          py-1 
+                          text-xs 
+                          font-[550]
+                          text-[var(--text-secondary)]
+                          bg-[var(--bg-card)]
+                          [border:var(--border-card)]
+                          rounded-md
+                          hover:bg-[var(--bg-card-strong)]
+                          transition 
+                          shadow-sm 
+                          cursor-pointer"
                   >
                     Mark Emptied
                   </button>
