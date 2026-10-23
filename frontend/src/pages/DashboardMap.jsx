@@ -200,7 +200,7 @@ function DashboardMap({ bins }) {
             <Popup className="dark-popup">
               <div className="h-50 w-70 flex flex-col">
                 <div className="flex items-center justify-between mb-2 mt-2">
-                  <span className="font-medium text-l">
+                  <span className="font-bold text-xl">
                     BIN-{String(bin["id"]).padStart(3, "0")}
                   </span>
                   <span className="text-xs text-gray-400">
@@ -217,6 +217,7 @@ function DashboardMap({ bins }) {
                           px-2.5 
                           py-1 
                           text-xs 
+                          -mt-2
                           font-[550]
                           text-[var(--text-secondary)]
                           bg-[var(--bg-card)]
