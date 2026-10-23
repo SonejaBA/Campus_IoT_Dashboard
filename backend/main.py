@@ -239,7 +239,7 @@ async def reset_bin_status(bin_id: int):
             previous_battery = last_log.data[0].get("battery_level", 0)
 
         log_response = supabase.table("telemetry_logs").insert({
-            "bin_id": bin_id,it 
+            "bin_id": bin_id,
             "compost": 0,
             "landfill": 0,
             "recycle": 0,
