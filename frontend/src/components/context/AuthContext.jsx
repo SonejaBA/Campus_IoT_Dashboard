@@ -6,23 +6,27 @@ const AuthContext = createContext();
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null);
+  const [displayName, setDisplayName] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProfileRole = async (userId) => {
     if (!userId) {
       setRole(null);
+      setDisplayName("User");
       return;
     }
     const { data, error } = await supabase
       .from("profiles")
-      .select("role")
+      .select("role, display_name")
       .eq("id", userId)
       .maybeSingle();
 
     if (error || !data) {
       setRole("viewer");
+      setDisplayName("User");
     } else {
       setRole(data.role);
+      setDisplayName(data.display_name);
     }
   };
 
@@ -116,6 +120,7 @@ export default function AuthProvider({ children }) {
     updatePassword,
     updateProfile,
     logOut,
+    displayName,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
