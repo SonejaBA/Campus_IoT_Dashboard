@@ -36,7 +36,7 @@ export default function AuthProvider({ children }) {
         setLoading(false);
       }
     });
-    
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
@@ -94,6 +94,17 @@ export default function AuthProvider({ children }) {
     await supabase.auth.signOut();
   };
 
+  const updateProfile = async (displayName) => {
+    const { data, error } = await supabase.auth.updateUser({
+      data: { display_name: displayName },
+    });
+
+    if (error) throw error;
+
+    setUser(data.user);
+    return data;
+  };
+
   const value = {
     user,
     loading,
@@ -103,6 +114,7 @@ export default function AuthProvider({ children }) {
     logIn,
     forgotPassword,
     updatePassword,
+    updateProfile,
     logOut,
   };
 
