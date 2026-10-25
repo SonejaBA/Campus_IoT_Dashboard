@@ -28,6 +28,8 @@ export default function AuthProvider({ children }) {
       setRole(data.role);
       setDisplayName(data.display_name);
     }
+
+    
   };
 
   useEffect(() => {

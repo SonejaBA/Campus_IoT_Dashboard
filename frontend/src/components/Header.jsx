@@ -229,7 +229,7 @@ function Header({ bins }) {
       <div className="gap-2 items-center hidden md:flex text-[var(--button-color)]">
         <div>{icon}</div>
         <h1 className="font-medium tracking-tight">
-          {text}, {displayName.split(" ")[0]}!
+          {text}, {displayName?.split(" ")[0] ?? "User"}!
         </h1>
       </div>
 
