@@ -46,7 +46,8 @@ function Sidebar() {
           src={isOpen ? wordLogo : treeLogo}
           alt="Sacramento State Sustainability"
           title="Open sidebar"
-          className={`
+          className={`  
+                        -mt-1.5
                         w-auto
                         object-contain
                         cursor-pointer
