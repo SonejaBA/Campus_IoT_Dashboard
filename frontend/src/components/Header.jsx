@@ -207,31 +207,31 @@ function Header({ bins }) {
   const notificationCount = attentionBins.length + lowBatteryBins.length;
   return (
     <div
-      className="
+      className={`
     bg-[var(--bg-header)] 
     text-[var(--text-primary)]
     p-4 
     h-14 
     items-center 
-    justify-between 
+    ${!settings.enabledGreeting ? "justify-end" : "justify-between"} 
     flex 
     flex-row 
     [border:var(--border-subtle)]
     backdrop-blur-[var(--backdrop-blur-strong)]
     z-[2000]
-    "
+    `}
     >
       <div className="gap-2 items-center flex md:hidden">
         <MobileNav />
         <h1 className="font-medium md:hidden"> {pageTitles[currentPath]} </h1>
       </div>
 
-      <div className="gap-2 items-center hidden md:flex text-[var(--button-color)]">
+      {settings.enabledGreeting && <div className="gap-2 items-center hidden md:flex text-[var(--button-color)]">
         <div>{icon}</div>
         <h1 className="font-medium tracking-tight">
           {text}, {displayName?.split(" ")[0] ?? "User"}!
         </h1>
-      </div>
+      </div>}
 
       <div className="gap-2 items-center flex ">
         <div className="relative top-1">
