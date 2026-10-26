@@ -132,12 +132,14 @@ function FilterButton({ activeFilter, onSelect }) {
 
 function DashboardMap({ bins }) {
   const [activeFilter, setActiveFilter] = useState("all");
+  const [isResetting, setIsResetting] = useState(false);
   const { settings } = useSettings();
   const mapRef = useRef(null);
 
   // Function to reset a bin from the map view
   const handleResetFromMap = async (binId) => {
-      
+      if (isResetting) return;
+      setIsResetting(true);
       try {
         // Change http://localhost:8000 to match your actual backend port if it's different
         const backendUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
@@ -155,6 +157,8 @@ function DashboardMap({ bins }) {
       } catch (error) {
         console.error("Error resetting bin from map:", error);
         alert(error.message || "Failed to reset bin.");
+      } finally{
+        setIsResetting(false);
       }
     };
 
