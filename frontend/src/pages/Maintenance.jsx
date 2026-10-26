@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   MapPin,
@@ -39,6 +39,7 @@ function Maintenance({ bins = [] }) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingBin, setEditingBin] = useState(null);
+  const [maintenanceStatus, setMaintenanceStatus] = useState({});
   const [newBin, setNewBin] = useState({
   id: "",
   location: "",
@@ -46,6 +47,46 @@ function Maintenance({ bins = [] }) {
   long: "",
   zone: "",
 });
+useEffect(() => {
+  let ignore = false;
+
+  const loadMaintenanceStatus = async () => {
+    try {
+      const results = await Promise.all(
+        (bins ?? []).map(async (bin) => {
+          const response = await fetch(
+            `${import.meta.env.VITE_API_URL}/api/maintenance/${bin.id}`
+          );
+
+          if (!response.ok) {
+            throw new Error(
+              `Failed to load maintenance status for bin ${bin.id}`
+            );
+          }
+
+          return [bin.id, await response.json()];
+        })
+      );
+
+      if (!ignore) {
+        setMaintenanceStatus(Object.fromEntries(results));
+      }
+    } catch (error) {
+      console.error("Error loading maintenance status:", error);
+
+      if (!ignore) {
+        setMaintenanceStatus({});
+      }
+    }
+  };
+
+  loadMaintenanceStatus();
+
+  return () => {
+    ignore = true;
+  };
+}, [bins]);
+
   const handleNewBinChange = (event) => {
   const { name, value } = event.target;
 
