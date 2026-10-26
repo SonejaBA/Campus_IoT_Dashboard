@@ -213,7 +213,8 @@ function Header({ bins }) {
     p-4 
     h-14 
     items-center 
-    ${!settings.enabledGreeting ? "justify-end" : "justify-between"} 
+    justify-between
+    md:${settings.enabledGreeting ? "justify-between" : "justify-end"} 
     flex 
     flex-row 
     [border:var(--border-subtle)]
