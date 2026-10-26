@@ -214,7 +214,7 @@ function Header({ bins }) {
     h-14 
     items-center 
     justify-between
-    md:${settings.enabledGreeting ? "justify-between" : "justify-end"} 
+    md:${settings.enabledGreeting ? "justify-between" : "justify-end"}
     flex 
     flex-row 
     [border:var(--border-subtle)]
@@ -227,12 +227,14 @@ function Header({ bins }) {
         <h1 className="font-medium md:hidden"> {pageTitles[currentPath]} </h1>
       </div>
 
-      {settings.enabledGreeting && <div className="gap-2 items-center hidden md:flex text-[var(--button-color)]">
-        <div>{icon}</div>
-        <h1 className="font-medium tracking-tight">
-          {text}, {displayName?.split(" ")[0] ?? "User"}!
-        </h1>
-      </div>}
+      {settings.enabledGreeting && 
+        <div className="gap-2 items-center hidden md:flex text-[var(--button-color)]">
+          <div>{icon}</div>
+          <h1 className="font-medium tracking-tight">
+            {text}, {displayName?.split(" ")[0] ?? "User"}!
+          </h1>
+        </div>
+      }
 
       <div className="gap-2 items-center flex ">
         <div className="relative top-1">

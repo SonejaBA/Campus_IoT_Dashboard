@@ -19,8 +19,11 @@ The database relies on two tables and an automated trigger to process incoming t
 | ---------------- | ------------------------------- | ---------------------------------------------------------- |
 | `bins`           | Current state for the React map | `id`, `lat`, `long`, `fill_level`, `battery_level`, `time`,`location`, `compost`, `recycle`, `landfil`, `zone` |
 | `telemetry_logs` | Time-series historical data     | `id`, `bin_id`, `fill_level`, `battery_level`, `time`, `compost`, `recycle`, `landfil` |
+| `profiles`| Provide roles and display names for users | `id`, `email`, `role`, `created_at`, `display_name`|
 
 > \*\*Automation Note:\*\* An `AFTER INSERT` trigger on `telemetry_logs` automatically updates `fill_level`, `battery_level`,  `compost`, `recycle`, `landfil` and `time` on the corresponding record in `bins`.
+>
+>  \*\*Automation Note:\*\* When a user signs up for the application, their role is automatically set as non-admin.
 
 ## Prerequisites
 
@@ -102,13 +105,3 @@ uvicorn main:app --reload
 ```
 
 The API server will run at `http://127.0.0.1:8000`.
-
-#### Step D: Run the Hardware Simulator
-
-In a separate terminal (with the virtual environment activated), start the telemetry simulator:
-
-> \*\*Note:\*\* Ensure `(venv)` appears at the start of your terminal prompt.
-
-```bash
-python simulator.py
-```
