@@ -8,7 +8,7 @@ function EnableGreeting(){
               <div>
                 <p className="font-semibold text-sm">Enable Greeting</p>
                 <p className="mt-1 text-xs text-[var(--text-secondary)]">
-                  Enable greeting on header.
+                  Enable greeting on header. Not visible on smaller devices.
                 </p>
               </div>
 
