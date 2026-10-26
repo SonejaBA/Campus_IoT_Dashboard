@@ -187,7 +187,7 @@ function Sidebar() {
           isOpen ? "px-0" : "justify-center px-0"
         }`}
       >
-        <div className="w-9 h-9 rounded-full bg-[var(--bg-card-strong)] text-[var(--button-color)] font-semibold flex items-center justify-center shrink-0 shadow-md text-sm">
+        <div className="w-9 h-9 rounded-full bg-[var(--bg-card)] text-[var(--button-color)] font-semibold flex items-center justify-center shrink-0 shadow-md text-sm">
           {initial}
         </div>
 
