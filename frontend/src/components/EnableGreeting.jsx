@@ -9,8 +9,8 @@ function EnableGreeting() {
       <div className="flex flex-row items-center gap-3">
         <Sun size={21} className="shrink-0" />
         <div>
-          <p className="font-semibold text-sm">Enable Greeting</p>
-          <p className="mt-1 text-xs text-[var(--text-secondary)]">
+          <h3 className="font-semibold text-[var(--text-primary)]">Enable Greeting</h3>
+          <p className="text-sm text-[var(--text-secondary)]">
             Enable greeting on header. Not visible on smaller devices.
           </p>
         </div>
