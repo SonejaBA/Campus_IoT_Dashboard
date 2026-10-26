@@ -197,6 +197,61 @@ def get_bin_logs(bin_id: int, time_range: str = "7d"):
 
     return rows
 
+SENSOR_FIELDS = ("compost", "recycle", "landfill")
+
+
+def analyze_sensor_maintenance(bin_id: int):
+    response = (
+        supabase
+        .table("telemetry_logs")
+        .select("id,time,compost,recycle,landfill,is_manual")
+        .eq("bin_id", bin_id)
+        .order("time", desc=True)
+        .order("id", desc=True)
+        .limit(100)
+        .execute()
+    )
+
+    # Ignore manual pings when checking whether a sensor is stuck.
+    automatic_logs = [
+        row for row in response.data
+        if row.get("is_manual") is not True
+    ]
+
+    sensor_status = {}
+
+    for sensor in SENSOR_FIELDS:
+        latest_values = [
+            row.get(sensor)
+            for row in automatic_logs[:3]
+        ]
+
+        sensor_status[sensor] = (
+            len(latest_values) == 3
+            and all(value is not None for value in latest_values)
+            and latest_values[0] == latest_values[1] == latest_values[2]
+        )
+
+    return {
+        "bin_id": bin_id,
+        "needs_maintenance": any(sensor_status.values()),
+        "sensors": sensor_status,
+        "automatic_readings_checked": min(len(automatic_logs), 3),
+    }
+
+
+@app.get("/api/maintenance/{bin_id}")
+def get_maintenance_status(bin_id: int):
+    try:
+        return analyze_sensor_maintenance(bin_id)
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
+
+
 @app.get("/api/health")
 def health_check():
     try:
@@ -275,7 +330,8 @@ async def reset_bin_status(bin_id: int):
             "landfill": 0,
             "recycle": 0,
             "fill_level": 0,
-            "battery_level": previous_battery
+            "battery_level": previous_battery,
+            "is_manual": True
         }).execute()
 
         return {
