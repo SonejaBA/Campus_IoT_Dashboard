@@ -1,4 +1,6 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
+from collections import defaultdict
+from overserviced import find_clearings
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from supabase import create_client, Client
@@ -286,3 +288,64 @@ async def reset_bin_status(bin_id: int):
     except Exception as e:
         print(f"Error resetting bin: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/overserviced")
+def get_overserviced_bins(
+    days: int = Query(7, ge=1, le=30),               # how far back to look
+    min_drop: int = Query(20, ge=1, le=100),         # smallest drop that counts as a pickup
+    max_fill_before: int = Query(50, ge=1, le=100),  # pickup only counts if the bin was under this
+    min_events: int = Query(4, ge=1, le=50),         # 4 = "more than 3 times"
+):
+    # Only look at readings from the last `days` days
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    bins_response = supabase.table("bins").select("id, location").execute()
+    locations = {b["id"]: b["location"] for b in bins_response.data}
+
+    rows = []
+    page_size = 1000
+    start = 0
+    while True:
+        batch = (
+            supabase.table("telemetry_logs")
+            .select("id, bin_id, fill_level, time")
+            .gte("time", since)
+            .order("bin_id")
+            .order("time")
+            .order("id")
+            .range(start, start + page_size - 1)
+            .execute()
+            .data
+        )
+        rows.extend(batch)
+        if len(batch) < page_size:
+            break
+        start += page_size
+
+    # Group readings by bin (rows are already in time order within each bin)
+    readings_by_bin = defaultdict(list)
+    for row in rows:
+        readings_by_bin[row["bin_id"]].append(row)
+
+    flagged = []
+    for bin_id, readings in readings_by_bin.items():
+        events = find_clearings(readings, min_drop, max_fill_before)
+        if len(events) >= min_events:
+            flagged.append({
+                "bin_id": bin_id,
+                "location": locations.get(bin_id, ""),
+                "event_count": len(events),
+                "events": events,
+            })
+
+    flagged.sort(key=lambda b: b["event_count"], reverse=True)
+
+    return {
+        "params": {
+            "days": days,
+            "min_drop": min_drop,
+            "max_fill_before": max_fill_before,
+            "min_events": min_events,
+        },
+        "bins": flagged,
+    }
