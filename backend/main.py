@@ -275,7 +275,8 @@ async def reset_bin_status(bin_id: int):
             "landfill": 0,
             "recycle": 0,
             "fill_level": 0,
-            "battery_level": previous_battery
+            "battery_level": previous_battery,
+            "is_manual" : True
         }).execute()
 
         return {
