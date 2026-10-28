@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -132,10 +132,14 @@ function FilterButton({ activeFilter, onSelect }) {
 
 function DashboardMap({ bins }) {
   const [activeFilter, setActiveFilter] = useState("all");
+  const [isResetting, setIsResetting] = useState(false);
   const { settings } = useSettings();
+  const mapRef = useRef(null);
 
   // Function to reset a bin from the map view
   const handleResetFromMap = async (binId) => {
+      if (isResetting) return;
+      setIsResetting(true);
       try {
         // Change http://localhost:8000 to match your actual backend port if it's different
         const backendUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
@@ -149,11 +153,12 @@ function DashboardMap({ bins }) {
           const errData = await response.json();
           throw new Error(errData.detail || "Failed to reset bin.");
         }
-
-        window.location.reload(); // Refreshes to show green color update
+        mapRef.current?.closePopup();
       } catch (error) {
         console.error("Error resetting bin from map:", error);
         alert(error.message || "Failed to reset bin.");
+      } finally{
+        setIsResetting(false);
       }
     };
 
@@ -176,6 +181,7 @@ function DashboardMap({ bins }) {
     <div className="flex-1 relative">
       <FilterButton activeFilter={activeFilter} onSelect={setActiveFilter} />
       <MapContainer
+        ref={mapRef}
         center={defaultCenter}
         zoom={17}
         minZoom={16}
