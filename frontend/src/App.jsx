@@ -13,12 +13,18 @@ import SettingsProvider from "./components/context/SettingsContext.jsx";
 import AppLayout from "./pages/AppLayout.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import UpdatePassword from "./pages/UpdatePassword.jsx";
+import {Toaster} from "sonner";
 
 function App() {
   const bins = useBins();
   return (
     <AuthProvider>
       <SettingsProvider>
+        <Toaster
+          position="bottom-right"
+          richColors
+          closeButton
+        />
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />

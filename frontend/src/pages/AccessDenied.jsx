@@ -1,6 +1,11 @@
 import wordLogo from "../assets/wordLogo.png";
+import { toast } from "sonner";
 
 function AccessDenied() {
+  const handleSubmitRequest = async () => {
+    toast.success("Request successful.")
+  };
+
   return (
     <div className="m-20 flex flex-col md:flex-row justify-between items-center gap-10">
       <div className="flex flex-col">
@@ -13,6 +18,7 @@ function AccessDenied() {
         </p>
         <button
           type="button"
+          onClick={() => handleSubmitRequest()}
           className="
             w-fit
             rounded-lg
