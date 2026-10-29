@@ -5,6 +5,7 @@ import BinSearchSelect from "../components/BinSearchSelect";
 import KPICard from "../components/cards/KPICard";
 import ExportCsvButton from "../components/ExportCsvButton";
 import TimeRangeSelect from "../components/TimeRangeSelect";
+import OverservicedPanel from "../components/cards/OverservicedPanel";
 
 function Analytics({ bins }) {
   const fullColor = "bg-red-500";
@@ -134,6 +135,8 @@ function Analytics({ bins }) {
           </div>
         </div>
       </div>
+
+      <OverservicedPanel />
     </div>
   );
 }
