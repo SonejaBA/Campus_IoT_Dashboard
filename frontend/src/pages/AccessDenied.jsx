@@ -7,18 +7,17 @@ import { Link, Navigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 
 function AccessDenied() {
-  const { user, role } = useAuth();
+  const { user, role, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [fetchingStatus, setFetchingStatus] = useState(true);
   const [hasRequested, setHasRequested] = useState(false);
 
-  if (role === "admin") {
-    return <Navigate to="/" replace />;
-  }
-
   useEffect(() => {
     async function checkExistingRequest() {
-      if (!user?.id) return;
+      if (!user?.id) {
+        setFetchingStatus(false);
+        return;
+      }
 
       try {
         const { data, error } = await supabase
@@ -37,8 +36,14 @@ function AccessDenied() {
       }
     }
 
-    checkExistingRequest();
-  }, [user?.id]);
+    if (!authLoading) {
+      checkExistingRequest();
+    }
+  }, [user?.id, authLoading]);
+
+  if (role === "admin") {
+    return <Navigate to="/" replace />;
+  }
 
   const handleSubmitRequest = async () => {
     if (!user?.id) return;
@@ -66,9 +71,9 @@ function AccessDenied() {
       <div className="flex flex-col items-start">
         <div className="text-[var(--text-primary)]">
           <div className="text-9xl mb-4">:(</div>
-          <h1 className="text-xl">You do not have access to that page.</h1>
+          <h1 className="text-xl font-bold">You do not have access to that page.</h1>
         </div>
-        <p className="text-sm text-[var(--text-secondary)]">
+        <p className="text-sm text-[var(--text-secondary)] mt-1 mb-4">
           Contact an admin or request access directly here.
         </p>
         <div className="flex items-center justify-center gap-2">
@@ -86,7 +91,6 @@ function AccessDenied() {
             bg-[var(--bg-card)]
             px-4 
             py-2.5 
-            mt-2
             text-xs
             font-medium 
             text-[var(--control-text)] 
@@ -99,7 +103,7 @@ function AccessDenied() {
           <button
             type="button"
             disabled={loading || hasRequested || fetchingStatus}
-            onClick={() => handleSubmitRequest()}
+            onClick={handleSubmitRequest}
             className="
             w-fit
             rounded-lg
@@ -108,12 +112,13 @@ function AccessDenied() {
             bg-[var(--bg-card)]
             px-4 
             py-2.5 
-            mt-2
             text-xs
             font-medium 
             text-[var(--control-text)] 
             transition 
-            hover:bg-[var(--control-hover)]"
+            hover:bg-[var(--control-hover)]
+            disabled:opacity-50
+            disabled:cursor-not-allowed"
           >
             {fetchingStatus
               ? "Checking status..."
