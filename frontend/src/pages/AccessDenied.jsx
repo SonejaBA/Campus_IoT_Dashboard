@@ -1,5 +1,5 @@
 import wordLogo from "../assets/wordLogo.png";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "../services/supabaseClient";
 import { useAuth } from "../components/context/AuthContext";
@@ -9,11 +9,36 @@ import { ArrowLeft } from "lucide-react";
 function AccessDenied() {
   const { user, role } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [fetchingStatus, setFetchingStatus] = useState(true);
   const [hasRequested, setHasRequested] = useState(false);
 
   if (role === "admin") {
     return <Navigate to="/" replace />;
   }
+
+  useEffect(() => {
+    async function checkExistingRequest() {
+      if (!user?.id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("requested_access")
+          .eq("id", user.id)
+          .single();
+
+        if (!error && data) {
+          setHasRequested(!!data.requested_access);
+        }
+      } catch (err) {
+        console.error("Error fetching access request status:", err);
+      } finally {
+        setFetchingStatus(false);
+      }
+    }
+
+    checkExistingRequest();
+  }, [user?.id]);
 
   const handleSubmitRequest = async () => {
     if (!user?.id) return;
@@ -38,7 +63,7 @@ function AccessDenied() {
 
   return (
     <div className="m-15 flex flex-col md:flex-row justify-between items-center gap-10">
-      <div className="flex flex-col">
+      <div className="flex flex-col items-start">
         <div className="text-[var(--text-primary)]">
           <div className="text-9xl mb-4">:(</div>
           <h1 className="text-xl">You do not have access to that page.</h1>
@@ -73,7 +98,7 @@ function AccessDenied() {
           </Link>
           <button
             type="button"
-            disabled={loading || hasRequested}
+            disabled={loading || hasRequested || fetchingStatus}
             onClick={() => handleSubmitRequest()}
             className="
             w-fit
@@ -90,11 +115,13 @@ function AccessDenied() {
             transition 
             hover:bg-[var(--control-hover)]"
           >
-            {hasRequested
-              ? "Request Pending"
-              : loading
-                ? "Submitting..."
-                : "Request Admin Access"}
+            {fetchingStatus
+              ? "Checking status..."
+              : hasRequested
+                ? "Request Pending"
+                : loading
+                  ? "Submitting..."
+                  : "Request Admin Access"}
           </button>
         </div>
       </div>
