@@ -7,7 +7,7 @@ function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="md:hidden">
+    <div>
       <button
         onClick={() => setIsOpen(true)}
         className={`
