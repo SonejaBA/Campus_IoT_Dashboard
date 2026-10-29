@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Analytics from "./pages/Analytics.jsx";
 import Settings from "./pages/Settings.jsx";
 import Maintenance from "./pages/Maintenance.jsx";
+import Users from "./pages/Users.jsx"
 import AccessDenied from "./pages/AccessDenied.jsx";
 import Login from "./pages/Login.jsx";
 import SignUp from "./pages/SignUp.jsx";
@@ -38,6 +39,7 @@ function App() {
             >
               {/* Accessible to all logged in users */}
               <Route path="/" element={<DashboardMap bins={bins} />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="/access-denied" element={<AccessDenied />} />
               {/* Restricted routes */}
               <Route
@@ -48,12 +50,21 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              <Route path="/settings" element={<Settings />} />
+              
               <Route
                 path="/maintenance"
                 element={
                   <ProtectedRoute allowedRoles={["admin"]}>
                     <Maintenance bins={bins} />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/users"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <Users/>
                   </ProtectedRoute>
                 }
               />
