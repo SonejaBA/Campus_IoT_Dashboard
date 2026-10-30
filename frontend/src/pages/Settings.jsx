@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BatteryMedium,
@@ -12,8 +12,11 @@ import {
 } from "lucide-react";
 import { useAuth } from "../components/context/AuthContext.jsx";
 import { useSettings } from "../components/context/SettingsContext.jsx";
+import { supabase } from "../services/supabaseClient.js";
 import ThemeSelector from "../components/ThemeSelector.jsx";
 import ZoneSelector from "../components/ZoneSelector.jsx";
+import DisplayNameSelector from "../components/DisplayNameSelector.jsx"
+import EnableGreeting from "../components/EnableGreeting.jsx";
 
 // Reusable status summary for the fill-level thresholds.
 function StatusSummaryRow({ label, value, color }) {
@@ -37,9 +40,46 @@ function StatusSummaryRow({ label, value, color }) {
 
 function Settings() {
   const { settings, updateSetting, resetSettings } = useSettings();
-  const { logOut } = useAuth();
+  const { logOut, user } = useAuth();
   const navigate = useNavigate();
   const [thresholdsLocked, setThresholdsLocked] = useState(true);
+  const [displayName, setDisplayName] = useState("");
+
+  useEffect(() => {
+    async function fetchDisplayName() {
+      if (!user?.id) return;
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error fetching display name:", error.message);
+      } else if (data?.display_name) {
+        setDisplayName(data.display_name);
+      }
+    }
+
+    fetchDisplayName();
+  }, [user]);
+
+  const handleSaveDisplayName = async (newName) => {
+    if (!user?.id) return;
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ display_name: newName })
+      .eq("id", user.id);
+
+    if (error) {
+      console.error("Error updating display name:", error.message);
+      throw error;
+    }
+
+    setDisplayName(newName);
+  };
 
   // Warning must stay at least one percentage point below critical.
   const handleWarningChange = (event) => {
@@ -301,7 +341,13 @@ function Settings() {
             </label>
           </div>
         </section>
-
+        
+        <DisplayNameSelector 
+          displayName={displayName} 
+          onSetDisplayName={handleSaveDisplayName}
+        />
+        <EnableGreeting/>
+        
         <footer className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-[var(--text-secondary)]">
             Preferences are saved locally on this device.

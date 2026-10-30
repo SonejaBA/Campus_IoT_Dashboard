@@ -13,11 +13,17 @@ import {
 
 function Sidebar() {
   const [isOpen, setIsOpen] = useState(true);
-  const { isAdmin } = useAuth();
+  const { isAdmin, displayName, user } = useAuth();
+
   const handleLogoClick = () => {
     if (isOpen) return;
     setIsOpen(!isOpen);
   };
+
+  const initial =
+    displayName?.trim()?.charAt(0)?.toUpperCase() ||
+    user?.email?.charAt(0)?.toUpperCase() ||
+    "U";
 
   return (
     <div
@@ -46,7 +52,8 @@ function Sidebar() {
           src={isOpen ? wordLogo : treeLogo}
           alt="Sacramento State Sustainability"
           title="Open sidebar"
-          className={`
+          className={`  
+                        -mt-1.5
                         w-auto
                         object-contain
                         cursor-pointer
@@ -173,6 +180,34 @@ function Sidebar() {
           </span>
         </Link>
       </nav>
+                        
+
+    <div
+        className={`mt-auto pt-4  flex items-center gap-3 ${
+          isOpen ? "px-0" : "justify-center px-0"
+        }`}
+      >
+        <div className="w-9 h-9 rounded-full bg-[var(--bg-card)] text-[var(--button-color)] font-semibold flex items-center justify-center shrink-0 shadow-md text-sm">
+          {initial}
+        </div>
+
+        {isOpen && (
+          <div className="flex flex-col min-w-0 overflow-hidden">
+            <span
+              className="text-sm font-semibold text-[var(--button-color)] truncate"
+              title={displayName || "User"}
+            >
+              {displayName || "User"}
+            </span>
+            <span
+              className="text-xs text-[var(--button-color)]/70 truncate"
+              title={user?.email || ""}
+            >
+              {user?.email || "No email"}
+            </span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
