@@ -1,48 +1,8 @@
 import { ShieldCheck, UserCheck, Clock, Eye } from "lucide-react";
+import { useAuth } from "./context/AuthContext";
 
-const mockFilteredUsers = [
-  {
-    id: "user-1",
-    display_name: "Sarah Jenkins",
-    email: null,
-    requested_access: false,
-    role: "admin",
-  },
-  {
-    id: "user-2",
-    display_name: "Alex Rivera",
-    email: "alex.rivera@example.com",
-    requested_access: true, // Tests the pending request state
-    role: "viewer",
-  },
-  {
-    id: "user-3",
-    display_name: "Marcus Chen",
-    email: "marcus.chen@example.com",
-    requested_access: false,
-    role: "viewer",
-  },
-  {
-    id: "user-4",
-    display_name: null, // Tests the "Unnamed User" fallback
-    email: "orphan.user.99@example.com",
-    requested_access: true, // Tests pending request + fallback email
-    role: "viewer",
-  },
-  {
-    id: "user-5",
-    display_name: null,
-    email: "elena.rostova@example.com",
-    requested_access: false,
-    role: "admin",
-  },
-];
-
-function UsersTable({
-  filteredUsers = mockFilteredUsers,
-  loading,
-  onRoleChange,
-}) {
+function UsersTable({ filteredUsers, loading, onRoleChange }) {
+  const { user: currentUser } = useAuth();
   if (loading) {
     return (
       <div className="py-12 text-center text-xs text-[var(--text-secondary)]">
@@ -60,10 +20,10 @@ function UsersTable({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table>
+    <div className="w-full overflow-x-auto">
+      <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="border-b border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] uppercase tracking-wider">
+          <tr className="w-full border-b border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] uppercase tracking-wider">
             <th className="py-3 px-4 font-semibold">User</th>
             <th className="py-3 px-4 font-semibold">Status</th>
             <th className="py-3 px-4 font-semibold">Current Role</th>
@@ -71,7 +31,7 @@ function UsersTable({
           </tr>
         </thead>
 
-<tbody className="divide-y divide-[var(--border-subtle)] text-sm">
+        <tbody className="divide-y divide-[var(--border-subtle)] text-sm">
           {filteredUsers.map((user) => (
             <tr
               key={user.id}
@@ -115,11 +75,12 @@ function UsersTable({
               <td className="py-3.5 px-4 text-right">
                 <select
                   value={user.role || "viewer"}
+                  disabled={currentUser?.id === user.id}
                   onChange={(e) =>
                     onRoleChange(
                       user.id,
                       e.target.value,
-                      user.display_name || user.email
+                      user.display_name || user.email,
                     )
                   }
                   className="
@@ -135,6 +96,8 @@ function UsersTable({
                     focus:outline-none 
                     focus:ring-1 
                     focus:ring-[var(--slider-focus)]
+                    disabled:opacity-50 
+                    disabled:cursor-not-allowed
                   "
                 >
                   <option value="viewer" className="bg-[var(--bg-card)]">
