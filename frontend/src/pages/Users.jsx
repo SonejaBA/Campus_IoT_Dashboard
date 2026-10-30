@@ -1,6 +1,7 @@
 import { useState } from "react";
 import UserSearchBar from "../components/UserSearchBar";
 import PendingRequests from "../components/PendingRequests";
+import UsersTable from "../components/UsersTable";
 
 function Users() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -25,7 +26,7 @@ function Users() {
       </h1>
       <PendingRequests pendingUsers={pendingUsers}/>
       <UserSearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-      
+      <UsersTable/>
     </div>
   );
 }
