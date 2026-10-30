@@ -459,6 +459,8 @@
 .dark-popup .leaflet-popup-tip {
   background-color: var(--popup-bg) !important;
   color: var(--popup-text) !important;
+  width: max-content !important;
+  min-width: 420px;
   box-shadow: var(--popup-shadow);
 }
 

@@ -19,10 +19,10 @@ function predictCan(history, canType) {
         Number.isFinite(new Date(log.time).getTime()) &&
         log[canType] !== null &&
         log[canType] !== undefined &&
-        Number.isFinite(Number(log[canType]))
+        Number.isFinite(Number(log[canType])),
     )
     .sort((a, b) => new Date(a.time) - new Date(b.time));
-    
+
   // Temporarily separate readings after a possible collection.
   // This affects predictions only, NOT the bin's status.
   let startIndex = 0;
@@ -37,12 +37,11 @@ function predictCan(history, canType) {
   }
 
   const readings = validReadings.slice(startIndex).slice(-20);
-    // we need at least two readings to calculate slope.
-    if (readings.length < 2) {
-      return null;
-    }
+  // we need at least two readings to calculate slope.
+  if (readings.length < 2) {
+    return null;
+  }
 
-  
   // use all available readings (up to 20) to calculate
   // the best-fit straight line using linear regression.
 
@@ -55,9 +54,7 @@ function predictCan(history, canType) {
   // convert each timestamp into hours since the first reading.
   // x = elapsed hours, y = fill percentage.
   const points = readings.map((reading) => ({
-    x:
-      (new Date(reading.time) - new Date(first.time)) /
-      3600000,
+    x: (new Date(reading.time) - new Date(first.time)) / 3600000,
     y: Number(reading[canType]),
   }));
 
@@ -66,14 +63,8 @@ function predictCan(history, canType) {
   // calculate the sums needed for linear regression.
   const sumX = points.reduce((sum, point) => sum + point.x, 0);
   const sumY = points.reduce((sum, point) => sum + point.y, 0);
-  const sumXY = points.reduce(
-    (sum, point) => sum + point.x * point.y,
-    0
-  );
-  const sumX2 = points.reduce(
-    (sum, point) => sum + point.x * point.x,
-    0
-  );
+  const sumXY = points.reduce((sum, point) => sum + point.x * point.y, 0);
+  const sumX2 = points.reduce((sum, point) => sum + point.x * point.x, 0);
 
   // denominator of the least-squares slope formula.
   const denominator = n * sumX2 - sumX * sumX;
@@ -84,9 +75,7 @@ function predictCan(history, canType) {
   }
 
   // best-fit slope: average increase in fill percentage per hour.
-  const slope =
-    (n * sumXY - sumX * sumY) / denominator;
-
+  const slope = (n * sumXY - sumX * sumY) / denominator;
 
   // A full can requires immediate collection.
   if (currentFill >= 100) {
@@ -97,7 +86,6 @@ function predictCan(history, canType) {
   if (slope <= 0) {
     return { currentFill, slope, hoursRemaining: null };
   }
-
 
   // estimate hours until full from the last sensor reading.
   // slope is calculated using up to 20 telemetry readings.
@@ -117,87 +105,40 @@ function FillLevelPredictor({ binId }) {
 
   // find which can is predicted to fill first.
   const firstToFill = predictions
-    .filter(
-      (can) =>
-        can.result &&
-        can.result.hoursRemaining !== null
-    )
-    .sort(
-      (a, b) =>
-        a.result.hoursRemaining - b.result.hoursRemaining
-    )[0];
+    .filter((can) => can.result && can.result.hoursRemaining !== null)
+    .sort((a, b) => a.result.hoursRemaining - b.result.hoursRemaining)[0];
 
   return (
-  <div className="text-sm mt-2 w-64">
-    <h3 className="font-bold mb-2">
-      Fill Level Predictions
-    </h3>
+    <div className="text-xs w-35">
+      {/*dDisplay all three cans using their CSS colors */}
+      <div className="flex flex-col gap-1">
+        {predictions.map((can) => (
+          <div
+            key={can.key}
+            className={`${can.className} py-2.5 first:pt-0 last:pb-0 flex  justify-between`}
+          >
+            {/* Can name and colored indicator */}
+            <span className="can-indicator" />
 
-    {/*dDisplay all three cans using their CSS colors */}
-    <div className="space-y-2">
-      {predictions.map((can) => (
-        <div
-          key={can.key}
-          className={`${can.className} rounded-md p-2 bg-[var(--bg-card)]`}
-        >
-          {/* can name, colored indicator, and fill percentage */}
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-2">
-              <span className="can-indicator" />
-              <span className="font-semibold">{can.label}</span>
-            </div>
 
-            <span className="font-bold">
-              {can.result
-                ? `${can.result.currentFill}%`
-                : "--"}
-            </span>
-          </div>
-
-          {/* progress bar using the can's CSS color */}
-          <div className="h-1.5 bg-gray-300/30 rounded-full overflow-hidden">
-            <div
-              className="can-progress"
-              style={{
-                width: `${Math.min(
-                  100,
-                  Math.max(0, can.result?.currentFill ?? 0)
-                )}%`,
-              }}
-            />
-          </div>
-
-          {/* fill rate and estimated time until full */}
-          <div className="flex justify-between gap-2 mt-1 text-xs">
-            <span>
-              {can.result
-                ? `${can.result.slope.toFixed(2)}%/hr`
-                : "Not enough data"}
-            </span>
-
-            <span className="font-semibold">
+            {/* Fill rate and estimated time until full */}
+            <div className="flex flex-col items-end text-xs">
+              <span className="font-semibold text-[var(--text-primary)]">
                 {can.result?.hoursRemaining == null
-                    ? "No prediction"
-                    : `${can.result.hoursRemaining.toFixed(1)} hrs until full`}
-                </span>
+                  ? "No prediction"
+                  : `${can.result.hoursRemaining.toFixed(1)} hrs until full`}
+              </span>
+              <span className="text-[11px] text-[var(--text-secondary)]">
+                {can.result
+                  ? `${can.result.slope.toFixed(2)}%/hr`
+                  : "Not enough data"}
+              </span>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
-
-    {/* highlight the can predicted to fill first */}
-    {firstToFill && (
-      <p className="font-semibold mt-2">
-        First to fill:{" "}
-        <span
-          className={`${firstToFill.className} can-first-to-fill`}
-        >
-          {firstToFill.label}
-        </span>
-      </p>
-    )}
-  </div>
-);
+  );
 }
 
 export default FillLevelPredictor;
