@@ -52,27 +52,19 @@ useEffect(() => {
 
   const loadMaintenanceStatus = async () => {
     try {
-      const results = await Promise.all(
-        (bins ?? []).map(async (bin) => {
-          const response = await fetch(
-            `${import.meta.env.VITE_API_URL}/api/maintenance/${bin.id}`
-          );
-
-          if (!response.ok) {
-            throw new Error(
-              `Failed to load maintenance status for bin ${bin.id}`
-            );
-          }
-
-          return [bin.id, await response.json()];
-        })
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/maintenance`
       );
-
-      if (!ignore) {
-        setMaintenanceStatus(Object.fromEntries(results));
+      if (!response.ok) {
+        throw new Error("Failed to load maintenance status.");
       }
-    } catch (error) {
-      console.error("Error loading maintenance status:", error);
+
+      const data = await response.json();
+      if (!ignore) {
+        setMaintenanceStatus(data);
+      }
+     } catch (error) {
+       console.error("Error loading maintenance status:", error);
 
       if (!ignore) {
         setMaintenanceStatus({});
@@ -85,7 +77,7 @@ useEffect(() => {
   return () => {
     ignore = true;
   };
-}, [bins]);
+}, []);
 
   const handleNewBinChange = (event) => {
   const { name, value } = event.target;
