@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   MapPin,
@@ -39,6 +39,7 @@ function Maintenance({ bins = [] }) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingBin, setEditingBin] = useState(null);
+  const [maintenanceStatus, setMaintenanceStatus] = useState({});
   const [newBin, setNewBin] = useState({
   id: "",
   location: "",
@@ -46,6 +47,38 @@ function Maintenance({ bins = [] }) {
   long: "",
   zone: "",
 });
+useEffect(() => {
+  let ignore = false;
+
+  const loadMaintenanceStatus = async () => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/maintenance`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to load maintenance status.");
+      }
+
+      const data = await response.json();
+      if (!ignore) {
+        setMaintenanceStatus(data);
+      }
+     } catch (error) {
+       console.error("Error loading maintenance status:", error);
+
+      if (!ignore) {
+        setMaintenanceStatus({});
+      }
+    }
+  };
+
+  loadMaintenanceStatus();
+
+  return () => {
+    ignore = true;
+  };
+}, []);
+
   const handleNewBinChange = (event) => {
   const { name, value } = event.target;
 
@@ -358,17 +391,18 @@ const handleRemoveBin = async (binId) => {
           {/* Table */}
           <div className="mt-6 overflow-x-auto">
             <table className="w-full min-w-[850px] text-left text-sm">
-              <thead>
+             <thead>
                 <tr className="border-b border-[color:var(--border-subtle)] text-[var(--text-secondary)]">
                   <th className="px-4 py-3 font-medium">Bin</th>
                   <th className="px-4 py-3 font-medium">Location</th>
                   <th className="px-4 py-3 font-medium">Zone</th>
                   <th className="px-4 py-3 font-medium">Fill level</th>
                   <th className="px-4 py-3 font-medium">Battery</th>
+                  <th className="px-4 py-3 font-medium">Sensors</th>
                   <th className="px-4 py-3 font-medium">Status</th>
                   <th className="px-4 py-3 text-right font-medium">
                     Actions
-                  </th>
+                 </th>
                 </tr>
               </thead>
 
@@ -400,6 +434,29 @@ const handleRemoveBin = async (binId) => {
                       <td className="px-4 py-4">
                         {bin.battery_level ?? 0}%
                       </td>
+
+                      <td className="px-4 py-4">
+                        <div className="flex flex-wrap gap-2">
+                          {["compost", "recycle", "landfill"].map((sensor) => {
+                            const needsMaintenance =
+                             maintenanceStatus[bin.id]?.sensors?.[sensor] === true;
+
+                      return (
+                        <span
+                         key={sensor}
+                         className={`rounded-md px-2 py-1 text-xs font-medium ${
+                           needsMaintenance
+                             ? "bg-red-100 text-red-700"
+                             : "bg-green-100 text-green-700"
+                         }`}
+                       >
+                        {sensor.charAt(0).toUpperCase() + sensor.slice(1)}
+                        {needsMaintenance ? " ⚠️" : " ✓"}
+                      </span>
+                    );
+                  })}
+                </div>
+               </td>
 
                       <td className={`px-4 py-4 font-semibold ${status.className}`}>
                         {status.label}
@@ -433,7 +490,7 @@ const handleRemoveBin = async (binId) => {
                 {filteredBins.length === 0 && (
                   <tr>
                     <td
-                      colSpan="7"
+                      colSpan="8"
                       className="px-4 py-10 text-center text-sm text-[var(--text-secondary)]"
                     >
                       No bins match your search.
@@ -550,7 +607,7 @@ const handleRemoveBin = async (binId) => {
                     value={newBin.zone}
                      onChange={handleNewBinChange}
                     className="w-full rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] px-3 py-2.5 text-sm text-[var(--control-text)] outline-none"
-                  > 
+                  >
                     <option value="">Unassigned</option>
                     <option value="A">Zone A</option>
                     <option value="B">Zone B</option>
