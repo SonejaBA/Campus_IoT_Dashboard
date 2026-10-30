@@ -109,7 +109,7 @@ function FillLevelPredictor({ binId }) {
     .sort((a, b) => a.result.hoursRemaining - b.result.hoursRemaining)[0];
 
   return (
-    <div className="text-xs w-35">
+    <div className="text-xs w-35 -mt-1.5">
       {/*dDisplay all three cans using their CSS colors */}
       <div className="flex flex-col gap-1">
         {predictions.map((can) => (
