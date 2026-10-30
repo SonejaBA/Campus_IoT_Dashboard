@@ -199,6 +199,171 @@ def get_bin_logs(bin_id: int, time_range: str = "7d"):
 
     return rows
 
+SENSOR_FIELDS = ("compost", "recycle", "landfill")
+
+
+def analyze_sensor_maintenance(bin_id: int):
+    response = (
+        supabase
+        .table("telemetry_logs")
+        .select("id,time,compost,recycle,landfill,is_manual")
+        .eq("bin_id", bin_id)
+        .order("time", desc=True)
+        .order("id", desc=True)
+        .limit(100)
+        .execute()
+    )
+
+    # Ignore manual pings when checking whether a sensor is stuck.
+    automatic_logs = [
+        row for row in response.data
+        if row.get("is_manual") is not True
+    ]
+
+    sensor_status = {}
+
+    for sensor in SENSOR_FIELDS:
+        latest_values = [
+            row.get(sensor)
+            for row in automatic_logs[:3]
+        ]
+
+        sensor_status[sensor] = (
+            len(latest_values) == 3
+            and all(value is not None for value in latest_values)
+            and latest_values[0] == latest_values[1] == latest_values[2]
+        )
+
+    return {
+        "bin_id": bin_id,
+        "needs_maintenance": any(sensor_status.values()),
+        "sensors": sensor_status,
+        "automatic_readings_checked": min(len(automatic_logs), 3),
+    }
+
+
+@app.get("/api/maintenance/{bin_id}")
+def get_maintenance_status(bin_id: int):
+    try:
+        return analyze_sensor_maintenance(bin_id)
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
+
+def analyze_all_sensor_maintenance(bin_ids):
+    results = {
+        bin_id: {
+            "bin_id": bin_id,
+            "needs_maintenance": False,
+            "sensors": {sensor: False for sensor in SENSOR_FIELDS},
+            "automatic_readings_checked": 0,
+        }
+        for bin_id in bin_ids
+    }
+
+    if not bin_ids:
+        return results
+
+    automatic_logs_by_bin = {bin_id: [] for bin_id in bin_ids}
+    page_size = 1000
+    start = 0
+
+    while True:
+        response = (
+            supabase
+            .table("telemetry_logs")
+            .select("id,bin_id,time,compost,recycle,landfill,is_manual")
+            .filter(
+                "bin_id",
+                "in",
+                f"({','.join(str(bin_id) for bin_id in bin_ids)})",
+            )
+            .order("bin_id")
+            .order("time", desc=True)
+            .order("id", desc=True)
+            .range(start, start + page_size - 1)
+            .execute()
+        )
+
+        batch = response.data
+
+        for row in batch:
+            bin_id = row.get("bin_id")
+
+            if bin_id not in automatic_logs_by_bin:
+                continue
+
+            if row.get("is_manual") is True:
+                continue
+
+            if len(automatic_logs_by_bin[bin_id]) < 3:
+                automatic_logs_by_bin[bin_id].append(row)
+
+        if (
+            all(len(logs) >= 3 for logs in automatic_logs_by_bin.values())
+            or len(batch) < page_size
+        ):
+            break
+
+        start += page_size
+
+    for bin_id in bin_ids:
+        automatic_logs = automatic_logs_by_bin[bin_id]
+
+        sensor_status = {}
+
+        for sensor in SENSOR_FIELDS:
+            latest_values = [
+                row.get(sensor)
+                for row in automatic_logs[:3]
+            ]
+
+            sensor_status[sensor] = (
+                len(latest_values) == 3
+                and all(value is not None for value in latest_values)
+                and latest_values[0] == latest_values[1] == latest_values[2]
+            )
+
+        results[bin_id] = {
+            "bin_id": bin_id,
+            "needs_maintenance": any(sensor_status.values()),
+            "sensors": sensor_status,
+            "automatic_readings_checked": len(automatic_logs),
+        }
+
+    return results
+
+
+@app.get("/api/maintenance")
+def get_all_maintenance_status(bin_ids: str = ""):
+    try:
+        if bin_ids.strip():
+            requested_bin_ids = [
+                int(value.strip())
+                for value in bin_ids.split(",")
+                if value.strip()
+            ]
+        else:
+            bins_response = supabase.table("bins").select("id").execute()
+            requested_bin_ids = [row["id"] for row in bins_response.data]
+
+        return analyze_all_sensor_maintenance(requested_bin_ids)
+
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail="bin_ids must be a comma-separated list of integers.",
+        )
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
 @app.get("/api/health")
 def health_check():
     try:
@@ -278,7 +443,7 @@ async def reset_bin_status(bin_id: int):
             "recycle": 0,
             "fill_level": 0,
             "battery_level": previous_battery,
-            "is_manual" : True
+            "is_manual": True
         }).execute()
 
         return {

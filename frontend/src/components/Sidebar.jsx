@@ -9,6 +9,7 @@ import {
   BarChart3,
   Settings,
   Wrench,
+  UsersRound,
 } from "lucide-react";
 
 function Sidebar() {
@@ -153,6 +154,31 @@ function Sidebar() {
             className={`${isOpen ? "block" : "hidden"} font-medium whitespace-nowrap text-[var(--button-color)]`}
           >
             Maintenance
+          </span>
+        </Link>
+
+        <Link
+          to="/users"
+          title={isOpen ? "" : "Users"}
+          className={`  flex 
+                        items-center 
+                        py-2
+                        ${!isAdmin && "hidden"}
+                        rounded-lg 
+                        hover:bg-[var(--bg-hover)]
+                        transition-colors 
+                        text-[var(--button-color)]
+                        ${
+                          isOpen
+                            ? "justify-start gap-4 "
+                            : "justify-center px-0"
+                        }`}
+        >
+          <UsersRound className="shrink-0 text-[var(--button-color)]" />
+          <span
+            className={`${isOpen ? "block" : "hidden"} font-medium whitespace-nowrap text-[var(--button-color)]`}
+          >
+            Users
           </span>
         </Link>
 
