@@ -18,6 +18,7 @@ import { Toaster } from "sonner";
 
 function App() {
   const bins = useBins();
+
   return (
     <AuthProvider>
       <SettingsProvider>
@@ -50,7 +51,9 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              
+
+              <Route path="/settings" element={<Settings />} />
+
               <Route
                 path="/maintenance"
                 element={
