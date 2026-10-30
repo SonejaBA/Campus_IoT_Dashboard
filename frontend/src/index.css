@@ -654,3 +654,43 @@
   outline: 2px solid var(--slider-focus);
   outline-offset: 8px;
 }
+
+/* ======================================
+   Fill Level Predictor - Issue #65
+   ====================================== */
+
+/* Individual waste can colors */
+.can-compost {
+  --can-color: #16a34a; /* Green */
+}
+
+.can-recycle {
+  --can-color: #2563eb; /* Blue */
+}
+
+.can-landfill {
+  --can-color: #78716c; /* Gray */
+}
+
+/* Colored circle next to can name */
+.can-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--can-color);
+  flex-shrink: 0;
+}
+
+/* Fill level progress bar */
+.can-progress {
+  height: 6px;
+  border-radius: 999px;
+  background-color: var(--can-color);
+  transition: width 0.3s ease;
+}
+
+/* Name of can predicted to fill first */
+.can-first-to-fill {
+  color: var(--can-color);
+  font-weight: 600;
+}

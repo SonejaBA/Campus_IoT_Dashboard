@@ -5,6 +5,8 @@ import "leaflet/dist/leaflet.css";
 import { Filter, ChevronDown } from "lucide-react";
 import CurrentCapacityChart from "../components/charts/CurrentCapacityChart";
 import { useSettings } from "../components/context/SettingsContext";
+// Displays the predicted time until a bin is full
+import FillLevelPredictor from "../components/FillLevelPredictor";
 
 const fullColor = "bg-red-500";
 const mediumColor = "bg-amber-500";
@@ -215,28 +217,9 @@ function DashboardMap({ bins }) {
                 </div>
                 <CurrentCapacityChart bin={bin} isPopup={true} />
               </div>
-                <div className="pt-2 flex justify-start">
-                  <button
-                    type="button"
-                    onClick={() => handleResetFromMap(bin.id)}
-                    className="
-                          px-2.5 
-                          py-1 
-                          text-xs 
-                          -mt-2
-                          font-[550]
-                          text-[var(--text-secondary)]
-                          bg-[var(--bg-card)]
-                          [border:var(--border-card)]
-                          rounded-md
-                          hover:bg-[var(--bg-card-strong)]
-                          transition 
-                          shadow-sm 
-                          cursor-pointer"
-                  >
-                    Mark Emptied
-                  </button>
-                </div>
+
+              {/* Calculate and display the predicted time until full */}
+              <FillLevelPredictor binId={bin.id} />
             </Popup>
           </Marker>
         ))}
