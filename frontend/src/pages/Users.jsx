@@ -1,8 +1,10 @@
 import { useState } from "react";
 import UserSearchBar from "../components/UserSearchBar";
+import PendingRequests from "../components/PendingRequests";
 
 function Users() {
-    const [searchTerm, setSearchTerm] = useState("")
+  const [searchTerm, setSearchTerm] = useState("");
+  const pendingUsers = ["User 1", "User 2", "User 3"] 
 
   return (
     <div className="flex-1 text-[var(--text-primary)] p-10 flex flex-col gap-4">
@@ -21,8 +23,9 @@ function Users() {
           </p>
         </div>
       </h1>
-
-      <UserSearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm}/>
+      <PendingRequests pendingUsers={pendingUsers}/>
+      <UserSearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+      
     </div>
   );
 }
