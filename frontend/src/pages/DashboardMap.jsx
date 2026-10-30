@@ -12,10 +12,12 @@ const fullColor = "bg-red-500";
 const mediumColor = "bg-amber-500";
 const lowColor = "bg-emerald-500";
 
+
+
 const defaultCenter = [38.5597502210662, -121.42347776852866];
 const mapBounds = [
-  [38.54655942770578, -121.43688277888091], //south west
-  [38.56960798353561, -121.40695667626277], //north east
+  [38.58174508566836, -121.39246728514956], //south west
+  [38.53925609277763, -121.44668666987675], //north east
 ];
 
 const createBinIcon = (fillLevel) => {
