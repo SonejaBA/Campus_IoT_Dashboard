@@ -221,10 +221,33 @@ function DashboardMap({ bins }) {
                 {/* Calculate and display the predicted time until full */}
                 <FillLevelPredictor binId={bin.id} />
               </div>
-
-              <span className="text-xs text-gray-400">
-                Last ping: {getRelativeTime(bin.time)}
-              </span>
+              <div className="flex flex-row items-center justify-between w-95">
+                <span className="text-xs text-gray-400">
+                  Last ping: {getRelativeTime(bin.time)}
+                </span>
+                <div className="pt-2 flex justify-start">
+                  <button
+                    type="button"
+                    onClick={() => handleResetFromMap(bin.id)}
+                    className="
+                          px-2.5 
+                          py-1 
+                          text-xs 
+                          -mt-2
+                          font-[550]
+                          text-[var(--text-secondary)]
+                          bg-[var(--bg-card)]
+                          [border:var(--border-card)]
+                          rounded-md
+                          hover:bg-[var(--bg-card-strong)]
+                          transition 
+                          shadow-sm 
+                          cursor-pointer"
+                  >
+                    Mark Emptied
+                  </button>
+                </div>
+              </div>
             </Popup>
           </Marker>
         ))}
