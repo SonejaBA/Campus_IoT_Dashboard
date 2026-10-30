@@ -16,6 +16,9 @@
   --border-hover: 1px solid rgba(255, 255, 255, 0.18);
   --border-card: 1px solid rgba(255, 255, 255, 0.12);
   --border-subtle: 1px solid rgba(255, 255, 255, 0.06);
+  --border-good: 1px solid rgba(16, 185, 129, 0.4);
+  --border-warning: 1px solid rgba(253, 224, 71, 0.4);
+  --border-bad: 1px solid rgba(239, 68, 68, 0.4);
 
   --backdrop-blur-light: 0px;
   --backdrop-blur: 0px;
@@ -26,6 +29,9 @@
 
   --text-primary: #ffffff;
   --text-secondary: #a1a1aa;
+  --text-good: #34d399;
+  --text-warning: #fde047;
+  --text-bad: #f87171;
 
   --button-color: #D1D5DC;
   --dropdown-text: #E2E8F0;
@@ -89,6 +95,9 @@
   --border-hover: 1px solid rgba(15, 23, 42, 0.15);
   --border-card: 1px solid rgba(15, 23, 42, 0.08);
   --border-subtle: 1px solid rgba(15, 23, 42, 0.05);
+  --border-good: 1px solid rgba(5, 150, 105, 0.3);
+  --border-warning: 1px solid rgba(217, 119, 6, 0.3);
+  --border-bad: 1px solid rgba(220, 38, 38, 0.3);
 
   --backdrop-blur-light: 0px;
   --backdrop-blur: 0px;
@@ -99,6 +108,9 @@
 
   --text-primary: #0f172a;
   --text-secondary: #475569;
+  --text-good: #047857;
+  --text-warning: #d97706;
+  --text-bad: #b91c1c;
 
   --button-color: #034113;
   --dropdown-text: #00030e;
@@ -161,6 +173,9 @@
   --border-hover: 1px solid #C8AE72;
   --border-card: 1px solid #E4D7B7;
   --border-subtle: 1px solid #EEE3CB;
+  --border-good: 1px solid #8FA380;
+  --border-warning: 1px solid #D9B36C;
+  --border-bad: 1px solid #D69E9E;
 
   --backdrop-blur-light: 0px;
   --backdrop-blur: 0px;
@@ -171,6 +186,9 @@
 
   --text-primary: #302D24;
   --text-secondary: #756D5B;
+  --text-good: #3F6212;
+  --text-warning: #B45309;
+  --text-bad: #991B1B;
 
   --button-color: #866604;
   --dropdown-text: #00030e;
@@ -233,6 +251,9 @@
   --border-hover: 1px solid rgba(255, 255, 255, 0.18);
   --border-card: 1px solid rgba(255, 255, 255, 0.18);
   --border-subtle: 1px solid rgba(255, 255, 255, 0.10);
+  --border-good: 1px solid rgba(52, 211, 153, 0.4);
+  --border-warning: 1px solid rgba(253, 224, 71, 0.4);
+  --border-bad: 1px solid rgba(248, 113, 113, 0.4);
 
   --backdrop-blur-light: 4px;
   --backdrop-blur: 32px;
@@ -243,6 +264,9 @@
 
   --text-primary: #ffffff;
   --text-secondary: #cbd5e1;
+  --text-good: #6ee7b7;
+  --text-warning: #fde047;
+  --text-bad: #fca5a5;
 
   --button-color: #c7ffd9;
   --dropdown-text: #00030e;
@@ -312,6 +336,9 @@
   --border-hover: 1px solid rgba(255, 255, 255, 0.18);
   --border-card: 1px solid rgba(255, 255, 255, 0.18);
   --border-subtle: 1px solid rgba(255, 255, 255, 0.10);
+  --border-good: 1px solid rgba(56, 189, 248, 0.4);
+  --border-warning: 1px solid rgba(253, 224, 71, 0.4);
+  --border-bad: 1px solid rgba(244, 63, 94, 0.4);
 
   --backdrop-blur-light: 4px;
   --backdrop-blur: 32px;
@@ -322,6 +349,9 @@
 
   --text-primary: #ffffff;
   --text-secondary: #dde6f0;
+  --text-good: #38bdf8;
+  --text-warning: #fde047;
+  --text-bad: #fb7185;
 
   --button-color: #dae7fe;
   --dropdown-text: #00030e;
@@ -391,6 +421,9 @@
   --border-hover: 1px solid rgba(255, 255, 255, 0.18);
   --border-card: 1px solid rgba(255, 255, 255, 0.18);
   --border-subtle: 1px solid rgba(255, 255, 255, 0.10);
+  --border-good: 1px solid rgba(74, 222, 128, 0.4);
+  --border-warning: 1px solid rgba(253, 224, 71, 0.4);
+  --border-bad: 1px solid rgba(248, 113, 113, 0.4);
 
   --backdrop-blur-light: 4px;
   --backdrop-blur: 32px;
@@ -401,6 +434,9 @@
 
   --text-primary: #ffffff;
   --text-secondary: #cbd5e1;
+  --text-good: #4ade80;
+  --text-warning: #fde047;
+  --text-bad: #f87171;
 
   --button-color: rgb(198, 253, 255);
   --dropdown-text: #E2E8F0;
