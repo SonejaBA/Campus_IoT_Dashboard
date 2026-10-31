@@ -12,8 +12,6 @@ const fullColor = "bg-red-500";
 const mediumColor = "bg-amber-500";
 const lowColor = "bg-emerald-500";
 
-
-
 const defaultCenter = [38.5597502210662, -121.42347776852866];
 const mapBounds = [
   [38.58174508566836, -121.39246728514956], //south west
@@ -227,11 +225,12 @@ function DashboardMap({ bins }) {
                 <span className="text-xs text-gray-400">
                   Last ping: {getRelativeTime(bin.time)}
                 </span>
-                <div className="pt-2 flex justify-start">
-                  <button
-                    type="button"
-                    onClick={() => handleResetFromMap(bin.id)}
-                    className="
+                {settings.enabledMarkEmpty &&
+                  <div className="pt-2 flex justify-start">
+                    <button
+                      type="button"
+                      onClick={() => handleResetFromMap(bin.id)}
+                      className="
                           px-2.5 
                           py-1 
                           text-xs 
@@ -245,10 +244,11 @@ function DashboardMap({ bins }) {
                           transition 
                           shadow-sm 
                           cursor-pointer"
-                  >
-                    Mark Emptied
-                  </button>
-                </div>
+                    >
+                      Mark Emptied
+                    </button>
+                  </div>
+                }
               </div>
             </Popup>
           </Marker>
