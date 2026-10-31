@@ -11,6 +11,7 @@ const defaultSettings = {
   theme: "dark",
   selectedZone: "all",
   enabledGreeting: false,
+  enabledMarkEmpty: false,
 };
 
 const getSavedSettings = () => {
