@@ -8,7 +8,9 @@ import {
   Trash2,
   Wrench,
   X,
+  Eye,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 function getBinStatus(fillLevel) {
   const fill = Number(fillLevel ?? 0);
@@ -41,67 +43,61 @@ function Maintenance({ bins = [] }) {
   const [editingBin, setEditingBin] = useState(null);
   const [maintenanceStatus, setMaintenanceStatus] = useState({});
   const [newBin, setNewBin] = useState({
-  id: "",
-  location: "",
-  lat: "",
-  long: "",
-  zone: "",
-});
-useEffect(() => {
-  let ignore = false;
+    id: "",
+    location: "",
+    lat: "",
+    long: "",
+    zone: "",
+  });
+  const navigate = useNavigate();
+  useEffect(() => {
+    let ignore = false;
 
-  const loadMaintenanceStatus = async () => {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/maintenance`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to load maintenance status.");
+    const loadMaintenanceStatus = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/maintenance`,
+        );
+        if (!response.ok) {
+          throw new Error("Failed to load maintenance status.");
+        }
+
+        const data = await response.json();
+        if (!ignore) {
+          setMaintenanceStatus(data);
+        }
+      } catch (error) {
+        console.error("Error loading maintenance status:", error);
+
+        if (!ignore) {
+          setMaintenanceStatus({});
+        }
       }
+    };
 
-      const data = await response.json();
-      if (!ignore) {
-        setMaintenanceStatus(data);
-      }
-     } catch (error) {
-       console.error("Error loading maintenance status:", error);
+    loadMaintenanceStatus();
 
-      if (!ignore) {
-        setMaintenanceStatus({});
-      }
-    }
-  };
-
-  loadMaintenanceStatus();
-
-  return () => {
-    ignore = true;
-  };
-}, []);
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const handleNewBinChange = (event) => {
-  const { name, value } = event.target;
+    const { name, value } = event.target;
 
-  setNewBin((prev) => ({
-    ...prev,
-    [name]: value,
-  }));
-};
-const handleAddBin = async () => {
-  if (
-    !newBin.id ||
-    !newBin.location.trim() ||
-    !newBin.lat ||
-    !newBin.long
-  ) {
-    alert("Please complete all required fields.");
-    return;
-  }
+    setNewBin((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+  const handleAddBin = async () => {
+    if (!newBin.id || !newBin.location.trim() || !newBin.lat || !newBin.long) {
+      alert("Please complete all required fields.");
+      return;
+    }
 
-  try {
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/bins`,
-      {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/bins`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -113,139 +109,136 @@ const handleAddBin = async () => {
           location: newBin.location.trim(),
           zone: newBin.zone || null,
         }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to add bin.");
       }
-    );
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Failed to add bin.");
+      setNewBin({
+        id: "",
+        location: "",
+        lat: "",
+        long: "",
+        zone: "",
+      });
+
+      setShowAddModal(false);
+      alert("Bin added successfully.");
+    } catch (error) {
+      console.error("Error adding bin:", error);
+      alert(error.message || "Failed to add bin.");
     }
+  };
 
-    setNewBin({
-      id: "",
-      location: "",
-      lat: "",
-      long: "",
-      zone: "",
+  const handleEditBin = (bin) => {
+    setEditingBin({
+      id: bin.id,
+      location: bin.location ?? "",
+      lat: bin.lat ?? "",
+      long: bin.long ?? "",
+      zone: bin.zone ?? "",
     });
 
-    setShowAddModal(false);
-    alert("Bin added successfully.");
-  } catch (error) {
-    console.error("Error adding bin:", error);
-    alert(error.message || "Failed to add bin.");
-  }
-};
+    setShowEditModal(true);
+  };
 
+  const handleEditBinChange = (event) => {
+    const { name, value } = event.target;
 
-const handleEditBin = (bin) => {
-  setEditingBin({
-    id: bin.id,
-    location: bin.location ?? "",
-    lat: bin.lat ?? "",
-    long: bin.long ?? "",
-    zone: bin.zone ?? "",
-  });
+    setEditingBin((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
-  setShowEditModal(true);
-};
+  const handleSaveEdit = async () => {
+    if (
+      !editingBin ||
+      !editingBin.location.trim() ||
+      !editingBin.lat ||
+      !editingBin.long
+    ) {
+      alert("Please complete all required fields.");
+      return;
+    }
 
-const handleEditBinChange = (event) => {
-  const { name, value } = event.target;
-
-  setEditingBin((prev) => ({
-    ...prev,
-    [name]: value,
-  }));
-};
-
-const handleSaveEdit = async () => {
-  if (
-    !editingBin ||
-    !editingBin.location.trim() ||
-    !editingBin.lat ||
-    !editingBin.long
-  ) {
-    alert("Please complete all required fields.");
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/bins/${editingBin.id}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/bins/${editingBin.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            lat: Number(editingBin.lat),
+            long: Number(editingBin.long),
+            location: editingBin.location.trim(),
+            zone: editingBin.zone || null,
+          }),
         },
-        body: JSON.stringify({
-          lat: Number(editingBin.lat),
-          long: Number(editingBin.long),
-          location: editingBin.location.trim(),
-          zone: editingBin.zone || null,
-        }),
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to update bin.");
       }
+
+      setShowEditModal(false);
+      setEditingBin(null);
+    } catch (error) {
+      console.error("Error updating bin:", error);
+      alert(error.message || "Failed to update bin.");
+    }
+  };
+
+  const handleRemoveBin = async (binId) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to remove Bin ${binId}?`,
     );
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Failed to update bin.");
+    if (!confirmed) {
+      return;
     }
 
-    setShowEditModal(false);
-    setEditingBin(null);
-  } catch (error) {
-    console.error("Error updating bin:", error);
-    alert(error.message || "Failed to update bin.");
-  }
-};
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/bins/${binId}`,
+        {
+          method: "DELETE",
+        },
+      );
 
-
-const handleRemoveBin = async (binId) => {
-  const confirmed = window.confirm(
-    `Are you sure you want to remove Bin ${binId}?`
-  );
-
-  if (!confirmed) {
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/bins/${binId}`,
-      {
-        method: "DELETE",
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to remove bin.");
       }
-    );
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Failed to remove bin.");
+      alert(`Bin ${binId} was removed successfully.`);
+      window.location.reload();
+    } catch (error) {
+      console.error("Error removing bin:", error);
+      alert(error.message || "Failed to remove bin.");
     }
+  };
 
-    alert(`Bin ${binId} was removed successfully.`);
-    window.location.reload();
-  } catch (error) {
-    console.error("Error removing bin:", error);
-    alert(error.message || "Failed to remove bin.");
-  }
-};
-
-
-
+  const handleViewClick = (binId) => {
+    navigate(`/?binId=${binId}`);
+  };
 
   const criticalCount = bins.filter(
-    (bin) => Number(bin.fill_level ?? 0) >= 80
+    (bin) => Number(bin.fill_level ?? 0) >= 80,
   ).length;
 
   const warningCount = bins.filter(
     (bin) =>
-      Number(bin.fill_level ?? 0) >= 50 &&
-      Number(bin.fill_level ?? 0) < 80
+      Number(bin.fill_level ?? 0) >= 50 && Number(bin.fill_level ?? 0) < 80,
   ).length;
 
   const assignedCount = bins.filter(
-    (bin) => bin.zone === "Zone A" || bin.zone === "Zone B"
+    (bin) => bin.zone === "Zone A" || bin.zone === "Zone B",
   ).length;
 
   const filteredBins = useMemo(() => {
@@ -255,7 +248,9 @@ const handleRemoveBin = async (binId) => {
       const matchesSearch =
         search === "" ||
         String(bin.id).toLowerCase().includes(search) ||
-        String(bin.location ?? "").toLowerCase().includes(search);
+        String(bin.location ?? "")
+          .toLowerCase()
+          .includes(search);
 
       const matchesZone =
         zoneFilter === "all" || (bin.zone ?? "Unassigned") === zoneFilter;
@@ -391,7 +386,7 @@ const handleRemoveBin = async (binId) => {
           {/* Table */}
           <div className="mt-6 overflow-x-auto">
             <table className="w-full min-w-[850px] text-left text-sm">
-             <thead>
+              <thead>
                 <tr className="border-b border-[color:var(--border-subtle)] text-[var(--text-secondary)]">
                   <th className="px-4 py-3 font-medium">Bin</th>
                   <th className="px-4 py-3 font-medium">Location</th>
@@ -400,9 +395,7 @@ const handleRemoveBin = async (binId) => {
                   <th className="px-4 py-3 font-medium">Battery</th>
                   <th className="px-4 py-3 font-medium">Sensors</th>
                   <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 text-right font-medium">
-                    Actions
-                 </th>
+                  <th className="px-4 py-3 text-right font-medium">Actions</th>
                 </tr>
               </thead>
 
@@ -423,42 +416,42 @@ const handleRemoveBin = async (binId) => {
                         {bin.location || "Unassigned"}
                       </td>
 
-                      <td className="px-4 py-4">
-                        {bin.zone || "Unassigned"}
-                      </td>
+                      <td className="px-4 py-4">{bin.zone || "Unassigned"}</td>
 
                       <td className="px-4 py-4 font-medium">
                         {bin.fill_level ?? 0}%
                       </td>
 
-                      <td className="px-4 py-4">
-                        {bin.battery_level ?? 0}%
-                      </td>
+                      <td className="px-4 py-4">{bin.battery_level ?? 0}%</td>
 
                       <td className="px-4 py-4">
                         <div className="flex flex-wrap gap-2">
                           {["compost", "recycle", "landfill"].map((sensor) => {
                             const needsMaintenance =
-                             maintenanceStatus[bin.id]?.sensors?.[sensor] === true;
+                              maintenanceStatus[bin.id]?.sensors?.[sensor] ===
+                              true;
 
-                      return (
-                        <span
-                         key={sensor}
-                         className={`rounded-md px-2 py-1 text-xs font-medium ${
-                           needsMaintenance
-                             ? "bg-red-100 text-red-700"
-                             : "bg-green-100 text-green-700"
-                         }`}
-                       >
-                        {sensor.charAt(0).toUpperCase() + sensor.slice(1)}
-                        {needsMaintenance ? " ⚠️" : " ✓"}
-                      </span>
-                    );
-                  })}
-                </div>
-               </td>
+                            return (
+                              <span
+                                key={sensor}
+                                className={`rounded-md px-2 py-1 text-xs font-medium ${
+                                  needsMaintenance
+                                    ? "bg-red-100 text-red-700"
+                                    : "bg-green-100 text-green-700"
+                                }`}
+                              >
+                                {sensor.charAt(0).toUpperCase() +
+                                  sensor.slice(1)}
+                                {needsMaintenance ? " ⚠️" : " ✓"}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </td>
 
-                      <td className={`px-4 py-4 font-semibold ${status.className}`}>
+                      <td
+                        className={`px-4 py-4 font-semibold ${status.className}`}
+                      >
                         {status.label}
                       </td>
 
@@ -471,6 +464,15 @@ const handleRemoveBin = async (binId) => {
                             className="rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] p-2 text-[var(--control-text)] transition hover:bg-[var(--control-hover)]"
                           >
                             <Pencil size={16} />
+                          </button>
+
+                          <button
+                            type="button"
+                            title="View bin on map"
+                            onClick={() => handleViewClick(bin.id)}
+                            className="rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] p-2 text-[var(--control-text)] transition hover:bg-[var(--control-hover)]"
+                          >
+                            <Eye size={16} />
                           </button>
 
                           <button
@@ -539,11 +541,11 @@ const handleRemoveBin = async (binId) => {
                   </label>
 
                   <input
-                  type="number"
-                  name="id"
-                  value={newBin.id}
-                  onChange={handleNewBinChange}
-                  placeholder="Example: 204"
+                    type="number"
+                    name="id"
+                    value={newBin.id}
+                    onChange={handleNewBinChange}
+                    placeholder="Example: 204"
                     className="w-full rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] px-3 py-2.5 text-sm text-[var(--control-text)] outline-none"
                   />
                 </div>
@@ -605,7 +607,7 @@ const handleRemoveBin = async (binId) => {
                   <select
                     name="zone"
                     value={newBin.zone}
-                     onChange={handleNewBinChange}
+                    onChange={handleNewBinChange}
                     className="w-full rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] px-3 py-2.5 text-sm text-[var(--control-text)] outline-none"
                   >
                     <option value="">Unassigned</option>
@@ -635,7 +637,7 @@ const handleRemoveBin = async (binId) => {
             </div>
           </div>
         )}
-                {showEditModal && editingBin && (
+        {showEditModal && editingBin && (
           <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
             <div className="w-full max-w-lg rounded-2xl bg-[var(--bg-card-strong)] [border:var(--border-card)] p-6 shadow-[var(--shadow-card)]">
               <div className="mb-6 flex items-center justify-between">
