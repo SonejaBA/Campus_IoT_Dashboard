@@ -11,10 +11,12 @@ import {
 import { Link } from "react-router-dom";
 import { createPortal } from "react-dom";
 import { useSettings } from "../components/context/SettingsContext.jsx";
+import { useAuth } from "./context/AuthContext.jsx";
 
 function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
   const { settings } = useSettings();
+  const { isAdmin } = useAuth();
   return (
     <div>
       <button
@@ -33,7 +35,9 @@ function MobileNav() {
 
       {isOpen &&
         createPortal(
-          <div className={` fixed inset-0 z-[3000] flex bg-black/70 items-start justify-left p-2 md:hidden theme-${settings.theme}`}>
+          <div
+            className={` fixed inset-0 z-[3000] flex bg-black/70 items-start justify-left p-2 md:hidden theme-${settings.theme}`}
+          >
             <div
               className="
           relative 
@@ -86,7 +90,8 @@ function MobileNav() {
                   className={`  flex 
                         items-center 
                         py-2 
-                        rounded-lg 
+                        rounded-lg
+                        ${!isAdmin && "hidden"}
                         text-[var(--text-good)]
                         gap-2 
                         w-60
@@ -106,7 +111,8 @@ function MobileNav() {
                   className={`  flex 
                         items-center 
                         py-2 
-                        rounded-lg            
+                        rounded-lg  
+                        ${!isAdmin && "hidden"}          
                         text-[var(--text-good)]
                         gap-2 
                         w-60
@@ -127,6 +133,7 @@ function MobileNav() {
                         items-center 
                         py-2 
                         rounded-lg 
+                        ${!isAdmin && "hidden"}
                         text-[var(--text-good)]
                         gap-2 
                         w-60
