@@ -47,10 +47,12 @@ function MobileNav() {
             <div
               className="
           relative 
+          overflow-hidden
           bg-[var(--bg-card)] 
           backdrop-blur-md 
           border-[var(--border-subtle)]
           p-6 
+          pb-12
           rounded-2xl 
           flex 
           flex-col 
@@ -67,7 +69,7 @@ function MobileNav() {
                 <X />
               </button>
 
-              <nav className="flex-1 flex-col gap-2 px-1">
+              <nav className="relative z-10 flex-1 flex-col gap-2 px-1">
                 <Link
                   onClick={() => setIsOpen(false)}
                   to="/"
@@ -78,8 +80,8 @@ function MobileNav() {
                         text-[var(--text-good)]
                         gap-2 
 `}
-                > 
-                  <MapPin size={20}/>
+                >
+                  <MapPin size={20} />
                   <span
                     className={`font-medium whitespace-nowrap text-[var(--text-primary)] pl-2`}
                   >
@@ -98,7 +100,7 @@ function MobileNav() {
                         gap-2 
 `}
                 >
-                  <BarChart3 size={20}/>
+                  <BarChart3 size={20} />
                   <span
                     className={`font-medium whitespace-nowrap text-[var(--text-primary)] pl-2`}
                   >
@@ -117,7 +119,7 @@ function MobileNav() {
                         gap-2 
 `}
                 >
-                  <Wrench size={20}/>
+                  <Wrench size={20} />
                   <span
                     className={`font-medium whitespace-nowrap text-[var(--text-primary)] pl-2`}
                   >
@@ -136,7 +138,7 @@ function MobileNav() {
                         gap-2 
 `}
                 >
-                  <UsersRound size={20}/>
+                  <UsersRound size={20} />
                   <span
                     className={`font-medium whitespace-nowrap text-[var(--text-primary)] pl-2`}
                   >
@@ -155,7 +157,7 @@ function MobileNav() {
                         gap-2 
 `}
                 >
-                  <Settings size={20}/>
+                  <Settings size={20} />
                   <span
                     className={`font-medium whitespace-nowrap text-[var(--text-primary)] pl-2`}
                   >
@@ -163,6 +165,38 @@ function MobileNav() {
                   </span>
                 </Link>
               </nav>
+              <svg
+                className="absolute bottom-0 left-0 w-full h-24 pointer-events-none"
+                viewBox="0 0 375 55"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <defs>
+                  <linearGradient
+                    id="nav-wave-gradient"
+                    x1="0%"
+                    y1="0%"
+                    x2="0%"
+                    y2="100%"
+                  >
+                    <stop offset="0%" stopColor="#10B981" stopOpacity="0.2" />
+                    <stop
+                      offset="100%"
+                      stopColor="#10B981"
+                      stopOpacity="0.02"
+                    />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M0,40 C90,70 210,10 375,50 L375,90 L0,90 Z"
+                  fill="#10B981"
+                  fillOpacity="0.05"
+                />
+                <path
+                  d="M0,35 C110,85 240,5 375,45 L375,90 L0,90 Z"
+                  fill="url(#nav-wave-gradient)"
+                />
+              </svg>
             </div>
           </div>,
           document.body,
