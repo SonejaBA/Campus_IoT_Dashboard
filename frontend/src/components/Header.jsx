@@ -21,6 +21,7 @@ const pageTitles = {
   "/analytics": "Analytics",
   "/settings": "Settings",
   "/maintenance": "Maintenance",
+  "/users": "Users",
 };
 
 const getGreeting = () => {
