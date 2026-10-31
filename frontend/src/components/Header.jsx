@@ -102,6 +102,7 @@ function Header({ bins }) {
   const location = useLocation();
   const currentPath = location.pathname;
   const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
   const attentionBins = useMemo(() => {
     return [...(bins ?? [])]
       .filter((bin) => bin.fill_level >= FILL_THRESHOLD)
@@ -118,6 +119,22 @@ function Header({ bins }) {
   const notificationTimer = useRef(null);
 
   const { text, icon } = getGreeting();
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (
@@ -210,6 +227,7 @@ function Header({ bins }) {
 
   const handleNotificationClick = (binId) => {
     navigate(`/?binId=${binId}`);
+    setIsOpen(false);
   };
   return (
     <div
@@ -242,7 +260,7 @@ function Header({ bins }) {
       )}
 
       <div className="gap-2 items-center flex ">
-        <div className="relative top-1">
+        <div className="relative top-1 " ref={dropdownRef}>
           <button
             className="px-4 relative cursor-pointer"
             onClick={() => setIsOpen(!isOpen)}
@@ -294,7 +312,7 @@ function Header({ bins }) {
                 <button
                   type="button"
                   key={`${bin.id}-battery`}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 cursor-pointer"
                   onClick={() => handleNotificationClick(bin.id)}
                 >
                   <BatteryLow
