@@ -32,7 +32,7 @@ function StatusSummaryRow({ label, value, color }) {
         <span className="font-medium text-[var(--text-primary)]">{label}</span>
       </div>
 
-      <span className="text-right font-semibold text-[var(--text-primary)]">
+      <span className="text-right font-semibold text-[var(--text-primary)] overflow-x-hidden">
         {value}
       </span>
     </div>
