@@ -36,9 +36,11 @@ function MobileNav() {
       {isOpen &&
         createPortal(
           <div
+            onClick={() => setIsOpen(false)}
             className={` fixed inset-0 z-[3000] flex bg-black/70 items-start justify-left p-2 md:hidden theme-${settings.theme}`}
           >
             <div
+              onClick={(e) => e.stopPropagation()}
               className="
           relative 
           overflow-hidden
@@ -58,9 +60,9 @@ function MobileNav() {
             >
               <button
                 onClick={() => setIsOpen(false)}
-                className="absolute top-4 right-4 text-gray-400 cursor-pointer"
+                className="absolute top-3 right-3 p-2 z-50 text-gray-400 rounded-lg cursor-pointer"
               >
-                <X />
+                <X size={24}/>
               </button>
 
               <nav className="relative z-10 flex-1 flex-col gap-2 px-1">
@@ -73,12 +75,12 @@ function MobileNav() {
                         rounded-lg 
                         text-[var(--text-good)]
                         gap-2
-                        w-60
+                        w-40
 `}
                 >
                   <MapPin size={20} />
                   <span
-                    className={`font-medium whitespace-nowrap text-[var(--text-primary)] pl-2`}
+                    className={`font-medium whitespace-nowrap text-[var(--text-primary)] pl-2 `}
                   >
                     Dashboard
                   </span>
@@ -94,7 +96,7 @@ function MobileNav() {
                         ${!isAdmin && "hidden"}
                         text-[var(--text-good)]
                         gap-2 
-                        w-60
+                        w-40
 `}
                 >
                   <BarChart3 size={20} />
@@ -115,7 +117,7 @@ function MobileNav() {
                         ${!isAdmin && "hidden"}          
                         text-[var(--text-good)]
                         gap-2 
-                        w-60
+                        w-40
 `}
                 >
                   <Wrench size={20} />
@@ -136,7 +138,7 @@ function MobileNav() {
                         ${!isAdmin && "hidden"}
                         text-[var(--text-good)]
                         gap-2 
-                        w-60
+                        w-40
 `}
                 >
                   <UsersRound size={20} />
@@ -156,7 +158,7 @@ function MobileNav() {
                         rounded-lg 
                         text-[var(--text-good)]
                         gap-2
-                        w-60
+                        w-40
 `}
                 >
                   <Settings size={20} />
