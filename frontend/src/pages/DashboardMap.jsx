@@ -5,15 +5,19 @@ import "leaflet/dist/leaflet.css";
 import { Filter, ChevronDown } from "lucide-react";
 import CurrentCapacityChart from "../components/charts/CurrentCapacityChart";
 import { useSettings } from "../components/context/SettingsContext";
+// Displays the predicted time until a bin is full
+import FillLevelPredictor from "../components/FillLevelPredictor";
 
 const fullColor = "bg-red-500";
 const mediumColor = "bg-amber-500";
 const lowColor = "bg-emerald-500";
 
+
+
 const defaultCenter = [38.5597502210662, -121.42347776852866];
 const mapBounds = [
-  [38.54655942770578, -121.43688277888091], //south west
-  [38.56960798353561, -121.40695667626277], //north east
+  [38.58174508566836, -121.39246728514956], //south west
+  [38.53925609277763, -121.44668666987675], //north east
 ];
 
 const createBinIcon = (fillLevel) => {
@@ -90,7 +94,8 @@ function FilterButton({ activeFilter, onSelect }) {
       </button>
 
       {isOpen && (
-        <div className="absolute 
+        <div
+          className="absolute 
         right-0 
         top-full 
         mt-2 
@@ -102,7 +107,8 @@ function FilterButton({ activeFilter, onSelect }) {
         backdrop-blur-[var(--backdrop-blur-light)]
         overflow-hidden 
         p-2 
-        whitespace-nowrap">
+        whitespace-nowrap"
+        >
           {filterOptions.map((option) => (
             <button
               key={option.value}
@@ -138,34 +144,35 @@ function DashboardMap({ bins }) {
 
   // Function to reset a bin from the map view
   const handleResetFromMap = async (binId) => {
-      if (isResetting) return;
-      setIsResetting(true);
-      try {
-        // Change http://localhost:8000 to match your actual backend port if it's different
-        const backendUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
-        
-        const response = await fetch(`${backendUrl}/api/bins/${binId}/reset`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        });
+    if (isResetting) return;
+    setIsResetting(true);
+    try {
+      // Change http://localhost:8000 to match your actual backend port if it's different
+      const backendUrl =
+        import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-        if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.detail || "Failed to reset bin.");
-        }
-        mapRef.current?.closePopup();
-      } catch (error) {
-        console.error("Error resetting bin from map:", error);
-        alert(error.message || "Failed to reset bin.");
-      } finally{
-        setIsResetting(false);
+      const response = await fetch(`${backendUrl}/api/bins/${binId}/reset`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.detail || "Failed to reset bin.");
       }
-    };
+      mapRef.current?.closePopup();
+    } catch (error) {
+      console.error("Error resetting bin from map:", error);
+      alert(error.message || "Failed to reset bin.");
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
-    const zoneFilteredBins = (bins ?? []).filter((bin) => {
-      if (!settings.selectedZone || settings.selectedZone === "all") return true;
-      
-      return bin.zone === settings.selectedZone;
+  const zoneFilteredBins = (bins ?? []).filter((bin) => {
+    if (!settings.selectedZone || settings.selectedZone === "all") return true;
+
+    return bin.zone === settings.selectedZone;
   });
 
   const filteredBins = zoneFilteredBins.filter((bin) => {
@@ -204,17 +211,22 @@ function DashboardMap({ bins }) {
             icon={createBinIcon(bin.fill_level)}
           >
             <Popup className="dark-popup">
-              <div className="h-50 w-70 flex flex-col">
-                <div className="flex items-center justify-between mb-2 mt-2">
-                  <span className="font-bold text-xl">
-                    BIN-{String(bin["id"]).padStart(3, "0")}
-                  </span>
-                  <span className="text-xs text-gray-400">
-                    {getRelativeTime(bin.time)}
-                  </span>
-                </div>
-                <CurrentCapacityChart bin={bin} isPopup={true} />
+              <div className="flex items-center justify-between mb-2 mt-2">
+                <span className="font-bold text-xl">
+                  BIN-{String(bin["id"]).padStart(3, "0")}
+                </span>
               </div>
+              <div className="flex flex-row w-95 items-center justify-end gap-4">
+                <div className="h-50 w-70 flex flex-col">
+                  <CurrentCapacityChart bin={bin} isPopup={true} />
+                </div>
+                {/* Calculate and display the predicted time until full */}
+                <FillLevelPredictor binId={bin.id} />
+              </div>
+              <div className="flex flex-row items-center justify-between w-95">
+                <span className="text-xs text-gray-400">
+                  Last ping: {getRelativeTime(bin.time)}
+                </span>
                 <div className="pt-2 flex justify-start">
                   <button
                     type="button"
@@ -237,6 +249,7 @@ function DashboardMap({ bins }) {
                     Mark Emptied
                   </button>
                 </div>
+              </div>
             </Popup>
           </Marker>
         ))}
