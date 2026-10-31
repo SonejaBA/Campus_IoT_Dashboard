@@ -13,6 +13,7 @@ import MobileNav from "../components/MobileNav.jsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSettings } from "../components/context/SettingsContext.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
+import { useNavigate } from "react-router-dom";
 const connected = "bg-emerald-500";
 const disconnected = "bg-red-500";
 
@@ -26,9 +27,10 @@ const pageTitles = {
 const getGreeting = () => {
   const size = 20;
   const hour = new Date().getHours();
-  if (hour < 12) return { text: "Good morning", icon: <CloudSun  size={size}/> };
-  if (hour < 18) return { text: "Good afternoon", icon: <Sun  size={size}/> };
-  return { text: "Good evening", icon: <Moon size={size}/> };
+  if (hour < 12)
+    return { text: "Good morning", icon: <CloudSun size={size} /> };
+  if (hour < 18) return { text: "Good afternoon", icon: <Sun size={size} /> };
+  return { text: "Good evening", icon: <Moon size={size} /> };
 };
 
 function StatusDot({ serverHealthy }) {
@@ -95,11 +97,12 @@ function Header({ bins }) {
   const { displayName } = useAuth();
   const FILL_THRESHOLD = settings.fillCritical;
   const BATTERY_THRESHOLD = settings.batteryWarning;
-
+  const navigate = useNavigate();
   const isHealthy = useCheckHealth();
   const location = useLocation();
   const currentPath = location.pathname;
   const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
   const attentionBins = useMemo(() => {
     return [...(bins ?? [])]
       .filter((bin) => bin.fill_level >= FILL_THRESHOLD)
@@ -116,6 +119,22 @@ function Header({ bins }) {
   const notificationTimer = useRef(null);
 
   const { text, icon } = getGreeting();
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (
@@ -205,6 +224,11 @@ function Header({ bins }) {
   }, [bins, settings.browserNotifications, FILL_THRESHOLD, BATTERY_THRESHOLD]);
 
   const notificationCount = attentionBins.length + lowBatteryBins.length;
+
+  const handleNotificationClick = (binId) => {
+    navigate(`/?binId=${binId}`);
+    setIsOpen(false);
+  };
   return (
     <div
       className={`
@@ -226,17 +250,17 @@ function Header({ bins }) {
         <h1 className="font-medium md:hidden"> {pageTitles[currentPath]} </h1>
       </div>
 
-      {settings.enabledGreeting && 
+      {settings.enabledGreeting && (
         <div className="gap-2 items-center hidden md:flex text-[var(--button-color)]">
           <div>{icon}</div>
           <h1 className="font-medium tracking-tight">
             {text}, {displayName?.split(" ")[0] ?? "User"}!
           </h1>
         </div>
-      }
+      )}
 
       <div className="gap-2 items-center flex ">
-        <div className="relative top-1">
+        <div className="relative top-1 " ref={dropdownRef}>
           <button
             className="px-4 relative cursor-pointer"
             onClick={() => setIsOpen(!isOpen)}
@@ -266,29 +290,37 @@ function Header({ bins }) {
             rounded-lg 
             bg-[var(--bg-card-strong)]
             [border:var(--border-card)]
-            shadow-[var(--shadow-card-subtle)]"
+            shadow-[var(--shadow-card-subtle)]
+            "
             >
               {attentionBins.map((bin) => (
-                <p key={bin.id} className="flex items-center gap-2">
+                <button
+                  type="button"
+                  key={bin.id}
+                  className="flex items-center gap-2 cursor-pointer"
+                  onClick={() => handleNotificationClick(bin.id)}
+                >
                   <Trash
                     size={16}
                     className="shrink-0 text-[var(--status-critical)]"
                   />
                   Bin {bin.id}: {bin.fill_level}%
-                </p>
+                </button>
               ))}
 
               {lowBatteryBins.map((bin) => (
-                <p
+                <button
+                  type="button"
                   key={`${bin.id}-battery`}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 cursor-pointer"
+                  onClick={() => handleNotificationClick(bin.id)}
                 >
                   <BatteryLow
                     size={16}
                     className="shrink-0 text-[var(--status-warning)]"
                   />
                   Battery level critical: Bin {bin.id} ({bin.battery_level}%)
-                </p>
+                </button>
               ))}
 
               {!notificationCount && "No Notifications"}
