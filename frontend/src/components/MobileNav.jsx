@@ -41,7 +41,8 @@ function MobileNav() {
         bg-black/70
         items-start 
         justify-left 
-        p-2"
+        p-2
+        md:hidden"
           >
             <div
               className="
@@ -56,7 +57,8 @@ function MobileNav() {
           gap-6 
           w-3/4 
           max-w-xs 
-          shadow-2xl"
+          shadow-2xl
+          md:hidden"
             >
               <button
                 onClick={() => setIsOpen(false)}
