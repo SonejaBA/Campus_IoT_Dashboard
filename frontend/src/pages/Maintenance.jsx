@@ -9,6 +9,7 @@ import {
   Wrench,
   X,
   Eye,
+  SquareSigma
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -227,6 +228,10 @@ function Maintenance({ bins = [] }) {
   const handleViewClick = (binId) => {
     navigate(`/?binId=${binId}`);
   };
+
+  const handleViewAnalytics = (binId) =>{
+    navigate(`/analytics/?binId=${binId}`)
+  }
 
   const criticalCount = bins.filter(
     (bin) => Number(bin.fill_level ?? 0) >= 80,
@@ -473,6 +478,15 @@ function Maintenance({ bins = [] }) {
                             className="rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] p-2 text-[var(--control-text)] transition hover:bg-[var(--control-hover)]"
                           >
                             <Eye size={16} />
+                          </button>
+
+                          <button
+                            type="button"
+                            title="View bin on analytics"
+                            onClick={() => handleViewAnalytics(bin.id)}
+                            className="rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] p-2 text-[var(--control-text)] transition hover:bg-[var(--control-hover)]"
+                          >
+                            <SquareSigma size={16} />
                           </button>
 
                           <button
