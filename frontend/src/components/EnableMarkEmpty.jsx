@@ -1,15 +1,21 @@
 import { useSettings } from "./context/SettingsContext";
 import { Trash } from "lucide-react";
+import { useAuth } from "./context/AuthContext";
 
 function EnableGreeting() {
   const { settings, updateSetting } = useSettings();
+  const { isAdmin } = useAuth();
 
   return (
-    <label className="my-4 flex items-center justify-between gap-4 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] p-4">
+    <label
+      className={`my-4 flex items-center justify-between gap-4 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] ${!isAdmin && "hidden"} p-4`}
+    >
       <div className="flex flex-row items-center gap-3">
         <Trash size={21} className="shrink-0" />
         <div>
-          <h3 className="font-semibold text-[var(--text-primary)]">Enable Mark Empty</h3>
+          <h3 className="font-semibold text-[var(--text-primary)]">
+            Enable Mark Empty
+          </h3>
           <p className="text-sm text-[var(--text-secondary)]">
             Enable manual setting of bin fill level to zero on dashboard.
           </p>
