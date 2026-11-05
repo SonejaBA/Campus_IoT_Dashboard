@@ -20,7 +20,7 @@ export function MapFlyController({ bins }) {
         String(b.bin_id) === String(targetBinId)
       );
     });
-
+    
     if (targetBin && targetBin.lat && (targetBin.long || targetBin.lng)) {
       const lat = Number(targetBin.lat);
       const lng = Number(targetBin.long ?? targetBin.lng);
@@ -35,8 +35,8 @@ export function MapFlyController({ bins }) {
           if (layer.getLatLng && layer.getPopup) {
             const pos = layer.getLatLng();
             if (
-              Math.abs(pos.lat - lat) < 0.0001 &&
-              Math.abs(pos.lng - lng) < 0.0001
+              Math.abs(pos.lat - lat) < 0.00001 &&
+              Math.abs(pos.lng - lng) < 0.00001
             ) {
               layer.openPopup();
             }
