@@ -17,6 +17,7 @@ import ThemeSelector from "../components/ThemeSelector.jsx";
 import ZoneSelector from "../components/ZoneSelector.jsx";
 import DisplayNameSelector from "../components/DisplayNameSelector.jsx"
 import EnableGreeting from "../components/EnableGreeting.jsx";
+import EnableMarkEmpty from "../components/EnableMarkEmpty.jsx"
 
 // Reusable status summary for the fill-level thresholds.
 function StatusSummaryRow({ label, value, color }) {
@@ -31,7 +32,7 @@ function StatusSummaryRow({ label, value, color }) {
         <span className="font-medium text-[var(--text-primary)]">{label}</span>
       </div>
 
-      <span className="text-right font-semibold text-[var(--text-primary)]">
+      <span className="text-right font-semibold text-[var(--text-primary)] overflow-x-hidden">
         {value}
       </span>
     </div>
@@ -347,6 +348,7 @@ function Settings() {
           onSetDisplayName={handleSaveDisplayName}
         />
         <EnableGreeting/>
+        <EnableMarkEmpty/>
         
         <footer className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-[var(--text-secondary)]">
