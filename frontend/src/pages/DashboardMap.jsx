@@ -5,8 +5,8 @@ import "leaflet/dist/leaflet.css";
 import { Filter, ChevronDown } from "lucide-react";
 import CurrentCapacityChart from "../components/charts/CurrentCapacityChart";
 import { useSettings } from "../components/context/SettingsContext";
-// Displays the predicted time until a bin is full
 import FillLevelPredictor from "../components/FillLevelPredictor";
+import { MapFlyController } from "../components/MapFlyController";
 
 const fullColor = "bg-red-500";
 const mediumColor = "bg-amber-500";
@@ -198,6 +198,7 @@ function DashboardMap({ bins }) {
         zoomControl={false}
         attributionControl={false}
       >
+        <MapFlyController bins={bins} />
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'

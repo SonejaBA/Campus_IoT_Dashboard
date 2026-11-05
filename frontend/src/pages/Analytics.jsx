@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import HistoricalBinCard from "../components/cards/HistoricalBinCard";
 import CurrentBinCard from "../components/cards/CurrentBinCard";
 import BinSearchSelect from "../components/BinSearchSelect";
@@ -8,15 +9,32 @@ import TimeRangeSelect from "../components/TimeRangeSelect";
 import OverservicedPanel from "../components/cards/OverservicedPanel";
 
 function Analytics({ bins }) {
+  const [searchParams] = useSearchParams();
+  const targetBinId = searchParams.get("binId");
   const fullColor = "bg-red-500";
   const mediumColor = "bg-amber-500";
   const lowColor = "bg-emerald-500";
 
   const [selectedBin, setSelectedBin] = useState("");
+
+  useEffect(() => {
+    if (!targetBinId || !bins || bins.length === 0) return;
+
+    const match = bins.find(
+      (b) =>
+        String(b.id) === String(targetBinId) ||
+        `BIN-${String(b.id).padStart(3, "0")}`.toLowerCase() ===
+          String(targetBinId).toLowerCase(),
+    );
+
+    if (match) {
+      setSelectedBin(match.id);
+    }
+  }, [targetBinId, bins]);
+
   const binsCount = bins.length;
   const activeBin = bins.find((bin) => bin.id === selectedBin);
   const [timeRange, setTimeRange] = useState("7d");
-
 
   const averageFill =
     binsCount > 0
@@ -40,7 +58,6 @@ function Analytics({ bins }) {
   return (
     //flex 1 since its going to be under a flex parent
     <div className="flex-1 text-[var(--text-primary)] p-10 flex flex-col gap-4">
-      
       <h1 className="mb-3 hidden md:block">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-secondary)]">
@@ -56,7 +73,6 @@ function Analytics({ bins }) {
           </p>
         </div>
       </h1>
-
 
       <div className="grid grid-cols-2 grid-rows-2 lg:grid-cols-4 md:grid-rows-1 gap-8 items-center mb-3">
         <div>
@@ -102,10 +118,7 @@ function Analytics({ bins }) {
           {selectedBin !== "" && (
             <ExportCsvButton binId={selectedBin} label="Export this bin" />
           )}
-          <TimeRangeSelect 
-          timeRange={timeRange} 
-          onChange={setTimeRange} 
-          />
+          <TimeRangeSelect timeRange={timeRange} onChange={setTimeRange} />
           <BinSearchSelect
             bins={bins}
             selectedBin={selectedBin}
@@ -120,7 +133,7 @@ function Analytics({ bins }) {
               Historical Bin Data
             </h2>
             <div className="h-50 md:h-100 flex w-full">
-              <HistoricalBinCard binID={selectedBin}  timeRange ={timeRange}/>
+              <HistoricalBinCard binID={selectedBin} timeRange={timeRange} />
             </div>
           </div>
 
