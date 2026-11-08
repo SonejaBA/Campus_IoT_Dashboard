@@ -17,7 +17,7 @@ The database relies on two tables and an automated trigger to process incoming t
 
 | Table            | Purpose                         | Key Columns                                                |
 | ---------------- | ------------------------------- | ---------------------------------------------------------- |
-| `bins`           | Current state for the React map | `id`, `lat`, `long`, `fill_level`, `battery_level`, `time`,`location`, `compost`, `recycle`, `landfill`, `zone` |
+| `bins`           | Current state for the React map | `id`, `lat`, `long`, `fill_level`, `battery_level`, `time`,`location`, `compost`, `recycle`, `landfill`, `zone`, `is_deactivated` |
 | `telemetry_logs` | Time-series historical data     | `id`, `bin_id`, `fill_level`, `battery_level`, `time`, `compost`, `recycle`, `landfill` |
 | `profiles`| Provide roles and display names for users | `id`, `email`, `role`, `created_at`, `display_name`, `requested_access`|
 
