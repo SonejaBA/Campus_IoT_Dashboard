@@ -168,10 +168,12 @@ function DashboardMap({ bins }) {
   };
 
   const zoneFilteredBins = (bins ?? []).filter((bin) => {
-    if (!settings.selectedZone || settings.selectedZone === "all") return true;
+  if (bin.is_deactivated === true) return false;
 
-    return bin.zone === settings.selectedZone;
-  });
+  if (!settings.selectedZone || settings.selectedZone === "all") return true;
+
+  return bin.zone === settings.selectedZone;
+});
 
   const filteredBins = zoneFilteredBins.filter((bin) => {
     if (activeFilter === "all") return true;
@@ -196,7 +198,7 @@ function DashboardMap({ bins }) {
         zoomControl={false}
         attributionControl={false}
       >
-        <MapFlyController bins={bins} />
+        <MapFlyController bins={filteredBins} />
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
