@@ -193,6 +193,7 @@ function DashboardMap({ bins }) {
 
   // The color filter applies to whichever waste stream is selected.
   const filteredBins = zoneFilteredBins.filter((bin) => {
+    if (!settings.enabledWasteStreamFilter) return true;
     const fill = getStreamFill(bin, wasteStream);
 
     if (activeFilter === "all") return true;
@@ -205,13 +206,15 @@ function DashboardMap({ bins }) {
   return (
     <div className="flex-1 relative">
       <div className="absolute top-4 right-4 z-[1000] flex items-start gap-2">
-        <DropdownFilter
-          options={wasteStreamOptions}
-          activeValue={wasteStream}
-          onSelect={setWasteStream}
-          icon={Layers}
-          title="Waste stream"
-        />
+        {settings.enabledWasteStreamFilter && (
+          <DropdownFilter
+            options={wasteStreamOptions}
+            activeValue={wasteStream}
+            onSelect={setWasteStream}
+            icon={Layers}
+            title="Waste stream"
+          />
+        )}
         <DropdownFilter
           options={filterOptions}
           activeValue={activeFilter}
