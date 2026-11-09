@@ -1,5 +1,5 @@
 import { useSettings } from "./context/SettingsContext";
-import { Trash } from "lucide-react";
+import { Leaf } from "lucide-react";
 
 function EnableWasteStreamFilter() {
   const { settings, updateSetting } = useSettings();
@@ -9,7 +9,7 @@ function EnableWasteStreamFilter() {
       className={`my-4 flex items-center justify-between gap-4 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] p-4`}
     >
       <div className="flex flex-row items-center gap-3">
-        <Trash size={21} className="shrink-0" />
+        <Leaf size={21} className="shrink-0" />
         <div>
           <h3 className="font-semibold text-[var(--text-primary)]">
             Enable Waste Stream Filter
