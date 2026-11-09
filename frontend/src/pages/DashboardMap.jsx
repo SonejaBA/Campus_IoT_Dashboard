@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Filter, ChevronDown } from "lucide-react";
+import { Filter, ChevronDown, Layers } from "lucide-react";
 import CurrentCapacityChart from "../components/charts/CurrentCapacityChart";
 import { useSettings } from "../components/context/SettingsContext";
 import FillLevelPredictor from "../components/FillLevelPredictor";
@@ -17,6 +17,13 @@ const mapBounds = [
   [38.58174508566836, -121.39246728514956], //south west
   [38.53925609277763, -121.44668666987675], //north east
 ];
+
+// Returns the fill level the map should use for a bin, based on the
+// selected waste stream. "highest" uses the bin's overall fill_level.
+const getStreamFill = (bin, wasteStream) => {
+  const value = wasteStream === "highest" ? bin.fill_level : bin[wasteStream];
+  return Number(value ?? 0);
+};
 
 const createBinIcon = (fillLevel) => {
   const colorClass =
@@ -59,15 +66,23 @@ const filterOptions = [
   { value: "red", label: "Red (80–100%)" },
 ];
 
-function FilterButton({ activeFilter, onSelect }) {
+const wasteStreamOptions = [
+  { value: "highest", label: "Highest fill level" },
+  { value: "landfill", label: "Landfill" },
+  { value: "compost", label: "Compost" },
+  { value: "recycle", label: "Recycle" },
+];
+
+// Reusable dropdown used by both the waste stream and color filters.
+function DropdownFilter({ options, activeValue, onSelect, icon: Icon, title }) {
   const [isOpen, setIsOpen] = useState(false);
-  const activeLabel = filterOptions.find((o) => o.value === activeFilter).label;
+  const activeLabel = options.find((o) => o.value === activeValue).label;
 
   return (
-    <div className="absolute top-4 right-4 z-[1000]">
+    <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        title="Filters"
+        title={title}
         className="flex 
         items-center 
         gap-2 
@@ -81,7 +96,7 @@ function FilterButton({ activeFilter, onSelect }) {
         backdrop-blur-[var(--backdrop-blur-light)]
         justify-end"
       >
-        <Filter size={16} />
+        <Icon size={16} />
         {activeLabel}
         <ChevronDown
           size={14}
@@ -107,7 +122,7 @@ function FilterButton({ activeFilter, onSelect }) {
         p-2 
         whitespace-nowrap"
         >
-          {filterOptions.map((option) => (
+          {options.map((option) => (
             <button
               key={option.value}
               onClick={() => {
@@ -136,6 +151,7 @@ function FilterButton({ activeFilter, onSelect }) {
 
 function DashboardMap({ bins }) {
   const [activeFilter, setActiveFilter] = useState("all");
+  const [wasteStream, setWasteStream] = useState("highest");
   const [isResetting, setIsResetting] = useState(false);
   const { settings } = useSettings();
   const mapRef = useRef(null);
@@ -173,18 +189,35 @@ function DashboardMap({ bins }) {
     return bin.zone === settings.selectedZone;
   });
 
+  // The color filter applies to whichever waste stream is selected.
   const filteredBins = zoneFilteredBins.filter((bin) => {
+    const fill = getStreamFill(bin, wasteStream);
+
     if (activeFilter === "all") return true;
-    if (activeFilter === "green") return bin.fill_level <= 49;
-    if (activeFilter === "yellow")
-      return bin.fill_level >= 50 && bin.fill_level <= 79;
-    if (activeFilter === "red") return bin.fill_level >= 80;
+    if (activeFilter === "green") return fill <= 49;
+    if (activeFilter === "yellow") return fill >= 50 && fill <= 79;
+    if (activeFilter === "red") return fill >= 80;
     return true;
   });
 
   return (
     <div className="flex-1 relative">
-      <FilterButton activeFilter={activeFilter} onSelect={setActiveFilter} />
+      <div className="absolute top-4 right-4 z-[1000] flex items-start gap-2">
+        <DropdownFilter
+          options={wasteStreamOptions}
+          activeValue={wasteStream}
+          onSelect={setWasteStream}
+          icon={Layers}
+          title="Waste stream"
+        />
+        <DropdownFilter
+          options={filterOptions}
+          activeValue={activeFilter}
+          onSelect={setActiveFilter}
+          icon={Filter}
+          title="Filters"
+        />
+      </div>
       <MapContainer
         ref={mapRef}
         center={defaultCenter}
@@ -207,7 +240,7 @@ function DashboardMap({ bins }) {
           <Marker
             key={bin.id}
             position={[bin.lat, bin.long]}
-            icon={createBinIcon(bin.fill_level)}
+            icon={createBinIcon(getStreamFill(bin, wasteStream))}
           >
             <Popup className="dark-popup">
               <div className="flex items-center justify-between mb-2 mt-2">
