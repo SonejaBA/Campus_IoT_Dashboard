@@ -39,6 +39,7 @@ function getBinStatus(fillLevel) {
 function Maintenance({ bins = [] }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [zoneFilter, setZoneFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingBin, setEditingBin] = useState(null);
@@ -328,9 +329,19 @@ const handleToggleDeactivation = async (bin) => {
       const matchesZone =
         zoneFilter === "all" || (bin.zone ?? "Unassigned") === zoneFilter;
 
-      return matchesSearch && matchesZone;
+      const isDeactivated =
+        Object.prototype.hasOwnProperty.call(deactivationOverrides, bin.id)
+        ? deactivationOverrides[bin.id]
+        : bin.is_deactivated === true;
+
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "active" && !isDeactivated) ||
+        (statusFilter === "deactivated" && isDeactivated);
+
+      return matchesSearch && matchesZone && matchesStatus;
     });
-  }, [bins, searchTerm, zoneFilter]);
+  }, [bins, searchTerm, zoneFilter, statusFilter, deactivationOverrides]);
 
   return (
     <main className="min-h-full flex-1 overflow-auto px-5 py-8 text-[var(--text-primary)] sm:px-8 lg:px-10">
@@ -453,6 +464,16 @@ const handleToggleDeactivation = async (bin) => {
                 <option value="B">Zone B</option>
                 <option value="Unassigned">Unassigned</option>
               </select>
+                 {/* Status filter */}
+                 <select
+                   value={statusFilter}
+                   onChange={(event) => setStatusFilter(event.target.value)}
+                   className="rounded-lg border border-[color:var(--control-border)] bg-[var(--bg-card)] px-3 py-2.5 text-sm text-[var(--dropdown-text))] outline-none"
+                 >
+                   <option value="all">All bins</option>
+                   <option value="active">Active</option>
+                   <option value="deactivated">Deactivated</option>
+                 </select>
             </div>
           </div>
 
