@@ -5,7 +5,7 @@ AS $$
 BEGIN
   UPDATE public.bins
   SET
-    fill_level = GRAETEST(NEW.compost, NEW.recycle, NEW.landfill),
+    fill_level = GREATEST(NEW.compost, NEW.recycle, NEW.landfill),
     time = NEW.time,
     battery_level = NEW.battery_level,
     compost = NEW.compost,
@@ -16,7 +16,7 @@ BEGIN
 END;
 $$;
 
-CREATE TRIGGER after_sensor_ping
+CREATE OR REPLACE TRIGGER after_sensor_ping
 AFTER INSERT ON public.telemetry_logs
 FOR EACH ROW
 EXECUTE FUNCTION update_bin_current_status();
