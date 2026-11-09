@@ -2,7 +2,7 @@ import { useSettings } from "./context/SettingsContext";
 import { Trash } from "lucide-react";
 import { useAuth } from "./context/AuthContext";
 
-function EnableGreeting() {
+function EnableMarkEmpty() {
   const { settings, updateSetting } = useSettings();
   const { isAdmin } = useAuth();
 
@@ -34,4 +34,4 @@ function EnableGreeting() {
   );
 }
 
-export default EnableGreeting;
+export default EnableMarkEmpty;
