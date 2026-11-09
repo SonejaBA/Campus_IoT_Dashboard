@@ -53,6 +53,16 @@ class BinUpdate(BaseModel):
     location: str
     zone: str | None = None
 
+class BinUpdate(BaseModel):
+    lat: float
+    long: float
+    location: str
+    zone: str | None = None
+
+class BinDeactivationUpdate(BaseModel):
+    is_deactivated: bool
+
+
 @app.post("/api/bins")
 def create_bin(bin_data: BinCreate):
     try:
@@ -111,6 +121,40 @@ def update_bin(bin_id: int, bin_data: BinUpdate):
             status_code=400,
             detail=str(error),
         )
+
+@app.patch("/api/bins/{bin_id}/deactivation")
+def set_bin_deactivation(
+    bin_id: int,
+    deactivation: BinDeactivationUpdate,
+):
+    try:
+        response = (
+            supabase
+            .table("bins")
+            .update({
+                "is_deactivated": deactivation.is_deactivated,
+            })
+            .eq("id", bin_id)
+            .execute()
+        )
+
+        if not response.data:
+            raise HTTPException(
+                status_code=404,
+                detail="Bin not found.",
+            )
+
+        return response.data[0]
+
+    except HTTPException:
+        raise
+    except Exception as error:
+        raise HTTPException(
+            status_code=400,
+            detail=str(error),
+        )
+
+
 
 @app.delete("/api/bins/{bin_id}")
 def delete_bin(bin_id: int):

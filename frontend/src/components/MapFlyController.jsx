@@ -11,6 +11,7 @@ export function MapFlyController({ bins }) {
     if (!targetBinId || !bins || bins.length === 0) return;
 
     const targetBin = bins.find((b) => {
+      if (b.is_deactivated === true) return false;
       const rawId = String(b.id);
       const paddedId = `BIN-${rawId.padStart(3, "0")}`;
       const search = String(targetBinId).toLowerCase();
