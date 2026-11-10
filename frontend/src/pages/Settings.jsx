@@ -12,7 +12,6 @@ import {
   SlidersHorizontal,
   Trash2,
   Unlock,
-  User,
 } from "lucide-react";
 import { useAuth } from "../components/context/AuthContext.jsx";
 import { useSettings } from "../components/context/SettingsContext.jsx";
@@ -176,8 +175,7 @@ function Settings() {
   const sections = [
     { id: "settings-dashboard", label: "Dashboard" },
     { id: "settings-notifications", label: "Notifications" },
-    { id: "settings-display", label: "Display" },
-    { id: "settings-account", label: "Account" },
+    { id: "settings-personalization", label: "Personalization" },
     ...(isAdmin ? [{ id: "settings-admin", label: "Admin / System" }] : []),
   ];
 
@@ -202,8 +200,8 @@ function Settings() {
             </h1>
 
             <p className="mt-2 max-w-2xl text-sm text-[var(--text-secondary)]">
-              Manage dashboard behavior, alerts, appearance, and your account.
-              Most preferences are saved on this device only.
+              Manage dashboard behavior, alerts, and personalization. Most
+              preferences are saved on this device only.
             </p>
           </div>
 
@@ -417,50 +415,19 @@ function Settings() {
             />
           </SettingsSection>
 
-          {/* DISPLAY */}
+          {/* PERSONALIZATION (name, theme, greeting) */}
           <SettingsSection
-            id="settings-display"
+            id="settings-personalization"
             icon={Palette}
-            title="Display"
-            description="Change how the app looks."
-          >
-            <ThemeSelector />
-            <EnableGreeting />
-          </SettingsSection>
-
-          {/* ACCOUNT */}
-          <SettingsSection
-            id="settings-account"
-            icon={User}
-            title="Account"
-            description="Your name and session."
+            title="Personalization"
+            description="Your name, theme, and greeting."
           >
             <DisplayNameSelector
               displayName={displayName}
               onSetDisplayName={handleSaveDisplayName}
             />
-
-            <div className="flex flex-col gap-3 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3">
-                <LogOut size={21} className="shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-[var(--text-primary)]">
-                    Log out
-                  </h3>
-                  <p className="text-sm text-[var(--text-secondary)]">
-                    End your session on this device.
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleLogOut}
-                className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-[color:var(--btn-logout-border)] bg-[var(--btn-logout-bg)] px-4 py-2.5 text-sm font-medium text-[var(--btn-logout-text)] transition hover:bg-[var(--btn-logout-hover)]"
-              >
-                Log out
-              </button>
-            </div>
+            <ThemeSelector />
+            <EnableGreeting />
           </SettingsSection>
 
           {/* ADMIN / SYSTEM: the whole card is only rendered for admins */}
@@ -475,6 +442,18 @@ function Settings() {
             </SettingsSection>
           )}
         </div>
+
+        {/* LOG OUT: last thing on the page */}
+        <footer className="mt-6 flex justify-end pt-5 [border-top:var(--border-subtle)]">
+          <button
+            type="button"
+            onClick={handleLogOut}
+            className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-[color:var(--btn-logout-border)] bg-[var(--btn-logout-bg)] px-4 py-2.5 text-sm font-medium text-[var(--btn-logout-text)] transition hover:bg-[var(--btn-logout-hover)] sm:w-fit"
+          >
+            <LogOut size={17} />
+            Log out
+          </button>
+        </footer>
       </div>
     </main>
   );
