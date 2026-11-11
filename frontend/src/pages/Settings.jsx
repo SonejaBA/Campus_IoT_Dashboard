@@ -21,6 +21,7 @@ import ZoneSelector from "../components/ZoneSelector.jsx";
 import DisplayNameSelector from "../components/DisplayNameSelector.jsx";
 import EnableGreeting from "../components/EnableGreeting.jsx";
 import EnableMarkEmpty from "../components/EnableMarkEmpty.jsx";
+import FilterStream from "../components/FilterStream.jsx";
 
 // Reusable status summary for the fill-level thresholds.
 function StatusSummaryRow({ label, value, color }) {
@@ -241,6 +242,7 @@ function Settings() {
             description="Choose which bins you see and when they count as warning or critical."
           >
             <ZoneSelector />
+            <FilterStream />
 
             <div className="grid gap-4 lg:grid-cols-[1.65fr_1fr]">
               <div className="min-w-0 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] p-5 shadow-[var(--shadow-card-subtle)] sm:p-6">
