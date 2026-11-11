@@ -156,6 +156,8 @@ function DashboardMap({ bins }) {
   const { settings } = useSettings();
   const mapRef = useRef(null);
 
+  const activeStream = settings.enabledWasteStreamFilter ? wasteStream : "highest";
+
   // Function to reset a bin from the map view
   const handleResetFromMap = async (binId) => {
     if (isResetting) return;
@@ -193,7 +195,7 @@ function DashboardMap({ bins }) {
 
   // The color filter applies to whichever waste stream is selected.
   const filteredBins = zoneFilteredBins.filter((bin) => {
-    const fill = getStreamFill(bin, wasteStream);
+    const fill = getStreamFill(bin, activeStream);
 
     if (activeFilter === "all") return true;
     if (activeFilter === "green") return fill <= 49;
@@ -205,13 +207,15 @@ function DashboardMap({ bins }) {
   return (
     <div className="flex-1 relative">
       <div className="absolute top-4 right-4 z-[1000] flex items-start gap-2">
-        <DropdownFilter
-          options={wasteStreamOptions}
-          activeValue={wasteStream}
-          onSelect={setWasteStream}
-          icon={Layers}
-          title="Waste stream"
-        />
+        {settings.enabledWasteStreamFilter && (
+          <DropdownFilter
+            options={wasteStreamOptions}
+            activeValue={wasteStream}
+            onSelect={setWasteStream}
+            icon={Layers}
+            title="Waste stream"
+          />
+        )}
         <DropdownFilter
           options={filterOptions}
           activeValue={activeFilter}
@@ -242,7 +246,7 @@ function DashboardMap({ bins }) {
           <Marker
             key={bin.id}
             position={[bin.lat, bin.long]}
-            icon={createBinIcon(getStreamFill(bin, wasteStream))}
+            icon={createBinIcon(getStreamFill(bin, activeStream))}
           >
             <Popup className="dark-popup">
               <div className="flex items-center justify-between mb-2 mt-2">

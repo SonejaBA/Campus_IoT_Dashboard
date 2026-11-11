@@ -23,7 +23,6 @@ import EnableGreeting from "../components/EnableGreeting.jsx";
 import EnableMarkEmpty from "../components/EnableMarkEmpty.jsx";
 import FilterStream from "../components/FilterStream.jsx";
 
-// Reusable status summary for the fill-level thresholds.
 function StatusSummaryRow({ label, value, color }) {
   return (
     <div className="flex min-h-24 items-center justify-between gap-3 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] px-5 py-4 shadow-[var(--shadow-card-subtle)]">
@@ -36,14 +35,13 @@ function StatusSummaryRow({ label, value, color }) {
         <span className="font-medium text-[var(--text-primary)]">{label}</span>
       </div>
 
-      <span className="text-right font-semibold text-[var(--text-primary)] overflow-x-hidden">
+      <span className="overflow-x-hidden text-right font-semibold text-[var(--text-primary)]">
         {value}
       </span>
     </div>
   );
 }
 
-// One card per settings group, styled like the cards on the Maintenance page.
 function SettingsSection({ id, icon: Icon, title, description, children }) {
   return (
     <section
@@ -65,7 +63,6 @@ function SettingsSection({ id, icon: Icon, title, description, children }) {
   );
 }
 
-// A checkbox row used by the notification preferences.
 function ToggleRow({ title, description, checked, onChange }) {
   return (
     <label className="flex items-center justify-between gap-4 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] p-4">
@@ -129,13 +126,11 @@ function Settings() {
     setDisplayName(newName);
   };
 
-  // Warning must stay at least one percentage point below critical.
   const handleWarningChange = (event) => {
     const value = Number(event.target.value);
     updateSetting("fillWarning", Math.min(value, settings.fillCritical - 1));
   };
 
-  // Critical must stay at least one percentage point above warning.
   const handleCriticalChange = (event) => {
     const value = Number(event.target.value);
     updateSetting("fillCritical", Math.max(value, settings.fillWarning + 1));
@@ -156,11 +151,7 @@ function Settings() {
 
     const permission = await Notification.requestPermission();
 
-    if (permission === "granted") {
-      updateSetting("browserNotifications", true);
-    } else {
-      updateSetting("browserNotifications", false);
-    }
+    updateSetting("browserNotifications", permission === "granted");
   };
 
   const handleLogOut = async () => {
@@ -172,7 +163,6 @@ function Settings() {
     }
   };
 
-  // Quick-jump buttons at the top; the Admin one only exists for admins.
   const sections = [
     { id: "settings-dashboard", label: "Dashboard" },
     { id: "settings-notifications", label: "Notifications" },
@@ -189,17 +179,14 @@ function Settings() {
   return (
     <main className="min-h-full flex-1 overflow-auto px-5 py-8 text-[var(--text-primary)] sm:px-8 lg:px-10">
       <div className="mx-auto max-w-6xl">
-        {/* Page heading, same pattern as Maintenance. Reset stays at the top so it is always reachable. */}
         <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-secondary)]">
               Operations Control Center
             </p>
-
             <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
               Settings
             </h1>
-
             <p className="mt-2 max-w-2xl text-sm text-[var(--text-secondary)]">
               Manage dashboard behavior, alerts, and personalization. Most
               preferences are saved on this device only.
@@ -216,7 +203,6 @@ function Settings() {
           </button>
         </header>
 
-        {/* Jump links (scroll sideways on narrow screens) */}
         <nav
           aria-label="Settings sections"
           className="mb-4 flex gap-2 overflow-x-auto pb-1"
@@ -234,7 +220,6 @@ function Settings() {
         </nav>
 
         <div className="flex flex-col gap-4">
-          {/* DASHBOARD */}
           <SettingsSection
             id="settings-dashboard"
             icon={MapPin}
@@ -267,11 +252,7 @@ function Settings() {
                         : "border-[color:var(--btn-reset-border)] bg-[var(--btn-reset-bg)] text-[var(--btn-reset-text)] hover:bg-[var(--btn-reset-hover)]"
                     }`}
                   >
-                    {thresholdsLocked ? (
-                      <Lock size={15} />
-                    ) : (
-                      <Unlock size={15} />
-                    )}
+                    {thresholdsLocked ? <Lock size={15} /> : <Unlock size={15} />}
                     {thresholdsLocked ? "Unlock" : "Lock"}
                   </button>
                 </div>
@@ -285,7 +266,6 @@ function Settings() {
                   </span>
                 </div>
 
-                {/* Dynamic widths only; slider colors and styling are in CSS */}
                 <div className="relative mx-3 mt-8 h-12">
                   <div className="threshold-track">
                     <div
@@ -329,13 +309,10 @@ function Settings() {
                 <div className="mt-4 flex justify-between text-xs font-medium">
                   <span className="text-[var(--status-normal)]">Normal</span>
                   <span className="text-[var(--status-warning)]">Warning</span>
-                  <span className="text-[var(--status-critical)]">
-                    Critical
-                  </span>
+                  <span className="text-[var(--status-critical)]">Critical</span>
                 </div>
               </div>
 
-              {/* Compact status summaries on the right */}
               <section
                 aria-label="Fill-level status summary"
                 className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1"
@@ -358,14 +335,10 @@ function Settings() {
               </section>
             </div>
 
-            {/* Battery warning */}
             <div className="rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] px-5 py-4 shadow-[var(--shadow-card-subtle)]">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <BatteryMedium
-                    size={19}
-                    className="battery-accent shrink-0"
-                  />
+                  <BatteryMedium size={19} className="battery-accent shrink-0" />
                   <div>
                     <h3 className="font-semibold">Battery warning</h3>
                     <p className="mt-1 text-xs text-[var(--text-secondary)]">
@@ -394,7 +367,6 @@ function Settings() {
             </div>
           </SettingsSection>
 
-          {/* NOTIFICATION PREFERENCES */}
           <SettingsSection
             id="settings-notifications"
             icon={Bell}
@@ -417,7 +389,6 @@ function Settings() {
             />
           </SettingsSection>
 
-          {/* PERSONALIZATION (name, theme, greeting) */}
           <SettingsSection
             id="settings-personalization"
             icon={Palette}
@@ -432,7 +403,6 @@ function Settings() {
             <EnableGreeting />
           </SettingsSection>
 
-          {/* ADMIN / SYSTEM: the whole card is only rendered for admins */}
           {isAdmin && (
             <SettingsSection
               id="settings-admin"
@@ -445,7 +415,6 @@ function Settings() {
           )}
         </div>
 
-        {/* LOG OUT: last thing on the page */}
         <footer className="mt-6 flex justify-end pt-5 [border-top:var(--border-subtle)]">
           <button
             type="button"
