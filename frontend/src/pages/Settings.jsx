@@ -226,9 +226,6 @@ function Settings() {
             title="Dashboard"
             description="Choose which bins you see and when they count as warning or critical."
           >
-            <ZoneSelector />
-            <FilterStream />
-
             <div className="grid gap-4 lg:grid-cols-[1.65fr_1fr]">
               <div className="min-w-0 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] p-5 shadow-[var(--shadow-card-subtle)] sm:p-6">
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -365,6 +362,9 @@ function Settings() {
                 className="mt-4 w-full cursor-pointer"
               />
             </div>
+
+            <ZoneSelector />
+            <FilterStream />
           </SettingsSection>
 
           <SettingsSection
