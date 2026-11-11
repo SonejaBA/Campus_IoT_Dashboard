@@ -6,7 +6,7 @@ function EnableWasteStreamFilter() {
 
   return (
     <label
-      className={`my-4 flex items-center justify-between gap-4 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] p-4`}
+      className={`flex items-center justify-between gap-4 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] p-4`}
     >
       <div className="flex flex-row items-center gap-3">
         <Leaf size={21} className="shrink-0" />

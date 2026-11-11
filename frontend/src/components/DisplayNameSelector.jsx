@@ -24,7 +24,7 @@ function DisplayNameSelector({ displayName, onSetDisplayName }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-4 flex flex-col md:flex-row items-start md:items-center justify-between rounded-xl [border:var(--border-card)] bg-[var(--bg-card-strong)] p-4 gap-4"
+      className="flex flex-col md:flex-row items-start md:items-center justify-between rounded-xl [border:var(--border-card)] bg-[var(--bg-card-strong)] p-4 gap-4"
     >
       <div className="flex flex-row items-center gap-3">
         <Tag size={21} className="shrink-0" />
@@ -38,13 +38,13 @@ function DisplayNameSelector({ displayName, onSetDisplayName }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex w-full items-center gap-2 md:w-auto">
         <input
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder="e.g. John Doe"
-          className="rounded-lg bg-[var(--bg-card)] [border:var(--border-card)] px-3 py-1.5 text-sm text-[var(--text-primary)] outline-none"
+          className="min-w-0 flex-1 rounded-lg bg-[var(--bg-card)] [border:var(--border-card)] px-3 py-1.5 text-sm text-[var(--text-primary)] outline-none"
         />
         <button
           type="submit"
