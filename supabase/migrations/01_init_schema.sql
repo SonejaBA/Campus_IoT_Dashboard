@@ -74,12 +74,16 @@ AS $$
 BEGIN
   UPDATE public.bins
   SET
-    fill_level = GREATEST(NEW.compost, NEW.recycle, NEW.landfill),
+    fill_level = COALESCE(
+      GREATEST(NEW.compost, NEW.recycle, NEW.landfill),
+      NEW.fill_level,
+      0
+    ),
     time = NEW.time,
     battery_level = NEW.battery_level,
-    compost = NEW.compost,
-    recycle = NEW.recycle,
-    landfill = NEW.landfill
+    compost = COALESCE(NEW.compost, compost),
+    recycle = COALESCE(NEW.recycle, recycle),
+    landfill = COALESCE(NEW.landfill, landfill)
   WHERE id = NEW.bin_id;
   RETURN NEW;
 END;
@@ -165,6 +169,16 @@ ON public.bins
 FOR SELECT
 TO authenticated
 USING (true);
+
+-- ==========================================
+-- SOURCE: src/policies/admin_bin_access.sql
+-- ==========================================
+CREATE POLICY "Allow admins to manage bins"
+ON public.bins
+FOR ALL
+TO authenticated
+USING (public.is_admin())
+WITH CHECK (public.is_admin());
 
 -- ==========================================
 -- SOURCE: src/policies/admin_only_view_analytics.sql
