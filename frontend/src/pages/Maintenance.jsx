@@ -39,10 +39,12 @@ function getBinStatus(fillLevel) {
 function Maintenance({ bins = [] }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [zoneFilter, setZoneFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingBin, setEditingBin] = useState(null);
   const [maintenanceStatus, setMaintenanceStatus] = useState({});
+  const [deactivationOverrides, setDeactivationOverrides] = useState({});
   const [newBin, setNewBin] = useState({
     id: "",
     location: "",
@@ -195,6 +197,73 @@ function Maintenance({ bins = [] }) {
     }
   };
 
+const handleToggleDeactivation = async (bin) => {
+  const currentState =
+    Object.prototype.hasOwnProperty.call(deactivationOverrides, bin.id)
+      ? deactivationOverrides[bin.id]
+      : bin.is_deactivated === true;
+
+  const nextState = !currentState;
+
+  if (nextState) {
+    const confirmed = window.confirm(
+      `Are you sure you want to deactivate Bin ${bin.id}?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+  }
+
+  // Update the button immediately.
+  setDeactivationOverrides((prev) => ({
+    ...prev,
+    [bin.id]: nextState,
+  }));
+
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/bins/${bin.id}/deactivation`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          is_deactivated: nextState,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(
+        error.detail || "Failed to update bin deactivation status."
+      );
+    }
+
+    const updatedBin = await response.json();
+
+    setDeactivationOverrides((prev) => ({
+      ...prev,
+      [bin.id]: updatedBin.is_deactivated === true,
+    }));
+  } catch (error) {
+    console.error("Error updating bin deactivation:", error);
+
+    // Restore the previous state if the request failed.
+    setDeactivationOverrides((prev) => ({
+      ...prev,
+      [bin.id]: currentState,
+    }));
+
+    alert(
+      error.message || "Failed to update bin deactivation status."
+    );
+  }
+};
+
+
   const handleRemoveBin = async (binId) => {
     const confirmed = window.confirm(
       `Are you sure you want to remove Bin ${binId}?`,
@@ -260,9 +329,19 @@ function Maintenance({ bins = [] }) {
       const matchesZone =
         zoneFilter === "all" || (bin.zone ?? "Unassigned") === zoneFilter;
 
-      return matchesSearch && matchesZone;
+      const isDeactivated =
+        Object.prototype.hasOwnProperty.call(deactivationOverrides, bin.id)
+        ? deactivationOverrides[bin.id]
+        : bin.is_deactivated === true;
+
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "active" && !isDeactivated) ||
+        (statusFilter === "deactivated" && isDeactivated);
+
+      return matchesSearch && matchesZone && matchesStatus;
     });
-  }, [bins, searchTerm, zoneFilter]);
+  }, [bins, searchTerm, zoneFilter, statusFilter, deactivationOverrides]);
 
   return (
     <main className="min-h-full flex-1 overflow-auto px-5 py-8 text-[var(--text-primary)] sm:px-8 lg:px-10">
@@ -385,6 +464,16 @@ function Maintenance({ bins = [] }) {
                 <option value="B">Zone B</option>
                 <option value="Unassigned">Unassigned</option>
               </select>
+                 {/* Status filter */}
+                 <select
+                   value={statusFilter}
+                   onChange={(event) => setStatusFilter(event.target.value)}
+                   className="rounded-lg border border-[color:var(--control-border)] bg-[var(--bg-card)] px-3 py-2.5 text-sm text-[var(--dropdown-text))] outline-none"
+                 >
+                   <option value="all">All bins</option>
+                   <option value="active">Active</option>
+                   <option value="deactivated">Deactivated</option>
+                 </select>
             </div>
           </div>
 
@@ -407,15 +496,28 @@ function Maintenance({ bins = [] }) {
               <tbody>
                 {filteredBins.map((bin) => {
                   const status = getBinStatus(bin.fill_level);
-
+                  const isDeactivated =
+                    Object.prototype.hasOwnProperty.call(deactivationOverrides, bin.id)
+                      ? deactivationOverrides[bin.id]
+                      : bin.is_deactivated === true;
                   return (
                     <tr
                       key={bin.id}
                       className="border-b border-[color:var(--border-subtle)] transition hover:bg-[var(--bg-hover)]"
                     >
                       <td className="px-4 py-4 font-semibold">
-                        BIN-{String(bin.id).padStart(3, "0")}
-                      </td>
+                        <div className="flex flex-col gap-1">
+                          <span>BIN-{String(bin.id).padStart(3, "0")}</span>
+
+                          {isDeactivated && (
+                          <span className="w-fit rounded-md bg-gray-200 px-2 py-1 text-xs font-medium text-gray-700">
+                            Deactivated
+                          </span>
+                        )}
+                      </div>
+                    </td>
+
+
 
                       <td className="px-4 py-4 text-[var(--text-secondary)]">
                         {bin.location || "Unassigned"}
@@ -488,6 +590,19 @@ function Maintenance({ bins = [] }) {
                           >
                             <SquareSigma size={16} />
                           </button>
+                             <button
+                               type="button"
+                               title={isDeactivated ? "Reactivate bin" : "Deactivate bin"}
+                               onClick={() => handleToggleDeactivation(bin)}
+                               className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                                 isDeactivated
+                                   ? "border-green-300 bg-green-50 text-green-700 hover:bg-green-100"
+                                   : "border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100"
+                               }`}
+                             >
+                               {isDeactivated ? "Reactivate" : "Deactivate"}
+                             </button>
+
 
                           <button
                             type="button"

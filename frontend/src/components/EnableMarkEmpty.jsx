@@ -2,13 +2,13 @@ import { useSettings } from "./context/SettingsContext";
 import { Trash } from "lucide-react";
 import { useAuth } from "./context/AuthContext";
 
-function EnableGreeting() {
+function EnableMarkEmpty() {
   const { settings, updateSetting } = useSettings();
   const { isAdmin } = useAuth();
 
   return (
     <label
-      className={`my-4 flex items-center justify-between gap-4 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] ${!isAdmin && "hidden"} p-4`}
+      className={`flex items-center justify-between gap-4 rounded-xl bg-[var(--bg-card-strong)] [border:var(--border-subtle)] ${!isAdmin && "hidden"} p-4`}
     >
       <div className="flex flex-row items-center gap-3">
         <Trash size={21} className="shrink-0" />
@@ -34,4 +34,4 @@ function EnableGreeting() {
   );
 }
 
-export default EnableGreeting;
+export default EnableMarkEmpty;

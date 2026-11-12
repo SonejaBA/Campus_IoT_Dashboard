@@ -12,6 +12,7 @@ const defaultSettings = {
   selectedZone: "all",
   enabledGreeting: false,
   enabledMarkEmpty: false,
+  enabledWasteStreamFilter: false,
 };
 
 const getSavedSettings = () => {

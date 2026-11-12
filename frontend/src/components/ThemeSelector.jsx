@@ -5,7 +5,7 @@ function ThemeSelector() {
   const { settings, updateSetting } = useSettings();
 
   return (
-    <div className="mt-4 flex items-center justify-between rounded-xl [border:var(--border-card)] bg-[var(--bg-card-strong)] p-4">
+    <div className="flex flex-col gap-3 rounded-xl [border:var(--border-card)] bg-[var(--bg-card-strong)] p-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-row items-center gap-3">
         <Palette size={21} className="shrink-0" />
         <div>

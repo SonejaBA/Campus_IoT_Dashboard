@@ -1,10 +1,10 @@
 import { useSettings } from "./context/SettingsContext";
 import { Locate } from "lucide-react";
 
-function ThemeSelector() {
+function ZoneSelector() {
   const { settings, updateSetting } = useSettings();
   return (
-    <section className="mt-4 flex items-center justify-between rounded-xl [border:var(--border-card)] bg-[var(--bg-card-strong)] p-4">
+    <section className="flex items-center justify-between rounded-xl [border:var(--border-card)] bg-[var(--bg-card-strong)] p-4">
       <div className="flex flex-row items-center gap-3">
         <Locate size={21} className="shrink-0" />
         <div>
@@ -30,4 +30,4 @@ function ThemeSelector() {
   );
 }
 
-export default ThemeSelector;
+export default ZoneSelector;
