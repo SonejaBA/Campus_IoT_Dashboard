@@ -12,6 +12,7 @@ import {
   SquareSigma
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { authFetch } from "../services/supabaseClient";
 
 function getBinStatus(fillLevel) {
   const fill = Number(fillLevel ?? 0);
@@ -222,7 +223,7 @@ const handleToggleDeactivation = async (bin) => {
   }));
 
   try {
-    const response = await fetch(
+    const response = await authFetch(
       `${import.meta.env.VITE_API_URL}/api/bins/${bin.id}/deactivation`,
       {
         method: "PATCH",

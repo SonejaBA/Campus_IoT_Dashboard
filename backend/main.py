@@ -50,6 +50,18 @@ def require_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     except Exception:
         raise HTTPException(status_code=401, detail="Authentication required.")
 
+def require_admin(user=Depends(require_user)):
+    profile = (
+        supabase.table("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybe_single()
+        .execute()
+    )
+    if not profile.data or profile.data.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required.")
+    return user
+
 @app.get("/")
 def read_root():
     return {"message" : "FastAPI is running! (json)"}
