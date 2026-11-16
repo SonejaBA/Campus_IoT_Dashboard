@@ -225,7 +225,7 @@ TIME_RANGES = {
 }
 
 
-@app.get("/api/analytics/{bin_id}", dependencies=[Depends(require_admin)])
+@app.get("/api/analytics/{bin_id}", dependencies=[Depends(require_user)])
 def get_bin_logs(bin_id: int, time_range: str = "7d"):
 
     timeDelta = TIME_RANGES.get(time_range) #this variable is used to translate the time the client requests
