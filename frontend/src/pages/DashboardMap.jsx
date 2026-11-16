@@ -7,6 +7,7 @@ import CurrentCapacityChart from "../components/charts/CurrentCapacityChart";
 import { useSettings } from "../components/context/SettingsContext";
 import FillLevelPredictor from "../components/FillLevelPredictor";
 import { MapFlyController } from "../components/MapFlyController";
+import { authFetch } from "../services/supabaseClient";
 
 const fullColor = "bg-red-500";
 const mediumColor = "bg-amber-500";
@@ -167,7 +168,7 @@ function DashboardMap({ bins }) {
       const backendUrl =
         import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-      const response = await fetch(`${backendUrl}/api/bins/${binId}/reset`, {
+      const response = await authFetch(`${backendUrl}/api/bins/${binId}/reset`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
+import { authFetch } from "../../services/supabaseClient.js";
 
 const DEFAULTS = { days: 7, minDrop: 20, maxFillBefore: 50, minEvents: 4 };
 
@@ -84,7 +85,7 @@ function OverservicedPanel() {
         max_fill_before: cleaned.maxFillBefore,
         min_events: cleaned.minEvents,
       });
-      const response = await fetch(
+      const response = await authFetch(
         `${import.meta.env.VITE_API_URL}/api/overserviced?${query}`
       );
       if (!response.ok) {
