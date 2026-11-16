@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Query, Depends, HTTPException1
+from fastapi import FastAPI, HTTPException, Query, Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from collections import defaultdict
 from overserviced import find_clearings
@@ -38,7 +38,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
+def require_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    try:
+        user_response = supabase.auth.get_user(token)
+        if not user_response.user:
+            raise HTTPException(status_code=401, detail="Invalid or expired token.")
+        return user_response.user
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=401, detail="Authentication required.")
 
 @app.get("/")
 def read_root():
@@ -126,7 +136,7 @@ def update_bin(bin_id: int, bin_data: BinUpdate):
             detail=str(error),
         )
 
-@app.patch("/api/bins/{bin_id}/deactivation")
+@app.patch("/api/bins/{bin_id}/deactivation" , dependencies=[Depends(require_user)])
 def set_bin_deactivation(
     bin_id: int,
     deactivation: BinDeactivationUpdate,
