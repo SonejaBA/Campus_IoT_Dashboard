@@ -8,6 +8,7 @@ import { useSettings } from "../components/context/SettingsContext";
 import FillLevelPredictor from "../components/FillLevelPredictor";
 import { MapFlyController } from "../components/MapFlyController";
 import { authFetch } from "../services/supabaseClient";
+import { useAuth } from "../components/context/AuthContext";
 
 const fullColor = "bg-red-500";
 const mediumColor = "bg-amber-500";
