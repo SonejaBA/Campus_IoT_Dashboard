@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Query, Depends, HTTPException
+from fastapi import FastAPI, HTTPException, Query, Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from collections import defaultdict
 from overserviced import find_clearings
