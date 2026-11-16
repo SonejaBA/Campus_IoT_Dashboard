@@ -79,12 +79,6 @@ class BinUpdate(BaseModel):
     location: str
     zone: str | None = None
 
-class BinUpdate(BaseModel):
-    lat: float
-    long: float
-    location: str
-    zone: str | None = None
-
 class BinDeactivationUpdate(BaseModel):
     is_deactivated: bool
 
