@@ -15,6 +15,7 @@ import AppLayout from "./pages/AppLayout.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import UpdatePassword from "./pages/UpdatePassword.jsx";
 import { Toaster } from "sonner";
+import { useAuth } from "./components/context/AuthContext.jsx";
 
 
 function AppRoute(){
@@ -76,8 +77,6 @@ function AppRoute(){
 
 
 function App() {
-  const bins = useBins();
-
   return (
     <AuthProvider>
       <SettingsProvider>

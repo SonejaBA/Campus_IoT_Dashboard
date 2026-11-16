@@ -33,7 +33,7 @@ function useBins(user){
         return () => {
         supabase.removeChannel(channel);
         };
-    }, []);
+    }, [user]);
 
     return bins;
 }
