@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Depends, HTTPException1
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from collections import defaultdict
 from overserviced import find_clearings
 from pydantic import BaseModel
@@ -9,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 import os
 
 load_dotenv()
+security = HTTPBearer()
 
 SUPABASE_CLIENT = os.getenv("SUPABASE_CLIENT")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
@@ -36,8 +38,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+
 @app.get("/")
-def reed_root():
+def read_root():
     return {"message" : "FastAPI is running! (json)"}
 
 class BinCreate(BaseModel):
