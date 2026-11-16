@@ -12,8 +12,9 @@ function useBins(user){
             return;
         }    
         authFetch(`${import.meta.env.VITE_API_URL}/api/bins`)
-        .then(response => response.json())
-        .then(data => setBins(data))
+            .then((response) => (response.ok ? response.json() : []))
+            .then((data) => setBins(Array.isArray(data) ? data : []))
+            .catch(() => setBins([]));
 
         const channel = supabase
         .channel('realtime_bins')
