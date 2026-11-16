@@ -156,6 +156,7 @@ function DashboardMap({ bins }) {
   const [isResetting, setIsResetting] = useState(false);
   const { settings } = useSettings();
   const mapRef = useRef(null);
+  const { isAdmin } = useAuth();
 
   const activeStream = settings.enabledWasteStreamFilter ? wasteStream : "highest";
 
@@ -266,7 +267,7 @@ function DashboardMap({ bins }) {
                 <span className="text-xs text-gray-400">
                   Last ping: {getRelativeTime(bin.time)}
                 </span>
-                {settings.enabledMarkEmpty &&
+                {isAdmin && settings.enabledMarkEmpty &&
                   <div className="pt-2 flex justify-start">
                     <button
                       type="button"
