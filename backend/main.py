@@ -148,7 +148,7 @@ def update_bin(bin_id: int, bin_data: BinUpdate):
             detail=str(error),
         )
 
-@app.patch("/api/bins/{bin_id}/deactivation" , dependencies=[Depends(require_user)])
+@app.patch("/api/bins/{bin_id}/deactivation" , dependencies=[Depends(require_admin)])
 def set_bin_deactivation(
     bin_id: int,
     deactivation: BinDeactivationUpdate,
