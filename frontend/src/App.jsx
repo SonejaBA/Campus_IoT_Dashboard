@@ -16,15 +16,14 @@ import ForgotPassword from "./pages/ForgotPassword.jsx";
 import UpdatePassword from "./pages/UpdatePassword.jsx";
 import { Toaster } from "sonner";
 
-function App() {
-  const bins = useBins();
+
+function AppRoute(){
+  const { user } = useAuth();
+  const bins = useBins(user);
 
   return (
-    <AuthProvider>
-      <SettingsProvider>
-        <Toaster position="bottom-right" theme="dark" closeButton />
-        <BrowserRouter>
-          <Routes>
+    <BrowserRouter>
+      <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/forgotpassword" element={<ForgotPassword />} />
@@ -71,7 +70,19 @@ function App() {
               />
             </Route>
           </Routes>
-        </BrowserRouter>
+    </BrowserRouter>
+  );
+}
+
+
+function App() {
+  const bins = useBins();
+
+  return (
+    <AuthProvider>
+      <SettingsProvider>
+        <Toaster position="bottom-right" theme="dark" closeButton />
+        <AppRoute />
       </SettingsProvider>
     </AuthProvider>
   );
