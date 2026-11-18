@@ -20,6 +20,7 @@ function Users() {
     role: "viewer",
   });
   const [showAddModal, setShowAddModal] = useState(false);
+  const [addUserLoading, setAddUserLoading] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -153,34 +154,14 @@ function Users() {
       setShowAddModal(false);
 
       // 4. Alert and refresh
-      alert("User provisioned successfully.");
-      window.location.reload(); // Or fetchUsers() if you are managing table state locally
+      toast.success("Account provisioned!");
+      fetchUsers();
     } catch (error) {
       console.error("Error creating user:", error);
-      alert(error.message || "Failed to create user.");
+      toast.error(error.message || "Failed to create user.");
     }
   };
 
-  const handleCreateUser = async (newUserData) => {
-    try {
-      const response = await authFetch(
-        `${import.meta.env.VITE_API_URL}/api/users`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(newUserData),
-        },
-      );
-
-      if (!response.ok) throw new Error("Failed to create user");
-
-      toast.success("Account provisioned!");
-      setShowAddModal(false);
-      fetchUsers(); // Refresh the table
-    } catch (error) {
-      toast.error(error.message);
-    }
-  };
 
   const handleDeleteUser = async (userId) => {
     if (
