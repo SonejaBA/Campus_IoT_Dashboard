@@ -15,16 +15,16 @@ import AppLayout from "./pages/AppLayout.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import UpdatePassword from "./pages/UpdatePassword.jsx";
 import { Toaster } from "sonner";
+import { useAuth } from "./components/context/AuthContext.jsx";
 
-function App() {
-  const bins = useBins();
+
+function AppRoute(){
+  const { user } = useAuth();
+  const bins = useBins(user);
 
   return (
-    <AuthProvider>
-      <SettingsProvider>
-        <Toaster position="bottom-right" theme="dark" closeButton />
-        <BrowserRouter>
-          <Routes>
+    <BrowserRouter>
+      <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/forgotpassword" element={<ForgotPassword />} />
@@ -71,7 +71,17 @@ function App() {
               />
             </Route>
           </Routes>
-        </BrowserRouter>
+    </BrowserRouter>
+  );
+}
+
+
+function App() {
+  return (
+    <AuthProvider>
+      <SettingsProvider>
+        <Toaster position="bottom-right" theme="dark" closeButton />
+        <AppRoute />
       </SettingsProvider>
     </AuthProvider>
   );

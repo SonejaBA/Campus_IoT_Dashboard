@@ -12,6 +12,7 @@ import {
   SquareSigma
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { authFetch } from "../services/supabaseClient";
 
 function getBinStatus(fillLevel) {
   const fill = Number(fillLevel ?? 0);
@@ -58,7 +59,7 @@ function Maintenance({ bins = [] }) {
 
     const loadMaintenanceStatus = async () => {
       try {
-        const response = await fetch(
+        const response = await authFetch(
           `${import.meta.env.VITE_API_URL}/api/maintenance`,
         );
         if (!response.ok) {
@@ -100,7 +101,7 @@ function Maintenance({ bins = [] }) {
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/bins`, {
+      const response = await authFetch(`${import.meta.env.VITE_API_URL}/api/bins`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -168,7 +169,7 @@ function Maintenance({ bins = [] }) {
     }
 
     try {
-      const response = await fetch(
+      const response = await authFetch(
         `${import.meta.env.VITE_API_URL}/api/bins/${editingBin.id}`,
         {
           method: "PATCH",
@@ -222,7 +223,7 @@ const handleToggleDeactivation = async (bin) => {
   }));
 
   try {
-    const response = await fetch(
+    const response = await authFetch(
       `${import.meta.env.VITE_API_URL}/api/bins/${bin.id}/deactivation`,
       {
         method: "PATCH",
@@ -274,7 +275,7 @@ const handleToggleDeactivation = async (bin) => {
     }
 
     try {
-      const response = await fetch(
+      const response = await authFetch(
         `${import.meta.env.VITE_API_URL}/api/bins/${binId}`,
         {
           method: "DELETE",

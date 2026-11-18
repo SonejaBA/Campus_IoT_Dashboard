@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
+import { authFetch } from '../services/supabaseClient.js'
 
 function useCheckHealth(){
     const [isHealthy,setIsHealthy] = useState(false)
 
     useEffect(() =>{
-        fetch(`${import.meta.env.VITE_API_URL}/api/health`)
+        authFetch(`${import.meta.env.VITE_API_URL}/api/health`)
         .then(response => response.json())
         .then(data => {
             if (data.status === "online"){

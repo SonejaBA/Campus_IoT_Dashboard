@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { authFetch } from "../services/supabaseClient.js";
 
 function useBinAnalytics(bin_id, timeRange = "7d") {
   const [binHistory, setBinHistory] = useState([]);
@@ -6,7 +7,7 @@ function useBinAnalytics(bin_id, timeRange = "7d") {
   useEffect(() => {
     let ignore = false; // stops a slow old response from overwriting a newer one
 
-    fetch(
+    authFetch(
       `${import.meta.env.VITE_API_URL}/api/analytics/${bin_id}?time_range=${timeRange}`,
     )
       .then((response) => {

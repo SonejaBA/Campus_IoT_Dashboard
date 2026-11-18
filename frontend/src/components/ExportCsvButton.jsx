@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Download } from "lucide-react";
 import { rowsToCsv, downloadCsv } from "../utils/exportCsv";
+import { authFetch } from "../services/supabaseClient";
 
 function ExportCsvButton({ binId = null, label = "Export CSV" }) {
   const [loading, setLoading] = useState(false);
@@ -13,7 +14,7 @@ function ExportCsvButton({ binId = null, label = "Export CSV" }) {
       const baseUrl = `${import.meta.env.VITE_API_URL}/api/export/telemetry`;
       const url = binId ? `${baseUrl}?bin_id=${binId}` : baseUrl;
 
-      const response = await fetch(url);
+      const response = await authFetch(url);
       if (!response.ok) throw new Error("Export failed. Is the backend running?");
 
       const rows = await response.json();

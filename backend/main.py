@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Depends
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from collections import defaultdict
 from overserviced import find_clearings
 from pydantic import BaseModel
@@ -9,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 import os
 
 load_dotenv()
+security = HTTPBearer()
 
 SUPABASE_CLIENT = os.getenv("SUPABASE_CLIENT")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
@@ -36,8 +38,32 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+def require_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    try:
+        user_response = supabase.auth.get_user(token)
+        if not user_response.user:
+            raise HTTPException(status_code=401, detail="Invalid or expired token.")
+        return user_response.user
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=401, detail="Authentication required.")
+
+def require_admin(user=Depends(require_user)):
+    profile = (
+        supabase.table("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybe_single()
+        .execute()
+    )
+    if not profile.data or profile.data.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required.")
+    return user
+
 @app.get("/")
-def reed_root():
+def read_root():
     return {"message" : "FastAPI is running! (json)"}
 
 class BinCreate(BaseModel):
@@ -53,17 +79,11 @@ class BinUpdate(BaseModel):
     location: str
     zone: str | None = None
 
-class BinUpdate(BaseModel):
-    lat: float
-    long: float
-    location: str
-    zone: str | None = None
-
 class BinDeactivationUpdate(BaseModel):
     is_deactivated: bool
 
 
-@app.post("/api/bins")
+@app.post("/api/bins", dependencies=[Depends(require_admin)])
 def create_bin(bin_data: BinCreate):
     try:
         response = (
@@ -90,7 +110,7 @@ def create_bin(bin_data: BinCreate):
             status_code=400,
             detail=str(error),
         )
-@app.patch("/api/bins/{bin_id}")
+@app.patch("/api/bins/{bin_id}", dependencies=[Depends(require_admin)])
 def update_bin(bin_id: int, bin_data: BinUpdate):
     try:
         response = (
@@ -122,7 +142,7 @@ def update_bin(bin_id: int, bin_data: BinUpdate):
             detail=str(error),
         )
 
-@app.patch("/api/bins/{bin_id}/deactivation")
+@app.patch("/api/bins/{bin_id}/deactivation" , dependencies=[Depends(require_admin)])
 def set_bin_deactivation(
     bin_id: int,
     deactivation: BinDeactivationUpdate,
@@ -156,7 +176,7 @@ def set_bin_deactivation(
 
 
 
-@app.delete("/api/bins/{bin_id}")
+@app.delete("/api/bins/{bin_id}", dependencies=[Depends(require_admin)])
 def delete_bin(bin_id: int):
     try:
         response = (
@@ -189,7 +209,7 @@ def delete_bin(bin_id: int):
 
 
 
-@app.get("/api/bins")
+@app.get("/api/bins", dependencies=[Depends(require_user)])
 def get_bins():
     # Go to the 'bins' table, select all columns (*), and execute the query
     response = supabase.table("bins").select("*").order("id").execute()
@@ -205,7 +225,7 @@ TIME_RANGES = {
 }
 
 
-@app.get("/api/analytics/{bin_id}")
+@app.get("/api/analytics/{bin_id}", dependencies=[Depends(require_user)])
 def get_bin_logs(bin_id: int, time_range: str = "7d"):
 
     timeDelta = TIME_RANGES.get(time_range) #this variable is used to translate the time the client requests
@@ -286,7 +306,7 @@ def analyze_sensor_maintenance(bin_id: int):
     }
 
 
-@app.get("/api/maintenance/{bin_id}")
+@app.get("/api/maintenance/{bin_id}", dependencies=[Depends(require_admin)])
 def get_maintenance_status(bin_id: int):
     try:
         return analyze_sensor_maintenance(bin_id)
@@ -381,7 +401,7 @@ def analyze_all_sensor_maintenance(bin_ids):
     return results
 
 
-@app.get("/api/maintenance")
+@app.get("/api/maintenance", dependencies=[Depends(require_admin)])
 def get_all_maintenance_status(bin_ids: str = ""):
     try:
         if bin_ids.strip():
@@ -408,7 +428,7 @@ def get_all_maintenance_status(bin_ids: str = ""):
             detail=str(error),
         )
 
-@app.get("/api/health")
+@app.get("/api/health", dependencies=[Depends(require_user)])
 def health_check():
     try:
         supabase.table("bins").select("id").limit(1).execute()
@@ -427,7 +447,7 @@ def health_check():
 
 
 # Export telemetry data
-@app.get("/api/export/telemetry")
+@app.get("/api/export/telemetry", dependencies=[Depends(require_admin)])
 def export_telemetry(bin_id: int | None = None):
     # This function will return the full telemetry history for the CSV report.
     # Giving the function a bin_id will allow us to view history of a specific bin.
@@ -464,7 +484,7 @@ def export_telemetry(bin_id: int | None = None):
     return rows
     
 # ticket 44 Reset Endpoint
-@app.post("/api/bins/{bin_id}/reset")
+@app.post("/api/bins/{bin_id}/reset", dependencies=[Depends(require_admin)])
 async def reset_bin_status(bin_id: int):
     try:
         last_log = (
@@ -498,7 +518,7 @@ async def reset_bin_status(bin_id: int):
         print(f"Error resetting bin: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/overserviced")
+@app.get("/api/overserviced", dependencies=[Depends(require_admin)])
 def get_overserviced_bins(
     days: int = Query(7, ge=1, le=30),               # how far back to look
     min_drop: int = Query(20, ge=1, le=100),         # smallest drop that counts as a pickup
