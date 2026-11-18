@@ -1,7 +1,7 @@
 import { ShieldCheck, UserCheck, Clock, Eye, Trash2, } from "lucide-react";
 import { useAuth } from "./context/AuthContext";
 
-function UsersTable({ filteredUsers, loading, onRoleChange, onDeleteUser, onCreateUser }) {
+function UsersTable({ filteredUsers, loading, onRoleChange, onDeleteUser }) {
   const { user: currentUser } = useAuth();
   if (loading) {
     return (

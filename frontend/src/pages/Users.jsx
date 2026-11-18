@@ -179,7 +179,6 @@ function Users() {
           loading={loading}
           onRoleChange={handleRoleChange}
           onDeleteUser={handleDeleteUser}
-          onCreateUser={handleCreateUser}
         />
       </div>
     </div>
