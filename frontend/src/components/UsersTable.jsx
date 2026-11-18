@@ -111,7 +111,9 @@ function UsersTable({ filteredUsers, loading, onRoleChange, onDeleteUser }) {
               </td>
               <td className="py-3.5 px-4 text-right">
                 <button 
-                  className="rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] p-2 text-[var(--control-text)] transition hover:bg-[var(--control-hover)]"
+                  disabled={currentUser?.id === user.id}
+                  className="rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] p-2 text-[var(--control-text)] transition hover:bg-[var(--control-hover)] disabled:opacity-50 
+                    disabled:cursor-not-allowed"
                   onClick={() => onDeleteUser(user.id)}
                 >
                   <Trash2
