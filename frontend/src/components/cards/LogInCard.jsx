@@ -85,12 +85,6 @@ function LogInCard() {
         </button>
         <div className="flex justify-between">
           <Link
-            to="/signup"
-            className="text-center text-sm text-white/80 hover:text-emerald-400 underline transition duration-200 mt-2"
-          >
-            Sign up
-          </Link>
-          <Link
             to="/forgotpassword" 
             className="text-center text-sm text-white/80 hover:text-emerald-400 underline transition duration-200 mt-2">
             Forgot Password
