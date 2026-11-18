@@ -6,12 +6,14 @@ import UserSearchBar from "../components/UserSearchBar";
 import PendingRequests from "../components/PendingRequests";
 import UsersTable from "../components/UsersTable";
 import { useAuth } from "../components/context/AuthContext";
+import { authFetch } from "../services/supabaseClient";
 
 function Users() {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -92,6 +94,41 @@ function Users() {
     }
   };
 
+  const handleCreateUser = async (newUserData) => {
+  try {
+    const response = await authFetch(`${import.meta.env.VITE_API_URL}/api/users`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newUserData),
+    });
+    
+    if (!response.ok) throw new Error("Failed to create user");
+    
+    toast.success("Account provisioned!");
+    setShowAddModal(false);
+    fetchUsers(); // Refresh the table
+  } catch (error) {
+    toast.error(error.message);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+  if (!window.confirm("Are you sure you want to permanently delete this user?")) return;
+
+  try {
+    const response = await authFetch(`${import.meta.env.VITE_API_URL}/api/users/${userId}`, {
+      method: "DELETE"
+    });
+    
+    if (!response.ok) throw new Error("Failed to delete user");
+    
+    toast.success("User deleted successfully");
+    fetchUsers(); // Refresh your table state
+  } catch (error) {
+    toast.error(error.message);
+    }
+  };
+
   const pendingUsers = users.filter((u) => u.requested_access);
 
   const filteredUsers = users.filter((u) => {
@@ -141,6 +178,8 @@ function Users() {
           filteredUsers={filteredUsers}
           loading={loading}
           onRoleChange={handleRoleChange}
+          onDeleteUser={handleDeleteUser}
+          onCreateUser={handleCreateUser}
         />
       </div>
     </div>

@@ -1,7 +1,7 @@
 import { ShieldCheck, UserCheck, Clock, Eye, Trash2, } from "lucide-react";
 import { useAuth } from "./context/AuthContext";
 
-function UsersTable({ filteredUsers, loading, onRoleChange }) {
+function UsersTable({ filteredUsers, loading, onRoleChange, onDeleteUser, onCreateUser }) {
   const { user: currentUser } = useAuth();
   if (loading) {
     return (
@@ -110,7 +110,10 @@ function UsersTable({ filteredUsers, loading, onRoleChange }) {
                 </select>
               </td>
               <td className="py-3.5 px-4 text-right">
-                <button className="rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] p-2 text-[var(--control-text)] transition hover:bg-[var(--control-hover)]">
+                <button 
+                  className="rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] p-2 text-[var(--control-text)] transition hover:bg-[var(--control-hover)]"
+                  onClick={() => onDeleteUser(user.id)}
+                >
                   <Trash2
                     size={16}
                     className="text-[var(--text-danger)] hover:text-[var(--text-danger-hover)] transition-colors"
