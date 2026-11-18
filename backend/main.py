@@ -589,10 +589,12 @@ def get_overserviced_bins(
 @app.post("/api/users", dependencies=[Depends(require_admin)])
 def create_user(user_data: UserCreate):
     try:
-        # Create the user in Supabase Auth and auto-confirm their email
+        # Create the user in Supabase Auth
+        # Requires the user to have atleast 6 characters in their password, otherwise it will throw an error.
         new_user = supabase.auth.admin.create_user({
             "email": user_data.email,
             "password": user_data.password,
+            "email_confirm": True
         })
         
         # The trigger will auto-create the public.profiles row. 
