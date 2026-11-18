@@ -1,4 +1,4 @@
-import { ShieldCheck, UserCheck, Clock, Eye } from "lucide-react";
+import { ShieldCheck, UserCheck, Clock, Eye, Trash2, } from "lucide-react";
 import { useAuth } from "./context/AuthContext";
 
 function UsersTable({ filteredUsers, loading, onRoleChange }) {
@@ -28,6 +28,7 @@ function UsersTable({ filteredUsers, loading, onRoleChange }) {
             <th className="py-3 px-4 font-semibold">Status</th>
             <th className="py-3 px-4 font-semibold">Current Role</th>
             <th className="py-3 px-4 font-semibold text-right">Role Action</th>
+            <th className="py-3 px-4 font-semibold text-right">Delete</th>
           </tr>
         </thead>
 
@@ -107,6 +108,14 @@ function UsersTable({ filteredUsers, loading, onRoleChange }) {
                     Admin
                   </option>
                 </select>
+              </td>
+              <td className="py-3.5 px-4 text-right">
+                <button className="rounded-lg border border-[color:var(--control-border)] bg-[var(--control-bg)] p-2 text-[var(--control-text)] transition hover:bg-[var(--control-hover)]">
+                  <Trash2
+                    size={16}
+                    className="text-[var(--text-danger)] hover:text-[var(--text-danger-hover)] transition-colors"
+                  />
+                </button>
               </td>
             </tr>
           ))}
