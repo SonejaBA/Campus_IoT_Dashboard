@@ -7,7 +7,6 @@ import Maintenance from "./pages/Maintenance.jsx";
 import Users from "./pages/Users.jsx"
 import AccessDenied from "./pages/AccessDenied.jsx";
 import Login from "./pages/Login.jsx";
-import SignUp from "./pages/SignUp.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AuthProvider from "./components/context/AuthContext.jsx";
 import SettingsProvider from "./components/context/SettingsContext.jsx";
@@ -26,7 +25,6 @@ function AppRoute(){
     <BrowserRouter>
       <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<SignUp />} />
             <Route path="/forgotpassword" element={<ForgotPassword />} />
             <Route path="/update-password" element={<UpdatePassword />} />
 

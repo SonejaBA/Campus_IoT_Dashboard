@@ -82,6 +82,12 @@ class BinUpdate(BaseModel):
 class BinDeactivationUpdate(BaseModel):
     is_deactivated: bool
 
+class UserCreate(BaseModel):
+    email: str
+    password: str
+    display_name: str
+    role: str = "viewer"
+
 
 @app.post("/api/bins", dependencies=[Depends(require_admin)])
 def create_bin(bin_data: BinCreate):
@@ -578,3 +584,40 @@ def get_overserviced_bins(
         },
         "bins": flagged,
     }
+
+
+@app.post("/api/users", dependencies=[Depends(require_admin)])
+def create_user(user_data: UserCreate):
+    try:
+        # Create the user in Supabase Auth
+        # Requires the user to have atleast 6 characters in their password, otherwise it will throw an error.
+        new_user = supabase.auth.admin.create_user({
+            "email": user_data.email,
+            "password": user_data.password,
+            "email_confirm": True
+        })
+        
+        # The trigger will auto-create the public.profiles row. 
+        # We immediately update it with their real name and assigned role.
+        supabase.table("profiles").update({
+            "display_name": user_data.display_name,
+            "role": user_data.role,
+            "requested_access": False
+        }).eq("id", new_user.user.id).execute()
+        
+        return {"status": "success", "user_id": new_user.user.id}
+    except Exception as error:
+        raise HTTPException(status_code=400, detail=str(error))
+
+@app.delete("/api/users/{target_user_id}", dependencies=[Depends(require_admin)])
+def delete_user(target_user_id: str, current_user=Depends(require_admin)):
+    # Prevent the active admin from accidentally deleting themselves
+    if current_user.id == target_user_id:
+        raise HTTPException(status_code=400, detail="You cannot delete your own active account.")
+    
+    try:
+        # Deleting from Auth automatically cascades and deletes the public.profiles row
+        supabase.auth.admin.delete_user(target_user_id)
+        return {"status": "success"}
+    except Exception as error:
+        raise HTTPException(status_code=400, detail=str(error))
