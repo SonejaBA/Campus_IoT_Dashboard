@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
+from typing import List
 import os
 
 load_dotenv()
@@ -621,3 +622,16 @@ def delete_user(target_user_id: str, current_user=Depends(require_admin)):
         return {"status": "success"}
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
+
+@app.post("/api/bins/batch", dependencies=[Depends(require_admin)])
+def create_bins_batch(bins_data: List[BinCreate]):
+    try:
+        # Convert Pydantic models to a list of dictionaries
+        new_bins = [bin.model_dump(exclude_unset=True) for bin in bins_data]
+        
+        # Supabase handles bulk inserts automatically when passed a list
+        response = supabase.table("bins").insert(new_bins).execute()
+        
+        return {"status": "success", "inserted": len(response.data)}
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=str(error))
