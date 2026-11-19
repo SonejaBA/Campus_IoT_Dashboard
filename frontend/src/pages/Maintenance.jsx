@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import {
   AlertTriangle,
   MapPin,
@@ -9,7 +9,8 @@ import {
   Wrench,
   X,
   Eye,
-  SquareSigma
+  SquareSigma,
+  Upload,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { authFetch } from "../services/supabaseClient";
@@ -53,6 +54,51 @@ function Maintenance({ bins = [] }) {
     long: "",
     zone: "",
   });
+
+  const fileInputRef = useRef(null);
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const text = e.target.result;
+      // Split by newlines, skip the header row, and filter out empty rows
+      const rows = text.split("\n").slice(1).filter(row => row.trim());
+      
+      const binsToImport = rows.map(row => {
+        const [id, location, lat, long, zone] = row.split(",");
+        return {
+          id: Number(id),
+          location: location?.trim() || "Unassigned",
+          lat: Number(lat),
+          long: Number(long),
+          zone: zone?.trim() || null
+        };
+      });
+
+      try {
+        const response = await authFetch(`${import.meta.env.VITE_API_URL}/api/bins/batch`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(binsToImport),
+        });
+
+        if (!response.ok) throw new Error("Import failed");
+        
+        alert(`Successfully imported ${binsToImport.length} bins!`);
+        window.location.reload(); 
+      } catch (error) {
+        console.error(error);
+        alert("Failed to import bins. Check CSV format.");
+      }
+    };
+    
+    reader.readAsText(file);
+    event.target.value = null; // Reset input
+  };
+
   const navigate = useNavigate();
   useEffect(() => {
     let ignore = false;
@@ -362,8 +408,16 @@ const handleToggleDeactivation = async (bin) => {
               Manage campus bins, locations, zones, and maintenance activity.
             </p>
           </div>
-
-          <button
+          <div className="flex items-center justify-between gap-2">
+            <input
+              type="file"
+              accept=".csv"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            
+            <button
             type="button"
             onClick={() => setShowAddModal(true)}
             className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-[color:var(--control-border)] backdrop-blur-[var(--backdrop-blur)] bg-[var(--control-bg)] px-4 py-2.5 text-sm font-medium text-[var(--control-text)] transition hover:bg-[var(--control-hover)]"
@@ -371,6 +425,16 @@ const handleToggleDeactivation = async (bin) => {
             <Plus size={17} />
             Add bin
           </button>
+            <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-[color:var(--control-border)] backdrop-blur-[var(--backdrop-blur)] bg-[var(--control-bg)] px-4 py-2.5 text-sm font-medium text-[var(--control-text)] transition hover:bg-[var(--control-hover)]"
+          >
+            <Upload size={17} />
+            Import CSV
+          </button>
+          </div>
+          
         </header>
 
         {/* Summary cards */}
