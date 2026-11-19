@@ -7,11 +7,22 @@ from supabase import create_client, Client
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
 import os
-
+import resend
+from html import escape
 load_dotenv()
 
 SUPABASE_CLIENT = os.getenv("SUPABASE_CLIENT")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+RESEND_FROM_EMAIL = os.getenv(
+    "RESEND_FROM_EMAIL",
+    "onboarding@resend.dev",
+)
+RESEND_TEST_TO_EMAIL = os.getenv("RESEND_TEST_TO_EMAIL")
+
+if RESEND_API_KEY:
+    resend.api_key = RESEND_API_KEY
 
 
 supabase: Client = create_client(SUPABASE_CLIENT, SUPABASE_KEY)
@@ -58,6 +69,211 @@ class BinUpdate(BaseModel):
     long: float
     location: str
     zone: str | None = None
+DAILY_SUMMARY_FILL_THRESHOLD = 80
+DAILY_SUMMARY_BATTERY_THRESHOLD = 20
+
+
+def build_daily_maintenance_summary():
+    response = (
+        supabase
+        .table("bins")
+        .select(
+            "id,location,zone,fill_level,battery_level,is_deactivated"
+        )
+        .order("id")
+        .execute()
+    )
+
+    alerts = []
+
+    for bin in response.data:
+        # Deactivated bins should not appear in the daily service email.
+        if bin.get("is_deactivated") is True:
+            continue
+
+        fill_level = bin.get("fill_level")
+        battery_level = bin.get("battery_level")
+
+        reasons = []
+
+        if (
+            fill_level is not None
+            and fill_level >= DAILY_SUMMARY_FILL_THRESHOLD
+        ):
+            reasons.append("critical fill level")
+
+        if (
+            battery_level is not None
+            and battery_level < DAILY_SUMMARY_BATTERY_THRESHOLD
+        ):
+            reasons.append("low battery")
+
+        if not reasons:
+            continue
+
+        alerts.append(
+            {
+                "bin_id": bin["id"],
+                "location": bin.get("location") or "Unknown location",
+                "zone": bin.get("zone") or "Unassigned",
+                "fill_level": fill_level,
+                "battery_level": battery_level,
+                "reasons": reasons,
+            }
+        )
+
+    alerts.sort(
+        key=lambda bin: (
+            bin["zone"],
+            bin["bin_id"],
+        )
+    )
+
+    by_zone = defaultdict(list)
+
+    for alert in alerts:
+        by_zone[alert["zone"]].append(alert)
+
+    return {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "total_bins_needing_service": len(alerts),
+        "thresholds": {
+            "fill_critical": DAILY_SUMMARY_FILL_THRESHOLD,
+            "battery_warning": DAILY_SUMMARY_BATTERY_THRESHOLD,
+        },
+        "zones": dict(by_zone),
+    }
+
+
+@app.get("/api/daily-maintenance-summary")
+def get_daily_maintenance_summary():
+    try:
+        return build_daily_maintenance_summary()
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+def build_daily_maintenance_email_html(summary):
+    total = summary["total_bins_needing_service"]
+    thresholds = summary["thresholds"]
+    zones = summary["zones"]
+
+    if total == 0:
+        return """
+        <h2>Daily Maintenance Summary</h2>
+        <p>No bins currently need servicing.</p>
+        """
+
+    zone_sections = []
+
+    for zone, bins in sorted(zones.items()):
+        bin_rows = []
+
+        for bin_data in bins:
+            bin_id = f'BIN-{int(bin_data["bin_id"]):03d}'
+            location = escape(str(bin_data.get("location") or "Unknown location"))
+            fill_level = bin_data.get("fill_level", "N/A")
+            battery_level = bin_data.get("battery_level", "N/A")
+
+            reasons = ", ".join(
+                escape(str(reason))
+                for reason in bin_data.get("reasons", [])
+            )
+
+            bin_rows.append(
+                f"""
+                <li>
+                    <strong>{bin_id}</strong> — {location}
+                    <br>
+                    Fill: {fill_level}% |
+                    Battery: {battery_level}%
+                    <br>
+                    Reason: {reasons}
+                </li>
+                """
+            )
+
+        zone_sections.append(
+            f"""
+            <h3>Zone {escape(str(zone))}</h3>
+            <ul>
+                {"".join(bin_rows)}
+            </ul>
+            """
+        )
+
+    return f"""
+    <html>
+      <body>
+        <h2>Daily Maintenance Summary</h2>
+
+        <p>
+          <strong>{total}</strong> bin(s) currently need servicing.
+        </p>
+
+        <p>
+          Critical fill threshold: {thresholds["fill_critical"]}%<br>
+          Battery warning threshold: {thresholds["battery_warning"]}%
+        </p>
+
+        {"".join(zone_sections)}
+
+        <p>
+          This summary was generated automatically by the Campus IoT
+          Bin Dashboard.
+        </p>
+      </body>
+    </html>
+    """
+
+
+@app.post("/api/daily-maintenance-summary/email-test")
+def send_daily_maintenance_summary_email():
+    if not RESEND_API_KEY:
+        raise HTTPException(
+            status_code=500,
+            detail="RESEND_API_KEY is not configured.",
+        )
+
+    recipients = [
+        email.strip()
+        for email in RESEND_TEST_TO_EMAIL.split(",")
+        if email.strip()
+    ]
+
+    if not recipients:
+        raise HTTPException(
+            status_code=500,
+            detail="RESEND_TEST_TO_EMAIL is not configured.",
+        )
+
+    try:
+        summary = build_daily_maintenance_summary()
+
+        html_body = build_daily_maintenance_email_html(summary)
+
+        resend.Emails.send({
+            "from": RESEND_FROM_EMAIL,
+            "to": recipients,
+            "subject": "Campus IoT Daily Maintenance Summary",
+            "html": html_body,
+        })
+
+        return {
+            "sent": True,
+            "recipients": recipients,
+            "total_bins_needing_service": summary[
+                "total_bins_needing_service"
+            ],
+        }
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
 
 class BinDeactivationUpdate(BaseModel):
     is_deactivated: bool
