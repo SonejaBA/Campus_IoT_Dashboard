@@ -196,67 +196,69 @@ function Users() {
   });
 
   return (
-    <div className="flex-1 text-[var(--text-primary)] p-10 flex flex-col gap-4">
-      <div className="mb-3 hidden md:block">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-secondary)]">
-            Operations Control Center
-          </p>
+    <div className="min-h-full w-full px-5 py-8 text-[var(--text-primary)] sm:px-8 lg:px-10">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4">
+        <div className="mb-3 hidden md:block">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-secondary)]">
+              Operations Control Center
+            </p>
 
-          <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
-            Users & Access Management
-          </h1>
+            <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+              Users & Access Management
+            </h1>
 
-          <p className="mt-2 max-w-2xl text-sm text-[var(--text-secondary)]">
-            View and manage team-member roles.
-          </p>
+            <p className="mt-2 max-w-2xl text-sm text-[var(--text-secondary)]">
+              View and manage team-member roles.
+            </p>
+          </div>
         </div>
-      </div>
-      <PendingRequests
-        pendingUsers={pendingUsers}
-        onApprove={handleApprove}
-        onDeny={handleDeny}
-      />
+        <PendingRequests
+          pendingUsers={pendingUsers}
+          onApprove={handleApprove}
+          onDeny={handleDeny}
+        />
 
-      <div className="flex items-center justify-between">
-        <button
-          type="button"
-          onClick={() => {
-            setShowAddModal(true);
-            setNewUser({
-              email: "",
-              display_name: "",
-              password: "",
-              role: "viewer",
-            });
-          }}
-          className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-[color:var(--control-border)] backdrop-blur-[var(--backdrop-blur)] bg-[var(--control-bg)] px-4 py-2.5 text-sm font-medium text-[var(--control-text)] transition hover:bg-[var(--control-hover)]"
-        >
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => {
+              setShowAddModal(true);
+              setNewUser({
+                email: "",
+                display_name: "",
+                password: "",
+                role: "viewer",
+              });
+            }}
+            className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-[color:var(--control-border)] backdrop-blur-[var(--backdrop-blur)] bg-[var(--control-bg)] px-4 py-2.5 text-sm font-medium text-[var(--control-text)] transition hover:bg-[var(--control-hover)]"
+          >
           <Plus size={17} />
           Add user
-        </button>
-        <UserSearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-      </div>
+          </button>
+          <UserSearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        </div>
 
-      <div
-        className=" 
-        bg-[var(--bg-card)] 
-        rounded-xl 
-        p-4 
-        backdrop-blur-[var(--backdrop-blur)]
-        [border:var(--border-card)]
-        w-full
-        "
-      >
-        <h2 className="text-[var(--text-primary)] font-semibold mb-2">
-          Registered Users
-        </h2>
-        <UsersTable
-          filteredUsers={filteredUsers}
-          loading={loading}
-          onRoleChange={handleRoleChange}
-          onDeleteUser={handleDeleteUser}
-        />
+        <div
+          className=" 
+          bg-[var(--bg-card)] 
+          rounded-xl 
+          p-4 
+          backdrop-blur-[var(--backdrop-blur)]
+          [border:var(--border-card)]
+          w-full
+          "
+        >
+          <h2 className="text-[var(--text-primary)] font-semibold mb-2">
+            Registered Users
+          </h2>
+          <UsersTable
+            filteredUsers={filteredUsers}
+            loading={loading}
+            onRoleChange={handleRoleChange}
+            onDeleteUser={handleDeleteUser}
+          />
+        </div>
       </div>
 
       {showAddModal && (
