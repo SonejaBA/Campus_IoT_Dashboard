@@ -57,7 +57,8 @@ function Analytics({ bins }) {
 
   return (
     //flex 1 since its going to be under a flex parent
-    <div className="flex-1 text-[var(--text-primary)] p-10 flex flex-col gap-4">
+    <div className="w-full px-5 py-8 text-[var(--text-primary)] sm:px-8 lg:px-10">
+     <div className="mx-auto flex w-full max-w-7xl flex-col gap-4">
       <h1 className="mb-3 hidden md:block">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-secondary)]">
@@ -150,6 +151,8 @@ function Analytics({ bins }) {
       </div>
 
       <OverservicedPanel />
+
+      </div>
     </div>
   );
 }
