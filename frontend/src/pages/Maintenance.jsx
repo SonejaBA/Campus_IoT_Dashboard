@@ -46,6 +46,9 @@ function Maintenance({ bins = [] }) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingBin, setEditingBin] = useState(null);
   const [maintenanceStatus, setMaintenanceStatus] = useState({});
+  const [maintenanceLoading, setMaintenanceLoading] = useState(true);
+  const [maintenanceError, setMaintenanceError] = useState("");
+  const [sensorFilter, setSensorFilter] = useState("all");
   const [deactivationOverrides, setDeactivationOverrides] = useState({});
   const [newBin, setNewBin] = useState({
     id: "",
@@ -104,23 +107,36 @@ function Maintenance({ bins = [] }) {
     let ignore = false;
 
     const loadMaintenanceStatus = async () => {
+      if (!ignore) {
+        setMaintenanceLoading(true);
+        setMaintenanceError("");
+      }
+
       try {
         const response = await authFetch(
           `${import.meta.env.VITE_API_URL}/api/maintenance`,
         );
+
         if (!response.ok) {
           throw new Error("Failed to load maintenance status.");
         }
 
         const data = await response.json();
+
         if (!ignore) {
           setMaintenanceStatus(data);
+          setMaintenanceError("");
         }
       } catch (error) {
         console.error("Error loading maintenance status:", error);
 
         if (!ignore) {
           setMaintenanceStatus({});
+          setMaintenanceError("Unable to load sensor health.");
+        }
+      } finally {
+        if (!ignore) {
+          setMaintenanceLoading(false);
         }
       }
     };
@@ -386,9 +402,26 @@ const handleToggleDeactivation = async (bin) => {
         (statusFilter === "active" && !isDeactivated) ||
         (statusFilter === "deactivated" && isDeactivated);
 
-      return matchesSearch && matchesZone && matchesStatus;
+      const matchesSensor =
+        sensorFilter === "all" ||
+        maintenanceStatus[bin.id]?.needs_maintenance === true;
+
+      return (
+        matchesSearch &&
+        matchesZone &&
+        matchesStatus &&
+        matchesSensor
+      );
     });
-  }, [bins, searchTerm, zoneFilter, statusFilter, deactivationOverrides]);
+  }, [
+  bins,
+  searchTerm,
+  zoneFilter,
+  statusFilter,
+  sensorFilter,
+  maintenanceStatus,
+  deactivationOverrides,
+]);
 
   return (
     <main className="min-h-full flex-1 overflow-auto px-5 py-8 text-[var(--text-primary)] sm:px-8 lg:px-10">
@@ -539,6 +572,14 @@ const handleToggleDeactivation = async (bin) => {
                    <option value="active">Active</option>
                    <option value="deactivated">Deactivated</option>
                  </select>
+              <select
+                value={sensorFilter}
+                onChange={(event) => setSensorFilter(event.target.value)}
+                className="rounded-lg border border-[color:var(--control-border)] bg-[var(--bg-card)] px-3 py-2.5 text-sm text-[var(--dropdown-text))] outline-none"
+              >
+                <option value="all">All sensors</option>
+                <option value="faulty">Possible faulty sensors</option>
+              </select>
             </div>
           </div>
 
@@ -600,24 +641,38 @@ const handleToggleDeactivation = async (bin) => {
                         <div className="flex flex-wrap gap-2">
                           {["compost", "recycle", "landfill"].map((sensor) => {
                             const needsMaintenance =
-                              maintenanceStatus[bin.id]?.sensors?.[sensor] ===
-                              true;
+                              maintenanceStatus[bin.id]?.sensors?.[sensor] === true;
+
+                            let sensorLabel = "Loading";
+                            let sensorClass = "bg-gray-100 text-gray-700";
+                            let sensorIcon = "…";
+
+                            if (maintenanceError) {
+                              sensorLabel = "Error";
+                              sensorClass = "bg-orange-100 text-orange-700";
+                              sensorIcon = "⚠️";
+                            } else if (!maintenanceLoading) {
+                              if (needsMaintenance) {
+                                sensorLabel = "Critical";
+                                sensorClass = "bg-red-100 text-red-700";
+                                sensorIcon = "⚠️";
+                              } else {
+                                sensorLabel = "OK";
+                                sensorClass = "bg-green-100 text-green-700";
+                                sensorIcon = "✓";
+                              }
+                            }
 
                             return (
                               <span
                                 key={sensor}
-                                className={`rounded-md px-2 py-1 text-xs font-medium ${
-                                  needsMaintenance
-                                    ? "bg-red-100 text-red-700"
-                                    : "bg-green-100 text-green-700"
-                                }`}
+                                className={`rounded-md px-2 py-1 text-xs font-medium ${sensorClass}`}
                               >
-                                {sensor.charAt(0).toUpperCase() +
-                                  sensor.slice(1)}
-                                {needsMaintenance ? " ⚠️" : " ✓"}
+                                {sensor.charAt(0).toUpperCase() + sensor.slice(1)}:{" "}
+                                {sensorLabel} {sensorIcon}
                               </span>
-                            );
-                          })}
+                             );
+                           })}
                         </div>
                       </td>
 
