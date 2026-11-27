@@ -57,7 +57,7 @@ function Analytics({ bins }) {
 
   return (
     //flex 1 since its going to be under a flex parent
-    <div className="min-h-full w-full px-5 py-8 text-[var(--text-primary)] sm:px-8 lg:px-10">
+    <div className="w-full px-5 py-8 text-[var(--text-primary)] sm:px-8 lg:px-10">
      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4">
       <h1 className="mb-3 hidden md:block">
         <div>
