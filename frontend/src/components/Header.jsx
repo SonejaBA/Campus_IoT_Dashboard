@@ -262,14 +262,28 @@ function Header({ bins }) {
 
       <div className="gap-2 items-center flex ">
         <div className="relative top-1 " ref={dropdownRef}>
+
+          {/* Notification Bell + dropdown */}
           <button
-            className="px-4 relative cursor-pointer"
+            type="button"
+            aria-label={`Notifications (${notificationCount})`}
+            aria-expanded={isOpen}
             onClick={() => setIsOpen(!isOpen)}
+            className="
+              relative
+              cursor-pointer
+              rounded-full
+              p-2
+              text-[var(--button-color)]
+              transition
+              hover:bg-white/10
+              focus-visible:outline-none
+              focus-visible:ring-2
+              focus-visible:ring-emerald-400
+            "
           >
             <NotificationDot numOfNotifications={notificationCount} />
-            <div className="rounded-full hover:bg-white/10 p-2 text-[var(--button-color)]">
-              <Bell size={20} />
-            </div>
+            <Bell size={20} />
           </button>
 
           {isOpen && (
