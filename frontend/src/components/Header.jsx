@@ -74,19 +74,25 @@ function NotificationDot({ numOfNotifications }) {
   if (!numOfNotifications || numOfNotifications <= 0) return null;
 
   return (
+    
     <span
       className="
-      absolute 
-      bg-red-700
-      rounded-full 
-      h-4
-      w-4
-      items-center 
-      justify-center
-      text-[10px] 
-      font-bold 
-      top-1
-      text-white"
+        absolute
+        -right-1
+        -top-1
+        flex
+        min-h-4
+        min-w-4
+        items-center
+        justify-center
+        rounded-full
+        bg-red-700
+        px-1
+        text-[10px]
+        font-bold
+        leading-none
+        text-white
+      "
     >
       {numOfNotifications}
     </span>
@@ -262,73 +268,152 @@ function Header({ bins }) {
 
       <div className="gap-2 items-center flex ">
         <div className="relative top-1 " ref={dropdownRef}>
+
+          {/* Notification Bell + dropdown */}
           <button
-            className="px-4 relative cursor-pointer"
+            type="button"
+            aria-label={`Notifications (${notificationCount})`}
+            aria-expanded={isOpen}
             onClick={() => setIsOpen(!isOpen)}
+            className="
+              relative
+              cursor-pointer
+              rounded-full
+              p-2
+              text-[var(--button-color)]
+              transition
+              hover:bg-white/10
+              focus-visible:outline-none
+              focus-visible:ring-2
+              focus-visible:ring-emerald-400
+            "
           >
             <NotificationDot numOfNotifications={notificationCount} />
-            <div className="rounded-full hover:bg-white/10 p-2 text-[var(--button-color)]">
-              <Bell size={20} />
-            </div>
+            <Bell size={20} />
           </button>
+
+          {/* Notification dropdown */}
 
           {isOpen && (
             <div
-              className="absolute 
-            right-0 
-            top-12 
-            z-[2000] 
-            w-72 
-            max-h-64 
-            overflow-y-auto 
-            overscroll-contain 
-            flex 
-            flex-col 
-            gap-1 
-            p-2 
-            text-sm 
-            text-[var(--text-secondary)]
-            rounded-lg 
-            bg-[var(--bg-card-strong)]
-            [border:var(--border-card)]
-            shadow-[var(--shadow-card-subtle)]
-            "
+  
+              className="
+                absolute
+                right-0
+                top-12
+                z-[2000]
+                flex
+                w-80
+                max-w-[calc(100vw-2rem)]
+                max-h-72
+                flex-col
+                gap-1
+                overflow-y-auto
+                rounded-xl
+                bg-[var(--bg-card-strong)]
+                p-2
+                text-sm
+                text-[var(--text-secondary)]
+                shadow-[var(--shadow-card-subtle)]
+                [border:var(--border-card)]
+              "
             >
-              {attentionBins.map((bin) => (
-                <button
-                  type="button"
-                  key={bin.id}
-                  className="flex items-center gap-2 cursor-pointer"
-                  onClick={() => handleNotificationClick(bin.id)}
-                >
-                  <Trash
-                    size={16}
-                    className="shrink-0 text-[var(--status-critical)]"
-                  />
-                  Bin {bin.id}: {bin.fill_level}%
-                </button>
-              ))}
+            <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+              Notifications
+            </p>
 
-              {lowBatteryBins.map((bin) => (
-                <button
-                  type="button"
-                  key={`${bin.id}-battery`}
-                  className="flex items-center gap-2 cursor-pointer"
-                  onClick={() => handleNotificationClick(bin.id)}
-                >
+            {attentionBins.map((bin) => (
+              <button
+                type="button"
+                key={bin.id}
+                onClick={() => handleNotificationClick(bin.id)}
+                className="
+                  group
+                  flex
+                  w-full
+                  items-center
+                  gap-3
+                  rounded-lg
+                  px-3
+                  py-3
+                  text-left
+                  transition
+                  hover:bg-[var(--bg-hover)]
+                  focus-visible:outline-none
+                  focus-visible:ring-2
+                  focus-visible:ring-emerald-400
+                "
+              >
+              <span className="rounded-full bg-red-500/15 p-2">
+                <Trash
+                  size={16}
+                  className="text-[var(--status-critical)]"
+                  aria-hidden="true"
+                />
+              </span>
+
+              <span className="flex flex-col">
+                <span className="font-medium text-[var(--text-primary)]">
+                  Bin {bin.id} needs attention
+                </span>
+                <span className="text-xs">
+                  Fill level: {bin.fill_level}%
+                </span>
+              </span>
+            </button>
+            ))}
+
+            {lowBatteryBins.map((bin) => (
+              <button
+                type="button"
+                key={`${bin.id}-battery`}
+                onClick={() => handleNotificationClick(bin.id)}
+                className="
+                  group
+                  flex
+                  w-full
+                  items-center
+                  gap-3
+                  rounded-lg
+                  px-3
+                  py-3
+                  text-left
+                  transition
+                  hover:bg-[var(--bg-hover)]
+                  focus-visible:outline-none
+                  focus-visible:ring-2
+                  focus-visible:ring-amber-400
+                "
+              >
+                <span className="rounded-full bg-amber-500/15 p-2">
                   <BatteryLow
                     size={16}
-                    className="shrink-0 text-[var(--status-warning)]"
+                    className="text-[var(--status-warning)]"
+                    aria-hidden="true"
                   />
-                  Battery level critical: Bin {bin.id} ({bin.battery_level}%)
-                </button>
+                </span>
+
+                <span className="flex flex-col">
+                  <span className="font-medium text-[var(--text-primary)]">
+                    Low battery: Bin {bin.id}
+                  </span>
+                  <span className="text-xs">
+                    Battery level: {bin.battery_level}%
+                  </span>
+                </span>
+              </button>
               ))}
 
-              {!notificationCount && "No Notifications"}
+              {!notificationCount && (
+                <p className="px-3 py-4 text-center text-sm text-[var(--text-secondary)]">
+                  No active notifications
+                </p>
+              )}
             </div>
           )}
         </div>
 
+        {/* Tally icon + system status */}
         <Tally1 className="text-[var(--button-color)]" />
         <StatusDot serverHealthy={isHealthy} />
         <h1 className="font-medium hidden md:block text-[var(--button-color)]">
